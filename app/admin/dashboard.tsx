@@ -35,7 +35,29 @@ export default function AdminDashboard({initialArtworks}:Props){
 
   function patch(key:string,value:any){setSelected({...form,[key]:value} as Artwork);}
   function chooseImage(file:File|null){setImage(file);setImagePreview(file ? URL.createObjectURL(file) : "");setMessage("");}
-  function chooseGalleryImages(files:FileList|null){if(!files)return;setNewImages(prev=>[...prev,...Array.from(files)]);setMessage("");}
+  async function chooseGalleryImages(files:FileList|null){
+    if(!files)return;
+    const selectedFiles=Array.from(files);
+    if(!form.id){setNewImages(prev=>[...prev,...selectedFiles]);setMessage("Фото добавлены в список и загрузятся после сохранения картины.");return;}
+    setBusy(true);setMessage("");
+    try{
+      const rows:any[]=[];
+      const start=galleryImages.length;
+      for(let i=0;i<selectedFiles.length;i++){
+        const file=selectedFiles[i];
+        const ext=file.name.split(".").pop()?.toLowerCase()||"jpg";
+        const path=form.id+"/"+crypto.randomUUID()+"."+ext;
+        const up=await supabase.storage.from("petit-sot-artworks").upload(path,file,{contentType:file.type,upsert:false});
+        if(up.error)throw up.error;
+        rows.push({artwork_id:form.id,image_path:path,sort_order:start+i});
+      }
+      const inserted=await supabase.from("petit_sot_artwork_images").insert(rows).select("*");
+      if(inserted.error)throw inserted.error;
+      setGalleryImages(prev=>[...prev,...(inserted.data||[])]);
+      setMessage(selectedFiles.length===1?"Фото добавлено в галерею.":`Добавлено фотографий: ${selectedFiles.length}.`);
+    }catch(err:any){setMessage(err?.message||"Не удалось загрузить фото.");}
+    setBusy(false);
+  }
 
   async function save(e:FormEvent){
     e.preventDefault();setBusy(true);setMessage("");

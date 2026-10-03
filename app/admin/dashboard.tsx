@@ -54,7 +54,7 @@ export default function AdminDashboard({initialArtworks}:Props){
       }
       const res=await fetch("/api/admin/generate-description",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({imageDataUrl:dataUrl,title:form.title,medium:form.medium,year:form.year,width_cm:form.width_cm,height_cm:form.height_cm,depth_cm:form.depth_cm})});
       const json=await res.json(); if(!res.ok) throw new Error(json.error||"AI generation failed.");
-      patch("description",json.description); patch("ai_description",json.description); setMessage("AI description generated — edit it if you want.");
+      setSelected({...form,description:json.description,ai_description:json.description} as Artwork); setMessage("AI description generated — edit it if you want.");
     }catch(err:any){setMessage(err?.message||"AI generation failed.");}
     setAiBusy(false);
   }

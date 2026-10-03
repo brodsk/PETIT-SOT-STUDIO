@@ -34,8 +34,29 @@ export default function Effects(){
       el.classList.add("motion-reveal");
       el.style.setProperty("--reveal-delay",Math.min(i*45,450)+"ms");
     });
-    requestAnimationFrame(()=>revealTargets.forEach(el=>el.classList.add("is-visible")));
 
+    const reveal=(el:Element)=>el.classList.add("is-visible");
+    if("IntersectionObserver" in window){
+      const observer=new IntersectionObserver((entries)=>{
+        entries.forEach(entry=>{
+          if(entry.isIntersecting){
+            reveal(entry.target);
+            observer.unobserve(entry.target);
+          }
+        });
+      },{threshold:.12,rootMargin:"0px 0px -7% 0px"});
+      revealTargets.forEach(el=>observer.observe(el));
+      revealTargets.forEach((el)=>{if(el.getBoundingClientRect().top<window.innerHeight*.82) reveal(el);});
+      return()=>{
+        observer.disconnect();
+        window.removeEventListener("mousemove",move);
+        document.removeEventListener("mouseover",over);
+        document.removeEventListener("mouseout",out);
+        cursor.remove();
+      };
+    }
+
+    revealTargets.forEach(reveal);
     return()=>{
       window.removeEventListener("mousemove",move);
       document.removeEventListener("mouseover",over);

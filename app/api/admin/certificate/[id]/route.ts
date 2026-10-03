@@ -21,16 +21,16 @@ export async function GET(_request:Request,{params}:{params:Promise<{id:string}>
   const font=await pdf.embedFont(StandardFonts.Helvetica);
   const italic=await pdf.embedFont(StandardFonts.HelveticaOblique);
   const black=rgb(0.09,0.09,0.09);
-  page.drawText("PETIT.SOT STUDIO",{x:44,y:792,size:14,font, color:black});
-  page.drawText("CERTIFICATE / ARTWORK PASSPORT",{x:44,y:767,size:8,font, color:rgb(.35,.35,.35)});
+  page.drawText("PETIT.SOT STUDIO",{x:44,y:792,size:14,font,color:black});
+  page.drawText("CERTIFICATE / ARTWORK PASSPORT",{x:44,y:767,size:8,font,color:rgb(.35,.35,.35)});
   let y=720;
   if(w.image_path){
     const imageUrl=supabase.storage.from("petit-sot-artworks").getPublicUrl(w.image_path).data.publicUrl;
     const imageRes=await fetch(imageUrl);
     if(imageRes.ok){
-      const bytes=await imageRes.arrayBuffer();
+      const imageBytes=await imageRes.arrayBuffer();
       const type=imageRes.headers.get("content-type")||"";
-      const image=type.includes("png")?await pdf.embedPng(bytes):await pdf.embedJpg(bytes);
+      const image=type.includes("png")?await pdf.embedPng(imageBytes):await pdf.embedJpg(imageBytes);
       const scale=Math.min(507/image.width,420/image.height);
       page.drawImage(image,{x:44,y:y-420,width:image.width*scale,height:image.height*scale});
       y-=445;
@@ -40,8 +40,8 @@ export async function GET(_request:Request,{params}:{params:Promise<{id:string}>
   y-=34;
   page.drawText(`Olga Trikhleb · ${w.year||"—"}`,{x:44,y,size:10,font,color:black});
   y-=24;
-  const lines=[[`Medium`,w.medium||"—"],[`Dimensions`,[w.width_cm,w.height_cm].filter(Boolean).join(" × ") ? `${[w.width_cm,w.height_cm].filter(Boolean).join(" × ")} cm`:"—"],[`Price`,`€${Number(w.price_eur||0).toFixed(2)}`],[`Certificate`,cert]];
-  for(const [label,value] of lines){page.drawText(label.toUpperCase(),{x:44,y,size:7,font,color:rgb(.4,.4,.4)});page.drawText(value,{x:160,y,size:10,font,color:black});y-=19;}
+  const lines=[[\`Medium\`,w.medium||"—"],[\`Dimensions\`,[w.width_cm,w.height_cm].filter(Boolean).join(" × ")?`${[w.width_cm,w.height_cm].filter(Boolean).join(" × ")} cm`:"—"],[\`Price\`,`€${Number(w.price_eur||0).toFixed(2)}`],[\`Certificate\`,cert]];
+  for(const [label,value] of lines){page.drawText(label.toUpperCase(),{x:44,y,size:7,font,color:rgb(.4,.4,.4)});page.drawText(value as string,{x:160,y,size:10,font,color:black});y-=19;}
   y-=12;
   const desc=(w.description||w.ai_description||"").slice(0,850);
   const words=desc.split(/\s+/); let line=""; const wrapped:string[]=[];
@@ -49,6 +49,6 @@ export async function GET(_request:Request,{params}:{params:Promise<{id:string}>
   for(const l of wrapped.slice(0,10)){page.drawText(l,{x:44,y,size:9,font,color:black});y-=13;}
   page.drawText("PETIT.SOT STUDIO · Olga Trikhleb",{x:44,y:35,size:7,font,color:rgb(.45,.45,.45)});
   page.drawText(new Date().toLocaleDateString("en-GB"),{x:465,y:35,size:7,font,color:rgb(.45,.45,.45)});
-  const bytes=await pdf.save();
-  return new NextResponse(bytes,{headers:{"Content-Type":"application/pdf","Content-Disposition:`attachment; filename="${w.slug}-passport.pdf"`}});
+  const pdfBytes=await pdf.save();
+  return new NextResponse(pdfBytes,{headers:{"Content-Type":"application/pdf","Content-Disposition":`attachment; filename="${w.slug}-passport.pdf"`}});
 }

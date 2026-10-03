@@ -44,8 +44,12 @@ export default function AdminDashboard({initialArtworks}:Props){
         try{
           const tr=await fetch("/api/admin/translate-artwork",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({title:form.title,description:form.description})});
           const tj=await tr.json();
-          if(tr.ok){ titleEn=tj.titleEn||titleEn; descriptionEn=tj.descriptionEn||descriptionEn; }
-        }catch{}
+          if(!tr.ok) throw new Error(tj.error||"Не удалось перевести работу на английский.");
+          titleEn=tj.titleEn||titleEn;
+          descriptionEn=tj.descriptionEn||descriptionEn;
+        }catch(err:any){
+          throw new Error(err?.message||"Не удалось перевести работу на английский.");
+        }
       }
 
       const payload={slug:form.slug,title:form.title,title_en:titleEn,year:form.year||null,medium:form.medium||null,width_cm:form.width_cm||null,height_cm:form.height_cm||null,depth_cm:form.depth_cm||null,description:form.description,description_en:descriptionEn,ai_description:form.ai_description,price_eur:Number(form.price_eur)||0,status:form.status,image_path:imagePath||null};

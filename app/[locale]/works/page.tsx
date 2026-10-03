@@ -1,1 +1,14 @@
-import Link from "next/link";import {works} from "../../../data/works";export default async function Works({params}:{params:Promise<{locale:string}>}){const {locale}=await params;const ru=locale==="ru";return <main className="archive"><div className="page-intro"><p className="eyebrow">{ru?"Архив":"Archive"}</p><h1>{ru?"Работы":"Works"}</h1><p>{ru?"Картины и исследования Ольги Трихлеб.":"Paintings and studies by Olga Trikhleb."}</p></div><div className="archive-list">{works.map((w,i)=><Link className="archive-row" href={"/"+locale+"/works/"+w.slug} key={w.slug}><span>{String(i+1).padStart(2,"0")}</span><div className="archive-thumb"><span>IMAGE</span></div><div><h2>{w.title}</h2><p>{w.medium}</p></div><span>{w.available?(w.price>0?new Intl.NumberFormat(ru?"ru-RU":"en-GB",{style:"currency",currency:w.currency}).format(w.price):(ru?"Цена по запросу":"Price on request")):(ru?"Продано":"Sold")}</span><span>↗</span></Link>)}</div></main>}
+import Link from "next/link";
+import {works} from "../../../data/works";
+
+export default async function Works({params}:{params:Promise<{locale:string}>}){
+ const {locale}=await params; const ru=locale==="ru";
+ return <main className="archive gallery-archive">
+   <div className="archive-mast"><span className="eyebrow">{ru?"Архив":"Archive"}</span><h1>{ru?"Работы":"Works"}</h1><p>{ru?"Картины и визуальные исследования Ольги Трихлеб.":"Paintings and visual research by Olga Trikhleb."}</p></div>
+   <div className="archive-grid">{works.map((w,i)=><Link className={"archive-card archive-card-"+i} href={"/"+locale+"/works/"+w.slug} key={w.slug}>
+     <div className="archive-image art-placeholder"><span>{String(i+1).padStart(2,"0")}</span><small>IMAGE</small></div>
+     <div className="archive-card-meta"><span>{w.title}</span><span>{w.year}</span></div>
+     <p>{w.medium}</p>
+   </Link>)}</div>
+ </main>
+}

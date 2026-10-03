@@ -74,6 +74,24 @@ export default function AdminDashboard({initialArtworks}:Props){
     }catch(err:any){setMessage(err?.message||"Не удалось опубликовать.");}
     setBusy(false);
   }
+
+  async function removeArtwork(){
+    if(!form.id) return;
+    if(!window.confirm("Удалить эту картину? Это действие нельзя отменить.")) return;
+    setBusy(true); setMessage("");
+    try{
+      if(form.image_path){
+        const storage=await supabase.storage.from("petit-sot-artworks").remove([form.image_path]);
+        if(storage.error) throw storage.error;
+      }
+      const {error}=await supabase.from("petit_sot_artworks").delete().eq("id",form.id);
+      if(error) throw error;
+      setArtworks(prev=>prev.filter(x=>x.id!==form.id));
+      setSelected(null); setImage(null); setImagePreview("");
+      setMessage("Картина удалена.");
+    }catch(err:any){setMessage(err?.message||"Не удалось удалить картину.");}
+    setBusy(false);
+  }
   async function compressImage(source:Blob){
     const max=1800;
     const canvas=document.createElement("canvas");
@@ -163,7 +181,7 @@ export default function AdminDashboard({initialArtworks}:Props){
           </div>
           <div className="admin-description-head"><label>Описание (русский)<textarea value={form.description} onChange={e=>patch("description",e.target.value)} rows={8}/></label><div><button type="button" className="ai-button" onClick={generateDescription} disabled={aiBusy}>{aiBusy?"Анализирую картину…":"✦ Создать описание с ИИ"}</button><p>ИИ анализирует изображение и создаёт описание на русском и английском. Фактические данные не выдумываются.</p></div></div>
           {message && <p className="admin-message">{message}</p>}
-          <div className="admin-actions"><button type="button" onClick={publish} disabled={busy||!form.id}>Опубликовать ↗</button><button type="submit" disabled={busy}>{busy?"Сохраняю…":"Сохранить картину"} <span>↗</span></button>{form.id&&<button type="button" className="secondary" onClick={passport}>Создать паспорт PDF</button>}</div>
+          <div className="admin-actions"><button type="button" onClick={publish} disabled={busy||!form.id}>Опубликовать ↗</button><button type="submit" disabled={busy}>{busy?"Сохраняю…":"Сохранить картину"} <span>↗</span></button>{form.id&&<><button type="button" className="secondary" onClick={passport} disabled={busy}>Создать паспорт PDF</button><button type="button" className="secondary" onClick={removeArtwork} disabled={busy}>Удалить картину</button></>}</div>
         </form>
       </section>
     </section>

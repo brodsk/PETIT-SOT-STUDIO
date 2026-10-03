@@ -1,6 +1,7 @@
 import {notFound} from "next/navigation";
 import {getWork,localizeMedium} from "../../../../lib/works";
 import Link from "next/link";
+import ArtworkGallery from "./ArtworkGallery";
 
 export default async function WorkPage({params}:{params:Promise<{locale:string;slug:string}>}){
  const {locale,slug}=await params;
@@ -9,7 +10,7 @@ export default async function WorkPage({params}:{params:Promise<{locale:string;s
  if(!w)notFound();
  return <main className="work-page">
   <Link href={"/"+locale+"/works"} className="back">← {ru?"Архив":"Archive"}</Link>
-  <div className="single-art">{w.imageUrl?<img src={w.imageUrl} alt={ru?w.titleRu:w.titleEn}/>:<><span>IMAGE PLACEHOLDER</span><small>{ru?"Здесь будет оригинал картины":"Original artwork image will be added"}</small></>}</div>
+  <ArtworkGallery images={w.images} alt={ru?w.titleRu:w.titleEn}/>
   <aside className="work-info">
    <p className="eyebrow">PETIT.SOT / {w.year}</p>
    <h1>{ru?w.titleRu:w.titleEn}</h1>

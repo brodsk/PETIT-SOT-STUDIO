@@ -1,9 +1,10 @@
 "use client";
 
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 import { createClient } from "../../lib/supabase/client";
 
 type Artwork={id:string;slug:string;title:string;title_en:string;year:number|null;medium:string|null;width_cm:number|null;height_cm:number|null;depth_cm:number|null;description:string;description_en:string;ai_description:string;price_eur:number;status:string;image_path:string|null;certificate_number:string|null;created_at:string};
+type ArtworkImage={id:string;artwork_id:string;image_path:string;sort_order:number;created_at:string};
 type Props={initialArtworks:Artwork[]};
 
 export default function AdminDashboard({initialArtworks}:Props){
@@ -12,6 +13,8 @@ export default function AdminDashboard({initialArtworks}:Props){
   const [selected,setSelected]=useState<Artwork|null>(null);
   const [image,setImage]=useState<File|null>(null);
   const [imagePreview,setImagePreview]=useState("");
+  const [galleryImages,setGalleryImages]=useState<ArtworkImage[]>([]);
+  const [newImages,setNewImages]=useState<File[]>([]);
   const [busy,setBusy]=useState(false);
   const [aiBusy,setAiBusy]=useState(false);
   const [message,setMessage]=useState("");
@@ -19,8 +22,20 @@ export default function AdminDashboard({initialArtworks}:Props){
   const form=selected ?? {id:"",slug:"",title:"",title_en:"",year:new Date().getFullYear(),medium:"",width_cm:null,height_cm:null,depth_cm:null,description:"",description_en:"",ai_description:"",price_eur:0,status:"available",image_path:null,certificate_number:null,created_at:""};
   const imageUrl=useMemo(()=>form.image_path?supabase.storage.from("petit-sot-artworks").getPublicUrl(form.image_path).data.publicUrl:"",[form.image_path,supabase]);
 
+  useEffect(()=>{
+    let cancelled=false;
+    async function load(){
+      if(!form.id){setGalleryImages([]);return;}
+      const {data,error}=await supabase.from("petit_sot_artwork_images").select("*").eq("artwork_id",form.id).order("sort_order",{ascending:true});
+      if(!cancelled)setGalleryImages(error?[]:(data||[]));
+    }
+    load();
+    return ()=>{cancelled=true};
+  },[form.id,supabase]);
+
   function patch(key:string,value:any){setSelected({...form,[key]:value} as Artwork);}
   function chooseImage(file:File|null){setImage(file);setImagePreview(file ? URL.createObjectURL(file) : "");setMessage("");}
+  function chooseGalleryImages(files:FileList|null){if(!files)return;setNewImages(prev=>[...prev,...Array.from(files)]);setMessage("");}
 
   async function save(e:FormEvent){
     e.preventDefault();setBusy(true);setMessage("");
@@ -43,8 +58,49 @@ export default function AdminDashboard({initialArtworks}:Props){
       const payload={slug:form.slug,title:form.title,title_en:titleEn,year:form.year||null,medium:form.medium||null,width_cm:form.width_cm||null,height_cm:form.height_cm||null,depth_cm:form.depth_cm||null,description:form.description,description_en:descriptionEn,ai_description:form.ai_description,price_eur:Number(form.price_eur)||0,status:form.status,image_path:imagePath||null};
       const result=form.id?await supabase.from("petit_sot_artworks").update(payload).eq("id",form.id).select().single():await supabase.from("petit_sot_artworks").insert(payload).select().single();
       if(result.error)throw result.error;
-      setArtworks(prev=>form.id?prev.map(x=>x.id===form.id?result.data:x):[result.data,...prev]);setSelected(result.data);setImage(null);setImagePreview("");setMessage("Сохранено. Английская версия обновлена.");
+      const saved=result.data as Artwork;
+      if(newImages.length){
+        const rows:any[]=[];
+        for(let i=0;i<newImages.length;i++){
+          const file=newImages[i],ext=file.name.split(".").pop()?.toLowerCase()||"jpg",path=saved.id+"/"+crypto.randomUUID()+"."+ext;
+          const up=await supabase.storage.from("petit-sot-artworks").upload(path,file,{contentType:file.type,upsert:false});
+          if(up.error)throw up.error;
+          rows.push({artwork_id:saved.id,image_path:path,sort_order:galleryImages.length+i});
+        }
+        const inserted=await supabase.from("petit_sot_artwork_images").insert(rows);
+        if(inserted.error)throw inserted.error;
+      }
+      const {data:gallery,error:galleryError}=await supabase.from("petit_sot_artwork_images").select("*").eq("artwork_id",saved.id).order("sort_order",{ascending:true});
+      if(galleryError)throw galleryError;
+      setGalleryImages(gallery||[]);
+      setArtworks(prev=>form.id?prev.map(x=>x.id===form.id?saved:x):[saved,...prev]);setSelected(saved);setImage(null);setImagePreview("");setNewImages([]);setMessage("Сохранено. Английская версия обновлена.");
     }catch(err:any){setMessage(err?.message||"Не удалось сохранить.");}
+    setBusy(false);
+  }
+
+  async function removeGalleryImage(item:ArtworkImage){
+    if(!window.confirm("Удалить это фото?"))return;
+    setBusy(true);setMessage("");
+    try{
+      const storage=await supabase.storage.from("petit-sot-artworks").remove([item.image_path]);
+      if(storage.error)throw storage.error;
+      const {error}=await supabase.from("petit_sot_artwork_images").delete().eq("id",item.id);
+      if(error)throw error;
+      const remaining=galleryImages.filter(x=>x.id!==item.id).map((x,index)=>({...x,sort_order:index}));
+      for(const x of remaining){const {error:updateError}=await supabase.from("petit_sot_artwork_images").update({sort_order:x.sort_order}).eq("id",x.id);if(updateError)throw updateError;}
+      setGalleryImages(remaining);setMessage("Фото удалено.");
+    }catch(err:any){setMessage(err?.message||"Не удалось удалить фото.");}
+    setBusy(false);
+  }
+
+  async function moveGalleryImage(index:number,direction:-1|1){
+    const target=index+direction;if(target<0||target>=galleryImages.length)return;
+    const next=[...galleryImages];[next[index],next[target]]=[next[target],next[index]];
+    setBusy(true);setMessage("");
+    try{
+      for(let i=0;i<next.length;i++){const {error}=await supabase.from("petit_sot_artwork_images").update({sort_order:i}).eq("id",next[i].id);if(error)throw error;}
+      setGalleryImages(next.map((x,i)=>({...x,sort_order:i})));
+    }catch(err:any){setMessage(err?.message||"Не удалось изменить порядок фото.");}
     setBusy(false);
   }
 
@@ -61,9 +117,12 @@ export default function AdminDashboard({initialArtworks}:Props){
     if(!window.confirm("Удалить эту картину? Это действие нельзя отменить."))return;
     setBusy(true);setMessage("");
     try{
-      if(form.image_path){const storage=await supabase.storage.from("petit-sot-artworks").remove([form.image_path]);if(storage.error)throw storage.error;}
+      const {data:gallery,error:galleryError}=await supabase.from("petit_sot_artwork_images").select("image_path").eq("artwork_id",form.id);
+      if(galleryError)throw galleryError;
+      const paths=[form.image_path,...(gallery||[]).map(x=>x.image_path)].filter(Boolean) as string[];
+      if(paths.length){const storage=await supabase.storage.from("petit-sot-artworks").remove(paths);if(storage.error)throw storage.error;}
       const {error}=await supabase.from("petit_sot_artworks").delete().eq("id",form.id);if(error)throw error;
-      setArtworks(prev=>prev.filter(x=>x.id!==form.id));setSelected(null);setImage(null);setImagePreview("");setMessage("Картина удалена.");
+      setArtworks(prev=>prev.filter(x=>x.id!==form.id));setSelected(null);setImage(null);setImagePreview("");setGalleryImages([]);setNewImages([]);setMessage("Картина удалена.");
     }catch(err:any){setMessage(err?.message||"Не удалось удалить картину.");}
     setBusy(false);
   }
@@ -104,10 +163,10 @@ export default function AdminDashboard({initialArtworks}:Props){
   return <main className="admin-page">
     <header className="admin-top"><div><span className="eyebrow">PETIT.SOT / АРХИВ</span><h1>Картины</h1></div><nav><a href="/admin/orders">Заказы</a><button onClick={logout}>Выйти</button></nav></header>
     <section className="admin-layout">
-      <aside className="admin-list"><button className="admin-new" onClick={()=>{setSelected(null);setImage(null);setImagePreview("");setMessage("");}}>+ Новая картина</button>{artworks.map(w=><button key={w.id} className={"admin-list-row "+(form.id===w.id?"active":"")} onClick={()=>{setSelected(w);setImage(null);setImagePreview("");setMessage("");}}><span>{w.title||"Без названия"}</span><small>{({draft:"Черновик",available:"В продаже",sold:"Продана",archived:"Архив"} as Record<string,string>)[w.status]||w.status}</small></button>)}</aside>
+      <aside className="admin-list"><button className="admin-new" onClick={()=>{setSelected(null);setImage(null);setImagePreview("");setGalleryImages([]);setNewImages([]);setMessage("");}}>+ Новая картина</button>{artworks.map(w=><button key={w.id} className={"admin-list-row "+(form.id===w.id?"active":"")} onClick={()=>{setSelected(w);setImage(null);setImagePreview("");setNewImages([]);setMessage("");}}><span>{w.title||"Без названия"}</span><small>{({draft:"Черновик",available:"В продаже",sold:"Продана",archived:"Архив"} as Record<string,string>)[w.status]||w.status}</small></button>)}</aside>
       <section className="admin-editor"><form onSubmit={save}>
         <div className="admin-editor-head"><div><span className="eyebrow">КАРТИНА</span><h2>{form.title||"Новая работа"}</h2></div><select aria-label="Статус" value={form.status} onChange={e=>patch("status",e.target.value)}><option value="draft">Черновик</option><option value="available">В продаже</option><option value="sold">Продана</option><option value="archived">Архив</option></select></div>
-        <div className="admin-image-field">{imagePreview?<img src={imagePreview} alt="" />:imageUrl?<img src={imageUrl} alt="" />:<div><span>Изображение картины</span><small>JPG / PNG / WEBP · максимум 15 МБ</small></div>}<label>{image?"Заменить изображение":"Выбрать изображение"}<input type="file" accept="image/jpeg,image/png,image/webp" onChange={e=>chooseImage(e.target.files?.[0]||null)}/></label>{image&&<p className="admin-file-name">{image.name}</p>}</div>
+        <div className="admin-image-field">{imagePreview?<img src={imagePreview} alt="" />:imageUrl?<img src={imageUrl} alt="" />:<div><span>Изображение картины</span><small>JPG / PNG / WEBP · максимум 15 МБ</small></div>}<label>{image?"Заменить изображение":"Выбрать изображение"}<input type="file" accept="image/jpeg,image/png,image/webp" onChange={e=>chooseImage(e.target.files?.[0]||null)}/></label>{image&&<p className="admin-file-name">{image.name}</p>}</div><div className="admin-gallery-manager"><div className="admin-gallery-head"><div><span className="eyebrow">ГАЛЕРЕЯ</span><h3>Дополнительные фотографии</h3></div><label className="admin-gallery-add">+ Добавить фото<input type="file" accept="image/jpeg,image/png,image/webp" multiple onChange={e=>chooseGalleryImages(e.target.files)}/></label></div>{(galleryImages.length||newImages.length)?<div className="admin-gallery-grid">{galleryImages.map((item,index)=><div className="admin-gallery-item" key={item.id}><img src={supabase.storage.from("petit-sot-artworks").getPublicUrl(item.image_path).data.publicUrl} alt="" /><div className="admin-gallery-item-actions"><button type="button" onClick={()=>moveGalleryImage(index,-1)} disabled={busy||index===0}>←</button><span>{index+1}</span><button type="button" onClick={()=>moveGalleryImage(index,1)} disabled={busy||index===galleryImages.length-1}>→</button><button type="button" className="delete" onClick={()=>removeGalleryImage(item)} disabled={busy}>×</button></div></div>)}{newImages.map((file,index)=><div className="admin-gallery-item pending" key={file.name+index}><img src={URL.createObjectURL(file)} alt="" /><div className="admin-gallery-item-actions"><span>Новое</span><button type="button" className="delete" onClick={()=>setNewImages(prev=>prev.filter((_,i)=>i!==index))}>×</button></div></div>)}</div>:<p className="admin-gallery-empty">Добавьте несколько фотографий — детали картины покажут их как галерею.</p>}</div>
         <div className="admin-form-grid"><label>Название<input value={form.title} onChange={e=>patch("title",e.target.value)} required/></label><label>Адрес страницы (Slug)<input value={form.slug} onChange={e=>patch("slug",e.target.value)} placeholder="например, untitled-i" required/></label><label>Год<input type="number" value={form.year??""} onChange={e=>patch("year",Number(e.target.value)||null)}/></label><label>Материал / техника<input value={form.medium??""} onChange={e=>patch("medium",e.target.value)} placeholder="например, масло на холсте"/></label><label>Ширина / см<input type="number" step="0.1" value={form.width_cm??""} onChange={e=>patch("width_cm",Number(e.target.value)||null)}/></label><label>Высота / см<input type="number" step="0.1" value={form.height_cm??""} onChange={e=>patch("height_cm",Number(e.target.value)||null)}/></label><label>Глубина / см<input type="number" step="0.1" value={form.depth_cm??""} onChange={e=>patch("depth_cm",Number(e.target.value)||null)}/></label><label>Цена / EUR<input type="number" step="0.01" min="0" value={form.price_eur===0?"":form.price_eur} onChange={e=>patch("price_eur",e.target.value===""?0:Number(e.target.value))}/></label></div>
         <div className="admin-description-head"><label>Описание (русский)<textarea value={form.description} onChange={e=>patch("description",e.target.value)} rows={8}/></label><div><button type="button" className="ai-button" onClick={generateDescription} disabled={aiBusy}>{aiBusy?"Анализирую картину…":"✦ Создать описание с ИИ"}</button><p>ИИ анализирует изображение и создаёт описание на русском и английском. Фактические данные не выдумываются.</p></div></div>
         {message&&<p className="admin-message">{message}</p>}

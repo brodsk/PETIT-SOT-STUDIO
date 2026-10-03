@@ -9,7 +9,7 @@ export default async function WorkPage({params}:{params:Promise<{locale:string;s
  if(!w)notFound();
  return <main className="work-page">
   <Link href={"/"+locale+"/works"} className="back">← {ru?"Архив":"Archive"}</Link>
-  <div className="single-art">{w.imageUrl?<img src={w.imageUrl} alt={ru?w.titleRu:w.titleEn}/>:<><span>IMAGE PLACEHOLDER</span><small>{ru?"Здесь будет оригинал картины":"Original artwork image will be added"}</small></>}</div>
+  <div className="artwork-gallery"><div className="single-art">{w.imageUrl?<img src={w.imageUrl} alt={ru?w.titleRu:w.titleEn}/>:<><span>IMAGE PLACEHOLDER</span><small>{ru?"Здесь будет оригинал картины":"Original artwork image will be added"}</small></>}</div>{w.images.length>1&&<div className="artwork-gallery-thumbs">{w.images.map((src,index)=><a href={src} target="_blank" rel="noreferrer" key={src+index}><img src={src} alt={(ru?w.titleRu:w.titleEn)+" — photo "+(index+1)}/></a>)}</div>}</div>
   <aside className="work-info">
    <p className="eyebrow">PETIT.SOT / {w.year}</p>
    <h1>{ru?w.titleRu:w.titleEn}</h1>

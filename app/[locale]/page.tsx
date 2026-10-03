@@ -10,7 +10,7 @@ export default async function Home({params}:{params:Promise<{locale:string}>}){
   <section className="hero-gallery">
    <div className="hero-top"><span>OLGA TRIKHLEB</span><span>{ru?"Художница":"Artist"} / {new Date().getFullYear()}</span></div>
    <div className="hero-title-wrap">
-    <div className="hero-title"><span>PETIT.SOT</span><b>|</b><em>STUDIO</em></div>
+    <div className="hero-title"><span>PETIT.SOT</span><em>STUDIO</em></div>
     <span className="hero-orbit hero-orbit-a"></span><span className="hero-orbit hero-orbit-b"></span>
    </div>
    <div className="hero-bottom"><p>{ru?"Живопись, исследования и визуальные фрагменты.":"Painting, studies and visual fragments."}</p><Link className="arrow-link" href={"/"+locale+"/works"}>{ru?"Смотреть работы":"View works"} <span>↗</span></Link></div>

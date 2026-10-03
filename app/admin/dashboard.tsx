@@ -3,7 +3,7 @@
 import { FormEvent, useMemo, useState } from "react";
 import { createClient } from "../../lib/supabase/client";
 
-type Artwork={id:string;slug:string;title:string;year:number|null;medium:string|null;width_cm:number|null;height_cm:number|null;depth_cm:number|null;description:string;ai_description:string;price_eur:number;status:string;image_path:string|null;certificate_number:string|null;created_at:string};
+type Artwork={id:string;slug:string;title:string;title_en:string;year:number|null;medium:string|null;width_cm:number|null;height_cm:number|null;depth_cm:number|null;description:string;description_en:string;ai_description:string;price_eur:number;status:string;image_path:string|null;certificate_number:string|null;created_at:string};
 type Props={initialArtworks:Artwork[]};
 
 export default function AdminDashboard({initialArtworks}:Props){
@@ -16,7 +16,7 @@ export default function AdminDashboard({initialArtworks}:Props){
   const [aiBusy,setAiBusy]=useState(false);
   const [message,setMessage]=useState("");
 
-  const form=selected ?? {id:"",slug:"",title:"",year:new Date().getFullYear(),medium:"",width_cm:null,height_cm:null,depth_cm:null,description:"",ai_description:"",price_eur:0,status:"draft",image_path:null,certificate_number:null,created_at:""};
+  const form=selected ?? {id:"",slug:"",title:"",title_en:"",year:new Date().getFullYear(),medium:"",width_cm:null,height_cm:null,depth_cm:null,description:"",description_en:"",ai_description:"",price_eur:0,status:"available",image_path:null,certificate_number:null,created_at:""};
   const imageUrl=useMemo(()=>form.image_path?supabase.storage.from("petit-sot-artworks").getPublicUrl(form.image_path).data.publicUrl:"",[form.image_path,supabase]);
 
   function patch(key:string,value:any){setSelected({...form,[key]:value} as Artwork);}
@@ -37,17 +37,39 @@ export default function AdminDashboard({initialArtworks}:Props){
         const up=await supabase.storage.from("petit-sot-artworks").upload(imagePath,image,{contentType:image.type,upsert:true});
         if(up.error) throw up.error;
       }
-      const payload={slug:form.slug,title:form.title,year:form.year||null,medium:form.medium||null,width_cm:form.width_cm||null,height_cm:form.height_cm||null,depth_cm:form.depth_cm||null,description:form.description,ai_description:form.ai_description,price_eur:Number(form.price_eur)||0,status:form.status,image_path:imagePath||null};
+
+      let titleEn=form.title_en||"";
+      let descriptionEn=form.description_en||"";
+      if(form.title || form.description){
+        try{
+          const tr=await fetch("/api/admin/translate-artwork",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({title:form.title,description:form.description})});
+          const tj=await tr.json();
+          if(tr.ok){ titleEn=tj.titleEn||titleEn; descriptionEn=tj.descriptionEn||descriptionEn; }
+        }catch{}
+      }
+
+      const payload={slug:form.slug,title:form.title,title_en:titleEn,year:form.year||null,medium:form.medium||null,width_cm:form.width_cm||null,height_cm:form.height_cm||null,depth_cm:form.depth_cm||null,description:form.description,description_en:descriptionEn,ai_description:form.ai_description,price_eur:Number(form.price_eur)||0,status:form.status,image_path:imagePath||null};
       const result=form.id
         ? await supabase.from("petit_sot_artworks").update(payload).eq("id",form.id).select().single()
         : await supabase.from("petit_sot_artworks").insert(payload).select().single();
       if(result.error) throw result.error;
       setArtworks(prev=>form.id?prev.map(x=>x.id===form.id?result.data:x):[result.data,...prev]);
-      setSelected(result.data); setImage(null); setImagePreview(""); setMessage("Сохранено.");
+      setSelected(result.data); setImage(null); setImagePreview(""); setMessage("Сохранено. Английская версия обновлена.");
     }catch(err:any){setMessage(err?.message||"Не удалось сохранить.");}
     setBusy(false);
   }
 
+  async function publish(){
+    if(!form.id){setMessage("Сначала сохраните картину.");return;}
+    setBusy(true); setMessage("");
+    try{
+      const {data,error}=await supabase.from("petit_sot_artworks").update({status:"available",published_at:new Date().toISOString()}).eq("id",form.id).select().single();
+      if(error) throw error;
+      setArtworks(prev=>prev.map(x=>x.id===form.id?data:x));
+      setSelected(data); setMessage("Картина опубликована.");
+    }catch(err:any){setMessage(err?.message||"Не удалось опубликовать.");}
+    setBusy(false);
+  }
   async function compressImage(source:Blob){
     const max=1800;
     const canvas=document.createElement("canvas");
@@ -137,7 +159,7 @@ export default function AdminDashboard({initialArtworks}:Props){
           </div>
           <div className="admin-description-head"><label>Описание (русский)<textarea value={form.description} onChange={e=>patch("description",e.target.value)} rows={8}/></label><div><button type="button" className="ai-button" onClick={generateDescription} disabled={aiBusy}>{aiBusy?"Анализирую картину…":"✦ Создать описание с ИИ"}</button><p>ИИ анализирует изображение и создаёт описание на русском и английском. Фактические данные не выдумываются.</p></div></div>
           {message && <p className="admin-message">{message}</p>}
-          <div className="admin-actions"><button type="submit" disabled={busy}>{busy?"Сохраняю…":"Сохранить картину"} <span>↗</span></button>{form.id&&<button type="button" className="secondary" onClick={passport}>Создать паспорт PDF</button>}</div>
+          <div className="admin-actions"><button type="button" onClick={publish} disabled={busy||!form.id}>Опубликовать ↗</button><button type="submit" disabled={busy}>{busy?"Сохраняю…":"Сохранить картину"} <span>↗</span></button>{form.id&&<button type="button" className="secondary" onClick={passport}>Создать паспорт PDF</button>}</div>
         </form>
       </section>
     </section>

@@ -11,6 +11,7 @@ export default function AdminDashboard({initialArtworks}:Props){
   const [artworks,setArtworks]=useState(initialArtworks);
   const [selected,setSelected]=useState<Artwork|null>(null);
   const [image,setImage]=useState<File|null>(null);
+  const [imagePreview,setImagePreview]=useState("");
   const [busy,setBusy]=useState(false);
   const [aiBusy,setAiBusy]=useState(false);
   const [message,setMessage]=useState("");
@@ -19,6 +20,12 @@ export default function AdminDashboard({initialArtworks}:Props){
   const imageUrl=useMemo(()=>form.image_path?supabase.storage.from("petit-sot-artworks").getPublicUrl(form.image_path).data.publicUrl:"",[form.image_path,supabase]);
 
   function patch(key:string,value:any){setSelected({...form,[key]:value} as Artwork);}
+
+  function chooseImage(file:File|null){
+    setImage(file);
+    setImagePreview(file ? URL.createObjectURL(file) : "");
+    setMessage("");
+  }
 
   async function save(e:FormEvent){
     e.preventDefault(); setBusy(true); setMessage("");
@@ -36,8 +43,8 @@ export default function AdminDashboard({initialArtworks}:Props){
         : await supabase.from("petit_sot_artworks").insert(payload).select().single();
       if(result.error) throw result.error;
       setArtworks(prev=>form.id?prev.map(x=>x.id===form.id?result.data:x):[result.data,...prev]);
-      setSelected(result.data); setImage(null); setMessage("Saved.");
-    }catch(err:any){setMessage(err?.message||"Could not save.");}
+      setSelected(result.data); setImage(null); setImagePreview(""); setMessage("Сохранено.");
+    }catch(err:any){setMessage(err?.message||"Не удалось сохранить.");}
     setBusy(false);
   }
 
@@ -54,7 +61,7 @@ export default function AdminDashboard({initialArtworks}:Props){
   }
 
   async function generateDescription(){
-    if(!image && !form.image_path){setMessage("Add an artwork image first.");return;}
+    if(!image && !form.image_path){setMessage("Сначала добавьте изображение картины.");return;}
     setAiBusy(true);setMessage("");
     try{
       let dataUrl="";
@@ -62,53 +69,54 @@ export default function AdminDashboard({initialArtworks}:Props){
         dataUrl=await compressImage(image);
       }else{
         const res=await fetch(imageUrl);
-        if(!res.ok) throw new Error("Could not read the uploaded artwork image.");
+        if(!res.ok) throw new Error("Не удалось прочитать загруженное изображение.");
         const blob=await res.blob();
         dataUrl=await compressImage(blob);
       }
       const res=await fetch("/api/admin/generate-description",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({imageDataUrl:dataUrl,title:form.title,medium:form.medium,year:form.year,width_cm:form.width_cm,height_cm:form.height_cm,depth_cm:form.depth_cm})});
-      const json=await res.json(); if(!res.ok) throw new Error([json.error,json.detail].filter(Boolean).join(" ")||"AI generation failed.");
-      setSelected({...form,description:json.description,ai_description:json.description} as Artwork); setMessage("AI description generated — edit it if you want.");
-    }catch(err:any){setMessage(err?.message||"AI generation failed.");}
+      const json=await res.json(); if(!res.ok) throw new Error([json.error,json.detail].filter(Boolean).join(" ")||"Не удалось создать описание.");
+      setSelected({...form,description:json.description,ai_description:json.description} as Artwork); setMessage("Описание создано. При необходимости отредактируйте его и сохраните.");
+    }catch(err:any){setMessage(err?.message||"Не удалось создать описание.");}
     setAiBusy(false);
   }
 
   async function passport(){
-    if(!form.id){setMessage("Save the artwork first.");return;}
+    if(!form.id){setMessage("Сначала сохраните картину.");return;}
     const res=await fetch("/api/admin/certificate/"+form.id);
-    if(!res.ok){const j=await res.json().catch(()=>({}));setMessage(j.error||"Could not generate passport.");return;}
+    if(!res.ok){const j=await res.json().catch(()=>({}));setMessage(j.error||"Не удалось создать паспорт.");return;}
     const blob=await res.blob(); const url=URL.createObjectURL(blob); const a=document.createElement("a"); a.href=url; a.download=(form.slug||"artwork")+"-passport.pdf"; a.click(); URL.revokeObjectURL(url);
   }
 
   async function logout(){await supabase.auth.signOut();location.href="/admin/login";}
 
   return <main className="admin-page">
-    <header className="admin-top"><div><span className="eyebrow">PETIT.SOT / PRIVATE ARCHIVE</span><h1>Works</h1></div><nav><a href="/admin/orders">Orders</a><button onClick={logout}>Sign out</button></nav></header>
+    <header className="admin-top"><div><span className="eyebrow">PETIT.SOT / АРХИВ</span><h1>Картины</h1></div><nav><a href="/admin/orders">Заказы</a><button onClick={logout}>Выйти</button></nav></header>
     <section className="admin-layout">
       <aside className="admin-list">
-        <button className="admin-new" onClick={()=>{setSelected(null);setImage(null);setMessage("");}}>+ New artwork</button>
-        {artworks.map(w=><button key={w.id} className={"admin-list-row "+(form.id===w.id?"active":"")} onClick={()=>{setSelected(w);setImage(null);setMessage("");}}><span>{w.title||"Untitled"}</span><small>{w.status}</small></button>)}
+        <button className="admin-new" onClick={()=>{setSelected(null);setImage(null);setImagePreview("");setMessage("");}}>+ Новая картина</button>
+        {artworks.map(w=><button key={w.id} className={"admin-list-row "+(form.id===w.id?"active":"")} onClick={()=>{setSelected(w);setImage(null);setImagePreview("");setMessage("");}}><span>{w.title||"Без названия"}</span><small>{({draft:"Черновик",available:"В продаже",sold:"Продана",archived:"Архив"} as Record<string,string>)[w.status]||w.status}</small></button>)}
       </aside>
       <section className="admin-editor">
         <form onSubmit={save}>
-          <div className="admin-editor-head"><div><span className="eyebrow">ARTWORK</span><h2>{form.title||"New work"}</h2></div><select value={form.status} onChange={e=>patch("status",e.target.value)}><option value="draft">Draft</option><option value="available">Available</option><option value="sold">Sold</option><option value="archived">Archived</option></select></div>
+          <div className="admin-editor-head"><div><span className="eyebrow">КАРТИНА</span><h2>{form.title||"Новая работа"}</h2></div><select aria-label="Статус" value={form.status} onChange={e=>patch("status",e.target.value)}><option value="draft">Черновик</option><option value="available">В продаже</option><option value="sold">Продана</option><option value="archived">Архив</option></select></div>
           <div className="admin-image-field">
-            {image ? <img src={URL.createObjectURL(image)} alt="" /> : imageUrl ? <img src={imageUrl} alt="" /> : <div><span>Artwork image</span><small>JPG / PNG / WEBP · max 15 MB</small></div>}
-            <label>Choose image<input type="file" accept="image/jpeg,image/png,image/webp" onChange={e=>setImage(e.target.files?.[0]||null)}/></label>
+            {imagePreview ? <img src={imagePreview} alt="" /> : imageUrl ? <img src={imageUrl} alt="" /> : <div><span>Изображение картины</span><small>JPG / PNG / WEBP · максимум 15 МБ</small></div>}
+            <label>{image ? "Заменить изображение" : "Выбрать изображение"}<input type="file" accept="image/jpeg,image/png,image/webp" onChange={e=>chooseImage(e.target.files?.[0]||null)}/></label>
+            {image && <p className="admin-file-name">{image.name}</p>}
           </div>
           <div className="admin-form-grid">
-            <label>Title<input value={form.title} onChange={e=>patch("title",e.target.value)} required/></label>
-            <label>Slug<input value={form.slug} onChange={e=>patch("slug",e.target.value)} placeholder="e.g. untitled-i" required/></label>
-            <label>Year<input type="number" value={form.year??""} onChange={e=>patch("year",Number(e.target.value)||null)}/></label>
-            <label>Medium<input value={form.medium??""} onChange={e=>patch("medium",e.target.value)}/></label>
-            <label>Width / cm<input type="number" step="0.1" value={form.width_cm??""} onChange={e=>patch("width_cm",Number(e.target.value)||null)}/></label>
-            <label>Height / cm<input type="number" step="0.1" value={form.height_cm??""} onChange={e=>patch("height_cm",Number(e.target.value)||null)}/></label>
-            <label>Depth / cm<input type="number" step="0.1" value={form.depth_cm??""} onChange={e=>patch("depth_cm",Number(e.target.value)||null)}/></label>
-            <label>Price / EUR<input type="number" step="0.01" min="0" value={form.price_eur===0?"":form.price_eur} onChange={e=>patch("price_eur",e.target.value===""?0:Number(e.target.value))}/></label>
+            <label>Название<input value={form.title} onChange={e=>patch("title",e.target.value)} required/></label>
+            <label>Slug<input value={form.slug} onChange={e=>patch("slug",e.target.value)} placeholder="например, untitled-i" required/></label>
+            <label>Год<input type="number" value={form.year??""} onChange={e=>patch("year",Number(e.target.value)||null)}/></label>
+            <label>Материал / техника<input value={form.medium??""} onChange={e=>patch("medium",e.target.value)} placeholder="например, Oil on canvas"/></label>
+            <label>Ширина / см<input type="number" step="0.1" value={form.width_cm??""} onChange={e=>patch("width_cm",Number(e.target.value)||null)}/></label>
+            <label>Высота / см<input type="number" step="0.1" value={form.height_cm??""} onChange={e=>patch("height_cm",Number(e.target.value)||null)}/></label>
+            <label>Глубина / см<input type="number" step="0.1" value={form.depth_cm??""} onChange={e=>patch("depth_cm",Number(e.target.value)||null)}/></label>
+            <label>Цена / EUR<input type="number" step="0.01" min="0" value={form.price_eur===0?"":form.price_eur} onChange={e=>patch("price_eur",e.target.value===""?0:Number(e.target.value))}/></label>
           </div>
-          <div className="admin-description-head"><label>Description<textarea value={form.description} onChange={e=>patch("description",e.target.value)} rows={8}/></label><div><button type="button" className="ai-button" onClick={generateDescription} disabled={aiBusy}>{aiBusy?"Reading artwork…":"✦ Generate with AI"}</button><p>AI uses the actual artwork image and the metadata above. It will not invent dimensions, year or medium.</p></div></div>
+          <div className="admin-description-head"><label>Описание<textarea value={form.description} onChange={e=>patch("description",e.target.value)} rows={8}/></label><div><button type="button" className="ai-button" onClick={generateDescription} disabled={aiBusy}>{aiBusy?"Анализирую картину…":"✦ Создать описание с ИИ"}</button><p>ИИ анализирует само изображение и использует указанные выше данные. Он не придумывает год, технику или размеры.</p></div></div>
           {message && <p className="admin-message">{message}</p>}
-          <div className="admin-actions"><button type="submit" disabled={busy}>{busy?"Saving…":"Save artwork"} <span>↗</span></button>{form.id&&<button type="button" className="secondary" onClick={passport}>Generate passport PDF</button>}</div>
+          <div className="admin-actions"><button type="submit" disabled={busy}>{busy?"Сохраняю…":"Сохранить картину"} <span>↗</span></button>{form.id&&<button type="button" className="secondary" onClick={passport}>Создать паспорт PDF</button>}</div>
         </form>
       </section>
     </section>

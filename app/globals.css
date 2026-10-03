@@ -222,3 +222,64 @@ footer{background:rgba(247,246,242,.45)}
 .single-art img{object-fit:contain;background:transparent}
 .art-placeholder:has(img),.archive-image:has(img),.single-art:has(img){background:transparent;box-shadow:none}
 .art-placeholder:has(img):before,.single-art:has(img):before{display:none}
+
+/* Requested gallery refinements */
+.wordmark-divider{display:inline-block;margin:0 5px;font-weight:300;opacity:.7}
+.hero-title-wrap{position:relative;display:flex;align-items:center;justify-content:center;min-height:45vh}
+.hero-title{align-items:center;justify-content:center;flex-direction:row;gap:.13em;text-align:center;position:relative;z-index:2}
+.hero-title b{font-family:Arial,Helvetica,sans-serif;font-size:.42em;font-weight:300;line-height:1;opacity:.65;margin-top:.02em}
+.hero-title em{margin-left:0;line-height:1;font-size:.72em}
+.hero-orbit{position:absolute;border:1px solid rgba(23,23,23,.12);border-radius:999px;pointer-events:none}
+.hero-orbit-a{width:min(58vw,820px);height:min(20vw,280px);transform:rotate(-8deg);animation:hero-drift 12s ease-in-out infinite}
+.hero-orbit-b{width:min(42vw,600px);height:min(14vw,190px);transform:rotate(9deg);opacity:.55;animation:hero-drift 16s ease-in-out infinite reverse}
+@keyframes hero-drift{0%,100%{transform:rotate(-8deg) scale(1)}50%{transform:rotate(-5deg) scale(1.025)}}
+.gallery-tiles{padding:3vh 7vw 14vh}
+.gallery-tiles-head{display:flex;justify-content:space-between;border-top:1px solid #aaa59d;padding:12px 0 24px;font-size:9px;text-transform:uppercase;letter-spacing:.12em}
+.gallery-tiles-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:3vw}
+.gallery-tile{color:inherit;text-decoration:none}
+.gallery-tile .art-placeholder{aspect-ratio:4/5}
+.gallery-tile .work-meta{padding-top:10px;font-size:10px;text-transform:uppercase;letter-spacing:.08em}
+.gallery-tile:hover .art-placeholder{transform:scale(.985)}
+.archive-grid-even{grid-template-columns:repeat(4,minmax(0,1fr));gap:28px 22px}
+.archive-grid-even .archive-card{grid-column:auto!important;margin-top:0!important}
+.archive-grid-even .archive-image{width:100%;height:min(58vh,620px);aspect-ratio:4/5}
+.archive-grid-even .archive-card-meta{font-size:10px}
+.archive-grid-even .archive-card p{font-size:9px}
+.work-page{grid-template-columns:minmax(0,1.35fr) minmax(300px,.72fr);gap:4vw;align-items:start}
+.single-art{height:min(calc(100vh - 170px),760px);min-height:0;aspect-ratio:4/5}
+.work-info{padding-top:4vh;max-width:520px}
+.work-info h1{margin:16px 0 48px}
+.work-description{margin-top:42px}
+.purchase-box{margin-top:40px}
+.admin-page{font-size:15px}
+.admin-page .eyebrow,.admin-page label,.admin-page .admin-top nav a,.admin-page .admin-top nav button,.admin-page .admin-image-field>div small,.admin-page .admin-form-grid label,.admin-page .admin-description-head label,.admin-page .purchase-label{font-size:11px}
+.admin-list-row{font-size:14px}
+.admin-list-row small{font-size:10px}
+.admin-editor-head h2{font-size:38px}
+.admin-form-grid input,.admin-description-head textarea,.admin-editor-head select{font-size:15px}
+.admin-description-head textarea{min-height:180px}
+.ai-button,.admin-actions button,.admin-new{font-size:11px}
+.admin-description-head p,.admin-message{font-size:12px}
+.admin-file-name{font-size:12px}
+@media(max-width:700px){
+ .hero-title-wrap{min-height:42vh}
+ .hero-title{flex-wrap:nowrap;gap:.08em;font-size:clamp(54px,16.5vw,82px)}
+ .hero-title b{font-size:.36em}
+ .hero-title em{font-size:.68em}
+ .hero-orbit-a{width:88vw;height:32vw}.hero-orbit-b{width:70vw;height:24vw}
+ .gallery-tiles{padding:0 16px 80px}
+ .gallery-tiles-grid{display:block}
+ .gallery-tile{display:block;margin-bottom:64px}
+ .archive-grid-even{display:grid;grid-template-columns:1fr 1fr;gap:22px 12px}
+ .archive-grid-even .archive-card{width:100%!important}
+ .archive-grid-even .archive-image{height:auto;aspect-ratio:4/5}
+ .archive-grid-even .archive-card-meta{display:block;font-size:9px}
+ .archive-grid-even .archive-card-meta span{display:block}
+ .archive-grid-even .archive-card-meta span+span{margin-top:3px;opacity:.55}
+ .work-page{display:block}
+ .single-art{height:auto;min-height:0;aspect-ratio:4/5}
+ .work-info{padding-top:38px}
+ .admin-page{font-size:14px}
+ .admin-page .eyebrow,.admin-page label,.admin-page .admin-top nav a,.admin-page .admin-top nav button{font-size:10px}
+ .admin-list-row{font-size:14px}
+}

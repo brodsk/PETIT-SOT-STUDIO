@@ -10,7 +10,7 @@ export default async function LocaleLayout({children,params}:{children:React.Rea
   return <div data-locale={locale}>
     <Effects />
     <header className="site-header">
-      <Link href={"/"+locale} className="wordmark">PETIT.SOT <span>STUDIO</span></Link>
+      <Link href={"/"+locale} className="wordmark">PETIT.SOT <span className="wordmark-divider">|</span> <span>STUDIO</span></Link>
       <nav>
         <Link href={"/"+locale+"/works"}>{ru?"Работы":"Works"}</Link>
         <Link href={"/"+locale+"/about"}>{ru?"О студии":"About"}</Link>

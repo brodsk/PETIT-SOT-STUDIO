@@ -109,7 +109,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
   });
 
   const pdfBytes = await pdf.save();
-  return new NextResponse(pdfBytes, {
+  return new NextResponse(Buffer.from(pdfBytes), {
     headers: {
       "Content-Type": "application/pdf",
       "Content-Disposition": `attachment; filename="${w.slug}-passport.pdf"`,

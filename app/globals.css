@@ -157,3 +157,26 @@ html,body{overflow-x:hidden;width:100%;max-width:100%}
 
 
 .contact-instagram-only{min-height:calc(100vh - 140px);display:flex;align-items:center;padding:8vw 7vw}.contact-inner{max-width:980px}.contact-eyebrow{display:block;font-size:10px;letter-spacing:.14em;text-transform:uppercase;opacity:.55;margin-bottom:45px}.contact-inner h1{font-size:clamp(64px,10vw,150px);line-height:.82;letter-spacing:-.07em;font-weight:400;margin:0 0 55px}.contact-inner h1 em{font-style:italic}.contact-inner p{max-width:390px;font-size:13px;line-height:1.45;margin:0 0 55px}.contact-instagram{display:flex;align-items:baseline;justify-content:space-between;gap:30px;width:min(520px,100%);border-top:1px solid currentColor;border-bottom:1px solid currentColor;padding:17px 0;text-decoration:none;color:inherit;text-transform:uppercase;letter-spacing:.1em;font-size:10px}.contact-instagram strong{font-weight:400;font-size:13px;letter-spacing:.04em}.contact-instagram:hover{opacity:.55}@media(max-width:700px){.contact-instagram-only{min-height:calc(100svh - 130px);padding:70px 16px 80px;align-items:flex-start}.contact-eyebrow{font-size:8px;margin-bottom:38px}.contact-inner h1{font-size:clamp(58px,17vw,90px);line-height:.82;margin-bottom:35px}.contact-inner p{font-size:11px;max-width:280px;margin-bottom:45px}.contact-instagram{width:100%;font-size:8px}.contact-instagram strong{font-size:11px}}
+
+/* Subtle studio motion */
+.motion-reveal{opacity:0;transform:translateY(22px);transition:opacity .8s cubic-bezier(.22,1,.36,1) var(--reveal-delay,0ms),transform .8s cubic-bezier(.22,1,.36,1) var(--reveal-delay,0ms)}
+.motion-reveal.is-visible{opacity:1;transform:none}
+main{animation:page-enter .55s cubic-bezier(.22,1,.36,1) both}
+@keyframes page-enter{from{opacity:.65;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+.studio-cursor{position:fixed;left:0;top:0;width:12px;height:12px;margin:-6px 0 0 -6px;border:1px solid #171717;border-radius:50%;pointer-events:none;z-index:9999;opacity:0;transition:width .25s ease,height .25s ease,margin .25s ease,background .25s ease,opacity .2s ease;mix-blend-mode:multiply}
+.studio-cursor span:after{content:"";display:block}
+@media(min-width:701px){
+  body:hover .studio-cursor{opacity:1}
+  .studio-cursor.is-link{width:58px;height:58px;margin:-29px 0 0 -29px;background:#171717}
+  .studio-cursor.is-link span:after{content:"OPEN";color:#eeeae3;font-size:8px;letter-spacing:.12em;text-align:center;line-height:58px}
+  a,.archive-card,.gallery-piece,.work-card{cursor:none}
+}
+@media(max-width:700px),(prefers-reduced-motion:reduce){
+  .motion-reveal{opacity:1;transform:none;transition:none}
+  main{animation:none}
+  .studio-cursor{display:none}
+}
+@media(prefers-reduced-motion:reduce){
+  .archive-card .art-placeholder,.gallery-piece .art-placeholder,.gallery-footer-image .art-placeholder{transition:none}
+}

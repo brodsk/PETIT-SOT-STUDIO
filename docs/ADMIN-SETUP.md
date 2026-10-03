@@ -7,7 +7,7 @@ The CMS is connected to the Supabase project used for this site.
 Set:
 
 NEXT_PUBLIC_SUPABASE_URL=https://xtxqslzublggqhctmjoa.supabase.co
-NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=sb_publishable_Ug8pIIkWhJ-EGExLQ_ggv37B99
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=sb_publishable_Ug8pIIkWhJ-EGExAFge8LQ_ggv37B99
 
 For AI descriptions also set:
 

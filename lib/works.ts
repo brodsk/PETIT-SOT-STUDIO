@@ -3,12 +3,7 @@ import { localizeMedium } from "./medium";
 
 export type PublicWork={slug:string;title:string;titleRu:string;titleEn:string;year:string;medium:string;size:string;description:string;descriptionRu:string;descriptionEn:string;price:number;currency:string;available:boolean;imageUrl?:string;id?:string};
 
-export const fallbackWorks:PublicWork[]=[
- {slug:"untitled-i",title:"Untitled I",titleRu:"Untitled I",titleEn:"Untitled I",year:"2024",medium:"Oil on canvas",size:"—",price:0,currency:"EUR",available:true,description:"Work archive entry. Original artwork image will replace this temporary presentation.",descriptionRu:"Архивная запись работы. Оригинальное изображение картины будет добавлено позже.",descriptionEn:"Work archive entry. Original artwork image will replace this temporary presentation."},
- {slug:"untitled-ii",title:"Untitled II",titleRu:"Untitled II",titleEn:"Untitled II",year:"2024",medium:"Mixed media on canvas",size:"—",price:0,currency:"EUR",available:true,description:"Work archive entry. Original artwork image will replace this temporary presentation.",descriptionRu:"Архивная запись работы. Оригинальное изображение картины будет добавлено позже.",descriptionEn:"Work archive entry. Original artwork image will replace this temporary presentation."},
- {slug:"untitled-iii",title:"Untitled III",titleRu:"Untitled III",titleEn:"Untitled III",year:"2025",medium:"Oil on canvas",size:"—",price:0,currency:"EUR",available:false,description:"Work archive entry. Original artwork image will replace this temporary presentation.",descriptionRu:"Архивная запись работы. Оригинальное изображение картины будет добавлено позже.",descriptionEn:"Work archive entry. Original artwork image will replace this temporary presentation."},
- {slug:"untitled-iv",title:"Untitled IV",titleRu:"Untitled IV",titleEn:"Untitled IV",year:"2025",medium:"Acrylic on canvas",size:"—",price:0,currency:"EUR",available:true,description:"Work archive entry. Original artwork image will replace this temporary presentation.",descriptionRu:"Архивная запись работы. Оригинальное изображение картины будет добавлено позже.",descriptionEn:"Work archive entry. Original artwork image will replace this temporary presentation."}
-];
+export const fallbackWorks:PublicWork[]=[];
 
 function mapWork(w:any,supabase:any):PublicWork{
  const size=[w.width_cm,w.height_cm,w.depth_cm].filter((x:any)=>x!=null&&x!=="").join(" × ");
@@ -21,7 +16,8 @@ export async function getWorks():Promise<PublicWork[]>{
  try{
    const supabase=await createClient();
    const {data,error}=await supabase.from("petit_sot_artworks").select("*").in("status",["available","sold"]).order("created_at",{ascending:false});
-   if(error||!data||data.length===0)return fallbackWorks;
+   if(error)return fallbackWorks;
+   if(!data||data.length===0)return [];
    return data.map(w=>mapWork(w,supabase));
  }catch{return fallbackWorks;}
 }

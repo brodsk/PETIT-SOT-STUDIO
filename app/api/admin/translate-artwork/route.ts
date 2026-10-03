@@ -18,7 +18,7 @@ export async function POST(request: Request) {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) return NextResponse.json({ error: "GEMINI_API_KEY is not configured in Vercel." }, { status: 503 });
 
-  const prompt = `Translate the following contemporary-art catalogue text from Russian to natural, elegant English. Translate the artwork title naturally but do not invent information. Preserve meaning, tone, and paragraph structure. Return ONLY valid JSON in exactly this shape: {"titleEn":"...","descriptionEn":"..."}.\n\nRussian title: ${title}\n\nRussian description:\n${description}`;
+  const prompt = `You are translating a contemporary-art catalogue entry from Russian into natural, elegant English.\n\nCRITICAL TITLE RULE: The artwork title MUST be translated into English. Never copy the Russian/Cyrillic title into titleEn. If the Russian title is a normal word or phrase, use its natural English equivalent (for example: "Дорога" -> "Road", "Осень" -> "Autumn", "Тишина" -> "Silence"). Do not transliterate Russian words when an English equivalent exists.\n\nTranslate the description faithfully. Do not invent information. Preserve meaning, tone, and paragraph structure. Return ONLY valid JSON in exactly this shape: {"titleEn":"...","descriptionEn":"..."}.\n\nRussian title: ${title}\n\nRussian description:\n${description}`;
 
   const model = process.env.GEMINI_MODEL || "gemini-3.5-flash-lite";
   const response = await fetch("https://generativelanguage.googleapis.com/v1beta/models/" + encodeURIComponent(model) + ":generateContent", {
@@ -35,7 +35,7 @@ export async function POST(request: Request) {
   const raw = data.candidates?.[0]?.content?.parts?.map((part:any) => part.text).filter(Boolean).join("").trim() || "";
   try {
     const parsed = JSON.parse(raw);
-    return NextResponse.json({ titleEn: parsed.titleEn || title, descriptionEn: parsed.descriptionEn || description });
+    const titleEn = String(parsed.titleEn || "").trim();\n    const descriptionEn = String(parsed.descriptionEn || "").trim();\n    if (!titleEn || /[А-Яа-яЁё]/.test(titleEn)) {\n      return NextResponse.json({ error: "Gemini did not return a valid English artwork title.", detail: titleEn }, { status: 502 });\n    }\n    return NextResponse.json({ titleEn, descriptionEn: descriptionEn || description });
   } catch {
     return NextResponse.json({ error: "Gemini returned invalid translation.", detail: raw.slice(0, 1000) }, { status: 502 });
   }

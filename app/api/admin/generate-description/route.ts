@@ -33,7 +33,7 @@ export async function POST(request: Request) {
     "Avoid clichés, exaggerated claims, art-world jargon and phrases like \"invites the viewer\". Do not mention that you are AI.\n\n" +
     "Return ONLY valid JSON in exactly this shape: {\"ru\":\"Russian description\",\"en\":\"English description\"}\n\nMetadata:\n" + metadata;
 
-  const model = process.env.GEMINI_MODEL || "gemini-2.5-flash-lite";
+  const model = process.env.GEMINI_MODEL || "gemini-3.5-flash-lite";
   const response = await fetch(
     "https://generativelanguage.googleapis.com/v1beta/models/" + encodeURIComponent(model) + ":generateContent",
     {

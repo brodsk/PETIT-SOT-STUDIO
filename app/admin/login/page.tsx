@@ -1,15 +1,14 @@
 "use client";
 
 import { FormEvent, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { createClient } from "../../../lib/supabase/client";
 
 export default function AdminLogin() {
   const router = useRouter();
-  const params = useSearchParams();
   const [email,setEmail]=useState("");
   const [password,setPassword]=useState("");
-  const [error,setError]=useState(params.get("error")==="not-admin" ? "This account is not an admin." : "");
+  const [error,setError]=useState("");
   const [busy,setBusy]=useState(false);
 
   async function submit(e:FormEvent) {

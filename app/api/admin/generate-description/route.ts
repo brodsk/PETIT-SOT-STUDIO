@@ -6,6 +6,7 @@ export const runtime = "nodejs";
 export async function POST(request: Request) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
+
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { data: admin } = await supabase
@@ -13,15 +14,35 @@ export async function POST(request: Request) {
     .select("user_id")
     .eq("user_id", user.id)
     .maybeSingle();
+
   if (!admin) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   const body = await request.json();
+
   if (!body.imageDataUrl) {
     return NextResponse.json({ error: "Artwork image is required." }, { status: 400 });
   }
-  if (!process.env.OPENAI_API_KEY) {
-    return NextResponse.json({ error: "OPENAI_API_KEY is not configured yet." }, { status: 503 });
+
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey) {
+    return NextResponse.json(
+      { error: "GEMINI_API_KEY is not configured in Vercel." },
+      { status: 503 },
+    );
   }
+
+  // The browser sends a data URL. Gemini REST expects the raw base64
+  // bytes separately from the MIME type.
+  const match = String(body.imageDataUrl).match(/^data:(image\/[a-zA-Z0-9.+-]+);base64,(.+)$/s);
+  if (!match) {
+    return NextResponse.json(
+      { error: "Invalid artwork image data. Please choose the image again." },
+      { status: 400 },
+    );
+  }
+
+  const mimeType = match[1].toLowerCase();
+  const base64Image = match[2];
 
   const metadata = [
     body.title && `Title: ${body.title}`,
@@ -36,45 +57,67 @@ export async function POST(request: Request) {
 Look carefully at the supplied artwork image. Describe only what can reasonably be observed: composition, forms, palette, material appearance, gesture, texture, spatial relationships and visual atmosphere. Do not invent symbolism, biography, provenance, dimensions, medium, date or facts. Metadata supplied below is factual and may be used only as given.
 
 Write 90–150 words in elegant but restrained English. Avoid clichés, exaggerated claims, art-world jargon and phrases like "invites the viewer". Do not mention that you are AI.
+
 ${metadata}`;
 
-  const response = await fetch("https://api.openai.com/v1/responses", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
-    },
-    body: JSON.stringify({
-      model: process.env.OPENAI_VISION_MODEL || "gpt-6-luna",
-      input: [{
-        role: "user",
-        content: [
-          { type: "input_text", text: prompt },
-          { type: "input_image", image_url: body.imageDataUrl, detail: "high" },
+  const model = process.env.GEMINI_MODEL || "gemini-2.5-flash-lite";
+
+  const response = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-goog-api-key": apiKey,
+      },
+      body: JSON.stringify({
+        contents: [
+          {
+            role: "user",
+            parts: [
+              {
+                text: prompt,
+              },
+              {
+                inline_data: {
+                  mime_type: mimeType,
+                  data: base64Image,
+                },
+              },
+            ],
+          },
         ],
-      }],
-      max_output_tokens: 500,
-    }),
-  });
+        generationConfig: {
+          temperature: 0.7,
+          maxOutputTokens: 500,
+        },
+      }),
+    },
+  );
 
   if (!response.ok) {
     const detail = await response.text();
     return NextResponse.json(
-      { error: "OpenAI request failed.", detail: detail.slice(0, 500) },
+      { error: "Gemini request failed.", detail: detail.slice(0, 1000) },
       { status: 502 },
     );
   }
 
   const data = await response.json();
-  const description =
-    data.output_text ||
-    data.output?.flatMap((x: any) => x.content || [])
-      .find((x: any) => x.type === "output_text")?.text ||
-    "";
+
+  const description = data.candidates
+    ?.flatMap((candidate: any) => candidate.content?.parts || [])
+    ?.map((part: any) => part.text)
+    ?.filter(Boolean)
+    ?.join("\n")
+    ?.trim() || "";
 
   if (!description) {
-    return NextResponse.json({ error: "The AI returned no description." }, { status: 502 });
+    return NextResponse.json(
+      { error: "Gemini returned no description.", detail: JSON.stringify(data).slice(0, 1000) },
+      { status: 502 },
+    );
   }
 
-  return NextResponse.json({ description: description.trim() });
+  return NextResponse.json({ description });
 }

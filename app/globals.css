@@ -26,3 +26,56 @@
   .card-1{grid-column:8/12;margin-top:170px}
   .card-2{grid-column:3/8;margin-top:30px}
 }
+
+/* PETIT.SOT gallery redesign */
+.gallery-home{background:#eeeae3}
+.hero-gallery{min-height:calc(100vh - 82px);padding:22px 32px 28px;display:flex;flex-direction:column;justify-content:space-between}
+.hero-top{display:flex;justify-content:space-between;font-size:9px;letter-spacing:.13em;text-transform:uppercase}
+.hero-title{display:flex;flex-direction:column;font-size:clamp(82px,16vw,250px);line-height:.76;letter-spacing:-.085em;font-weight:500}
+.hero-title em{font-family:Georgia,serif;font-weight:400;font-size:.72em;margin-left:18vw;line-height:.9}
+.hero-bottom{display:flex;justify-content:space-between;align-items:end}
+.hero-bottom p{font-size:12px;max-width:250px;margin:0}
+.gallery-intro{padding:0 7vw 14vh;display:grid;grid-template-columns:8% minmax(0,1fr) 18%;column-gap:28px;align-items:end}
+.gallery-number{font-size:9px;letter-spacing:.12em;align-self:start;padding-top:12px}
+.hero-art{min-height:78vh;aspect-ratio:4/5}
+.gallery-caption{font-size:10px;padding-bottom:4px}
+.gallery-caption>span{display:block;text-transform:uppercase;letter-spacing:.1em}
+.gallery-caption p{font-size:11px;line-height:1.4;max-width:180px;margin:35px 0 0}
+.gallery-pair{padding:4vh 9vw 16vh;display:grid;grid-template-columns:5fr 3fr;gap:11vw;align-items:start}
+.gallery-piece{color:inherit;text-decoration:none}
+.piece-1{margin-top:18vw}
+.gallery-piece .art-placeholder{aspect-ratio:4/5}
+.gallery-statement{border-top:1px solid #aaa59d;padding:8vh 7vw 12vh;display:grid;grid-template-columns:10% 1fr 18%;gap:30px;align-items:end}
+.gallery-statement>span{font-size:9px;letter-spacing:.12em}
+.gallery-statement p{font-family:Georgia,serif;font-size:clamp(28px,4.5vw,64px);line-height:.98;max-width:720px;margin:0}
+.gallery-footer-image{padding:0 32px 12vh}
+.gallery-footer-image .art-placeholder{min-height:70vh;aspect-ratio:16/9}
+.gallery-archive{padding:7vh 4vw 14vh}
+.archive-mast{display:grid;grid-template-columns:16% 1fr 22%;align-items:end;margin-bottom:12vh}
+.archive-mast h1{font-size:clamp(90px,17vw,250px);line-height:.75;letter-spacing:-.085em;font-weight:500;margin:0}
+.archive-mast p{font-size:11px;max-width:210px;margin:0 0 4px}
+.archive-grid{display:grid;grid-template-columns:repeat(12,1fr);gap:8vw 3vw}
+.archive-card{color:inherit;text-decoration:none}
+.archive-card-0{grid-column:1/6}.archive-card-1{grid-column:8/12;margin-top:12vw}.archive-card-2{grid-column:3/8;margin-top:5vw}.archive-card-3{grid-column:9/13;margin-top:2vw}
+.archive-image{aspect-ratio:4/5}
+.archive-card-meta{display:flex;justify-content:space-between;padding-top:9px;font-size:10px;text-transform:uppercase;letter-spacing:.08em}
+.archive-card p{font-size:9px;text-transform:uppercase;letter-spacing:.1em;margin:5px 0 0;opacity:.55}
+.archive-card .art-placeholder,.gallery-piece .art-placeholder,.gallery-footer-image .art-placeholder{transition:transform .5s ease}
+.archive-card:hover .art-placeholder,.gallery-piece:hover .art-placeholder{transform:scale(.985)}
+@media(max-width:700px){
+ .hero-gallery{min-height:calc(100vh - 70px);padding:18px 20px 24px}
+ .hero-top{font-size:8px}.hero-top span:last-child{display:none}
+ .hero-title{font-size:21vw;line-height:.8}.hero-title em{margin-left:13vw}
+ .gallery-intro{padding:0 20px 90px;display:grid;grid-template-columns:1fr 28px;gap:14px}
+ .gallery-number{grid-column:1/-1;padding-bottom:12px}.hero-art{grid-column:1/-1;min-height:68vh}
+ .gallery-caption{grid-column:1/-1;padding-top:10px;display:grid;grid-template-columns:1fr auto;gap:8px}
+ .gallery-caption p{grid-column:1/-1;margin:15px 0 0}
+ .gallery-pair{padding:0 20px 100px;display:block}
+ .gallery-piece{display:block;margin:0 0 80px!important}.gallery-piece:nth-child(2){margin-left:12%!important}
+ .gallery-statement{padding:60px 20px 90px;display:block}.gallery-statement p{margin:35px 0 50px}
+ .gallery-footer-image{padding:0 20px 80px}.gallery-footer-image .art-placeholder{min-height:58vh;aspect-ratio:4/5}
+ .gallery-archive{padding:5vh 20px 100px}.archive-mast{display:block;margin-bottom:70px}.archive-mast h1{font-size:24vw;margin:45px 0 30px}.archive-mast p{max-width:250px}
+ .archive-grid{display:block}.archive-card{display:block;margin:0 0 75px!important}.archive-card:nth-child(even){margin-left:10%!important}.archive-image{aspect-ratio:4/5}
+}
+[data-locale="ru"] .hero-title{font-size:clamp(76px,14vw,210px)}
+@media(max-width:700px){[data-locale="ru"] .hero-title{font-size:20vw}}

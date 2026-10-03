@@ -183,7 +183,7 @@ export default function AdminDashboard({initialArtworks}:Props){
   async function logout(){await supabase.auth.signOut();location.href="/admin/login";}
 
   return <main className="admin-page">
-    <header className="admin-top"><a href="/admin" className="admin-brand"><span className="eyebrow">PETIT.SOT / АРХИВ</span><h1>Картины</h1></a><nav><a href="/admin/orders">Заказы</a><button onClick={logout}>Выйти</button></nav></header>
+    <header className="admin-top"><div className="admin-brand"><span className="eyebrow"><a href="/admin">PETIT.SOT</a> / АРХИВ</span><h1>Картины</h1></div><nav><a href="/admin/orders">Заказы</a><button onClick={logout}>Выйти</button></nav></header>
     <section className="admin-layout">
       <aside className="admin-list"><button className="admin-new" onClick={()=>{setSelected(null);setImage(null);setImagePreview("");setGalleryImages([]);setNewImages([]);setMessage("");}}>+ Новая картина</button>{artworks.map(w=><button key={w.id} className={"admin-list-row "+(form.id===w.id?"active":"")} onClick={()=>{setSelected(w);setImage(null);setImagePreview("");setNewImages([]);setMessage("");}}><span>{w.title||"Без названия"}</span><small>{({draft:"Черновик",available:"В продаже",sold:"Продана",archived:"Архив"} as Record<string,string>)[w.status]||w.status}</small></button>)}</aside>
       <section className="admin-editor"><form onSubmit={save}>

@@ -1,30 +1,81 @@
 import Link from "next/link";
 import {getWorks} from "../../lib/works";
 
+const logoTop = [
+  ["P", 105], ["E", 205], ["T", 305], ["I", 405], ["T", 485],
+  [".", 585], ["S", 640], ["O", 750], ["T", 865],
+] as const;
+
+const logoBottom = [
+  ["S", 385], ["T", 500], ["U", 610], ["D", 735], ["I", 850], ["O", 910],
+] as const;
+
 export default async function Home({params}:{params:Promise<{locale:string}>}){
  const {locale}=await params;
  const ru=locale==="ru";
  const works=await getWorks();
  const first=works[0];
+
  return <main className="gallery-home">
   <section className="hero-gallery">
    <div className="hero-top"><span>OLGA TRIKHLEB</span><span>{ru?"Художница":"Artist"} / {new Date().getFullYear()}</span></div>
+
    <div className="hero-title-wrap">
-    <div className="hero-title brush-logo"><span>PETIT.SOT</span><em>STUDIO</em></div>
-   <style>{`
-     .brush-logo{position:relative;isolation:isolate}
-     .brush-logo span,.brush-logo em{position:relative;display:block;color:#171717;clip-path:inset(0 100% 0 0);filter:blur(2px);animation:brush-reveal 1.8s cubic-bezier(.2,.75,.2,1) forwards}
-     .brush-logo span{animation-delay:.18s}
-     .brush-logo em{animation-delay:.72s}
-     .brush-logo:before,.brush-logo:after{content:"";position:absolute;z-index:3;left:-5%;width:110%;height:.12em;pointer-events:none;background:repeating-linear-gradient(177deg,transparent 0 5px,rgba(23,23,23,.7) 6px 8px,transparent 9px 13px),linear-gradient(90deg,transparent 0%,rgba(23,23,23,.92) 7%,rgba(23,23,23,.5) 55%,transparent 100%);mix-blend-mode:multiply;transform:translateX(-115%) rotate(-1.5deg);animation:brush-sweep 1.35s cubic-bezier(.18,.72,.2,1) forwards}
-     .brush-logo:before{top:31%;animation-delay:.12s}
-     .brush-logo:after{top:68%;animation-delay:.58s;transform:translateX(-115%) rotate(1deg)}
-     @keyframes brush-reveal{0%{clip-path:inset(0 100% 0 0);filter:blur(2px);opacity:.25}35%{filter:blur(1px);opacity:.72}100%{clip-path:inset(0 0 0 0);filter:blur(0);opacity:1}}
-     @keyframes brush-sweep{0%{transform:translateX(-115%) rotate(-1.5deg);opacity:0}12%{opacity:.8}82%{opacity:.55}100%{transform:translateX(115%) rotate(-1.5deg);opacity:0}}
-     @media(prefers-reduced-motion:reduce){.brush-logo span,.brush-logo em{animation:none;clip-path:none;filter:none}.brush-logo:before,.brush-logo:after{animation:none;display:none}}
-   `}</style>
+    <div className="brush-signature" aria-label="PETIT.SOT STUDIO">
+     <svg viewBox="0 0 1200 320" role="img" aria-hidden="true">
+      <defs>
+       <filter id="brush-soft">
+        <feTurbulence type="fractalNoise" baseFrequency=".018" numOctaves="2" seed="7" result="noise"/>
+        <feDisplacementMap in="SourceGraphic" in2="noise" scale="1.8"/>
+       </filter>
+      </defs>
+      <g className="brush-signature-word brush-signature-top" filter="url(#brush-soft)">
+       {logoTop.map(([letter,x],i)=><text key={letter+"-"+i} x={x} y="142" style={{"--i":i} as React.CSSProperties}>{letter}</text>)}
+      </g>
+      <g className="brush-signature-word brush-signature-bottom" filter="url(#brush-soft)">
+       {logoBottom.map(([letter,x],i)=><text key={letter+"-"+i} x={x} y="282" style={{"--i":i+10} as React.CSSProperties}>{letter}</text>)}
+      </g>
+     </svg>
+    </div>
+
+    <style>{`
+      .brush-signature{position:relative;z-index:2;width:min(88vw,1180px);height:min(31vw,320px);display:flex;align-items:center;justify-content:center}
+      .brush-signature svg{width:100%;height:100%;overflow:visible}
+      .brush-signature-word text{
+        font-family:"Brush Script MT","Segoe Script","URW Chancery L",cursive;
+        font-size:142px;
+        font-style:italic;
+        font-weight:500;
+        fill:transparent;
+        stroke:#171717;
+        stroke-width:2.4;
+        stroke-linecap:round;
+        stroke-linejoin:round;
+        paint-order:stroke fill;
+        stroke-dasharray:1000;
+        stroke-dashoffset:1000;
+        animation:signature-write .62s cubic-bezier(.2,.75,.2,1) forwards;
+        animation-delay:calc(var(--i) * .115s + .18s);
+      }
+      .brush-signature-top text:nth-last-child(1){animation-delay:1.05s}
+      .brush-signature-bottom text{font-size:126px}
+      @keyframes signature-write{
+        0%{stroke-dashoffset:1000;fill:transparent;opacity:.35}
+        72%{stroke-dashoffset:120;fill:transparent;opacity:1}
+        100%{stroke-dashoffset:0;fill:#171717;opacity:1}
+      }
+      @media(max-width:700px){
+        .brush-signature{width:100%;height:34vw;min-height:150px}
+        .brush-signature-word text{font-size:142px}
+        .brush-signature-bottom text{font-size:126px}
+      }
+      @media(prefers-reduced-motion:reduce){
+        .brush-signature-word text{animation:none;stroke-dashoffset:0;fill:#171717}
+      }
+    `}</style>
     <span className="hero-orbit hero-orbit-a"></span><span className="hero-orbit hero-orbit-b"></span>
    </div>
+
    <div className="hero-bottom"><p>{ru?"Живопись, исследования и визуальные фрагменты.":"Painting, studies and visual fragments."}</p><Link className="arrow-link" href={"/"+locale+"/works"}>{ru?"Смотреть работы":"View works"} <span>↗</span></Link></div>
   </section>
 

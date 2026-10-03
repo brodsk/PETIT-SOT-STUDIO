@@ -2,11 +2,9 @@ import Link from "next/link";
 import {notFound} from "next/navigation";
 import LanguageSwitcher from "./language-switcher";
 
-export const locales=["en","ru"] as const;
-
 export default async function LocaleLayout({children,params}:{children:React.ReactNode;params:Promise<{locale:string}>}){
   const {locale}=await params;
-  if(!locales.includes(locale as "en"|"ru")) notFound();
+  if(locale!=="en" && locale!=="ru") notFound();
   const ru=locale==="ru";
   return <div data-locale={locale}>
     <header className="site-header">

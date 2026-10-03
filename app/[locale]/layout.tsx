@@ -1,1 +1,24 @@
-import Link from "next/link";import {notFound} from "next/navigation";export const locales=["en","ru"] as const;export default async function LocaleLayout({children,params}:{children:React.ReactNode;params:Promise<{locale:string}>}){const {locale}=await params;if(!locales.includes(locale as "en"|"ru"))notFound();const ru=locale==="ru";return <><header className="site-header"><Link href={"/"+locale} className="wordmark">PETIT.SOT <span>STUDIO</span></Link><nav><Link href={"/"+locale+"/works"}>{ru?"Работы":"Works"}</Link><Link href={"/"+locale+"/about"}>{ru?"О студии":"About"}</Link><Link href={"/"+locale+"/contact"}>{ru?"Контакты":"Contact"}</Link><span className="language"><Link href="/en" className={!ru?"active":""}>EN</Link><i>/</i><Link href="/ru" className={ru?"active":""}>RU</Link></span></nav></header>{children}<footer><span>© {new Date().getFullYear()} PETIT.SOT STUDIO</span><span>Olga Trikhleb</span><a href="https://www.instagram.com/petit.sot/" target="_blank" rel="noreferrer">Instagram ↗</a></footer></>}
+import Link from "next/link";
+import {notFound} from "next/navigation";
+import LanguageSwitcher from "./language-switcher";
+
+export const locales=["en","ru"] as const;
+
+export default async function LocaleLayout({children,params}:{children:React.ReactNode;params:Promise<{locale:string}>}){
+  const {locale}=await params;
+  if(!locales.includes(locale as "en"|"ru")) notFound();
+  const ru=locale==="ru";
+  return <div data-locale={locale}>
+    <header className="site-header">
+      <Link href={"/"+locale} className="wordmark">PETIT.SOT <span>STUDIO</span></Link>
+      <nav>
+        <Link href={"/"+locale+"/works"}>{ru?"Работы":"Works"}</Link>
+        <Link href={"/"+locale+"/about"}>{ru?"О студии":"About"}</Link>
+        <Link href={"/"+locale+"/contact"}>{ru?"Контакты":"Contact"}</Link>
+        <LanguageSwitcher locale={locale}/>
+      </nav>
+    </header>
+    {children}
+    <footer><span>© {new Date().getFullYear()} PETIT.SOT STUDIO</span><span>Olga Trikhleb</span><a href="https://www.instagram.com/petit.sot/" target="_blank" rel="noreferrer">Instagram ↗</a></footer>
+  </div>
+}

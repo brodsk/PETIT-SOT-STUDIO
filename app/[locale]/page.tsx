@@ -10,7 +10,19 @@ export default async function Home({params}:{params:Promise<{locale:string}>}){
   <section className="hero-gallery">
    <div className="hero-top"><span>OLGA TRIKHLEB</span><span>{ru?"Художница":"Artist"} / {new Date().getFullYear()}</span></div>
    <div className="hero-title-wrap">
-    <div className="hero-title"><span>PETIT.SOT</span><em>STUDIO</em></div>
+    <div className="hero-title brush-logo"><span>PETIT.SOT</span><em>STUDIO</em></div>
+   <style>{`
+     .brush-logo{position:relative;isolation:isolate}
+     .brush-logo span,.brush-logo em{position:relative;display:block;color:#171717;clip-path:inset(0 100% 0 0);filter:blur(2px);animation:brush-reveal 1.8s cubic-bezier(.2,.75,.2,1) forwards}
+     .brush-logo span{animation-delay:.18s}
+     .brush-logo em{animation-delay:.72s}
+     .brush-logo:before,.brush-logo:after{content:"";position:absolute;z-index:3;left:-5%;width:110%;height:.12em;pointer-events:none;background:repeating-linear-gradient(177deg,transparent 0 5px,rgba(23,23,23,.7) 6px 8px,transparent 9px 13px),linear-gradient(90deg,transparent 0%,rgba(23,23,23,.92) 7%,rgba(23,23,23,.5) 55%,transparent 100%);mix-blend-mode:multiply;transform:translateX(-115%) rotate(-1.5deg);animation:brush-sweep 1.35s cubic-bezier(.18,.72,.2,1) forwards}
+     .brush-logo:before{top:31%;animation-delay:.12s}
+     .brush-logo:after{top:68%;animation-delay:.58s;transform:translateX(-115%) rotate(1deg)}
+     @keyframes brush-reveal{0%{clip-path:inset(0 100% 0 0);filter:blur(2px);opacity:.25}35%{filter:blur(1px);opacity:.72}100%{clip-path:inset(0 0 0 0);filter:blur(0);opacity:1}}
+     @keyframes brush-sweep{0%{transform:translateX(-115%) rotate(-1.5deg);opacity:0}12%{opacity:.8}82%{opacity:.55}100%{transform:translateX(115%) rotate(-1.5deg);opacity:0}}
+     @media(prefers-reduced-motion:reduce){.brush-logo span,.brush-logo em{animation:none;clip-path:none;filter:none}.brush-logo:before,.brush-logo:after{animation:none;display:none}}
+   `}</style>
     <span className="hero-orbit hero-orbit-a"></span><span className="hero-orbit hero-orbit-b"></span>
    </div>
    <div className="hero-bottom"><p>{ru?"Живопись, исследования и визуальные фрагменты.":"Painting, studies and visual fragments."}</p><Link className="arrow-link" href={"/"+locale+"/works"}>{ru?"Смотреть работы":"View works"} <span>↗</span></Link></div>

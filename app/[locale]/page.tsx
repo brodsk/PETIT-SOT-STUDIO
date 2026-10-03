@@ -35,6 +35,5 @@ export default async function Home({params}:{params:Promise<{locale:string}>}){
   </section>
 
   <section className="gallery-statement"><span>02—04</span><p>{ru?"Каждая работа — отдельный объект. Архив растёт постепенно.":"Each work exists as an independent object. The archive grows slowly."}</p><Link className="arrow-link" href={"/"+locale+"/about"}>{ru?"О студии":"About the studio"} <span>↗</span></Link></section>
-  <section className="gallery-footer-image"><div className="art-placeholder"><span>04</span><small>ARCHIVE / PETIT.SOT</small></div></section>
  </main>
 }

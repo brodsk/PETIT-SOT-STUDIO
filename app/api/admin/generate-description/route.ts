@@ -15,7 +15,7 @@ export async function POST(request: Request) {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) return NextResponse.json({ error: "GEMINI_API_KEY is not configured in Vercel." }, { status: 503 });
 
-  const match = String(body.imageDataUrl).match(/^data:(image\/[a-zA-Z0-9.+-]+);base64,(.+)$/s);
+  const match = String(body.imageDataUrl).match(/^data:(image\/[a-zA-Z0-9.+-]+);base64,([\\s\\S]+)$/);
   if (!match) return NextResponse.json({ error: "Invalid artwork image data. Please choose the image again." }, { status: 400 });
 
   const metadata = [

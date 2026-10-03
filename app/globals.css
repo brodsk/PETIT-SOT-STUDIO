@@ -79,3 +79,78 @@
 }
 [data-locale="ru"] .hero-title{font-size:clamp(76px,14vw,210px)}
 @media(max-width:700px){[data-locale="ru"] .hero-title{font-size:20vw}}
+
+
+/* Final mobile stability pass */
+html,body{overflow-x:hidden;width:100%;max-width:100%}
+@media(max-width:700px){
+  .site-header{height:auto;min-height:68px;padding:15px 16px;gap:10px}
+  .wordmark{font-size:11px;letter-spacing:.05em;white-space:nowrap}
+  .wordmark span{margin-left:3px}
+  .site-header nav{gap:9px;min-width:0;align-items:center;flex-wrap:nowrap}
+  .site-header nav>a{font-size:9px;white-space:nowrap}
+  .language{margin-left:0;gap:3px;font-size:9px;white-space:nowrap}
+
+  .hero-gallery{min-height:calc(100svh - 68px);height:auto;padding:18px 16px 24px}
+  .hero-title{font-size:clamp(60px,19.5vw,90px);line-height:.78;letter-spacing:-.075em;max-width:100%}
+  .hero-title em{font-size:.68em;margin-left:10vw}
+  .hero-top{font-size:7px}
+  .hero-top span:last-child{display:none}
+  .hero-bottom{display:block}
+  .hero-bottom p{font-size:11px;max-width:220px;margin:0 0 25px}
+
+  .gallery-intro{padding:0 16px 78px;display:block}
+  .gallery-number{padding:0 0 12px}
+  .hero-art{width:100%;height:auto;min-height:0;aspect-ratio:4/5}
+  .gallery-caption{padding-top:10px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px}
+  .gallery-caption p{grid-column:1/-1;max-width:230px;margin:12px 0 0}
+
+  .gallery-pair{padding:0 16px 80px;display:block}
+  .gallery-piece{display:block;width:100%;margin:0 0 64px!important}
+  .gallery-piece:nth-child(2){width:86%;margin-left:auto!important}
+  .gallery-piece .art-placeholder{width:100%;aspect-ratio:4/5}
+
+  .gallery-statement{padding:50px 16px 76px;display:block}
+  .gallery-statement p{font-size:clamp(29px,8.5vw,42px);line-height:1;margin:28px 0 38px}
+  .gallery-footer-image{padding:0 16px 70px}
+  .gallery-footer-image .art-placeholder{width:100%;min-height:0;height:auto;aspect-ratio:4/5}
+
+  .gallery-archive{padding:42px 16px 80px}
+  .archive-mast{display:block;margin-bottom:56px}
+  .archive-mast h1{font-size:clamp(68px,23vw,100px);line-height:.76;margin:28px 0 24px}
+  .archive-mast p{font-size:10px;line-height:1.4;max-width:245px}
+  .archive-grid{display:block}
+  .archive-card{display:block;width:100%;margin:0 0 64px!important}
+  .archive-card:nth-child(even){width:88%;margin-left:auto!important}
+  .archive-image{width:100%;aspect-ratio:4/5}
+
+  .work-page{display:block;padding:10px 16px 70px}
+  .single-art{width:100%;min-height:0;aspect-ratio:4/5;margin-top:24px}
+  .work-info{padding-top:42px}
+  .work-info h1{font-size:clamp(40px,13vw,62px);line-height:.9;margin:12px 0 42px}
+  .work-info dl div{gap:15px}
+  .work-description{margin-top:42px}
+  .purchase-box{margin-top:34px}
+
+  .text-page,.contact-page{padding:55px 16px 90px}
+  .text-page h1,.contact-page h1{font-size:clamp(68px,22vw,94px);line-height:.82;margin:65px 0 55px}
+  .text-columns{margin:0;display:block}
+  .text-columns p+p{margin-top:24px}
+  .contact-mail{display:inline-block;max-width:100%;font-size:8vw;overflow-wrap:anywhere}
+  .contact-details{margin-top:80px;display:block}
+  .contact-details span{display:block;margin-bottom:8px}
+  footer{padding:18px 16px;gap:8px;flex-wrap:wrap;font-size:8px}
+
+  [data-locale="ru"] .hero-title{font-size:clamp(56px,18.5vw,86px)}
+  [data-locale="ru"] .page-intro h1{font-size:22vw;line-height:.84}
+  [data-locale="ru"] .archive-row{grid-template-columns:8% 22% minmax(0,1fr) 14%}
+  [data-locale="ru"] .text-page h1,[data-locale="ru"] .contact-page h1{font-size:22vw;line-height:.84}
+}
+@media(max-width:380px){
+  .site-header{padding-left:12px;padding-right:12px}
+  .wordmark{font-size:10px}
+  .site-header nav{gap:6px}
+  .site-header nav>a,.language{font-size:8px}
+  .hero-title{font-size:18.5vw}
+  .gallery-intro,.gallery-pair,.gallery-statement,.gallery-footer-image,.gallery-archive,.archive,.work-page,.text-page,.contact-page{padding-left:12px;padding-right:12px}
+}

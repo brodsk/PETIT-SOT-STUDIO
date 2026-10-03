@@ -30,17 +30,17 @@ export default async function Home({params}:{params:Promise<{locale:string}>}){
        </filter>
       </defs>
       <g className="brush-signature-word brush-signature-top" filter="url(#brush-soft)">
-       {logoTop.map(([letter,x],i)=><text key={letter+"-"+i} x={x} y="142" style={{"--i":i} as React.CSSProperties}>{letter}</text>)}
+       {logoTop.map(([letter,x],i)=><text key={letter+"-"+i} x={x} y="142" style={{"--i":i} as Record<string, string | number>}>{letter}</text>)}
       </g>
       <g className="brush-signature-word brush-signature-bottom" filter="url(#brush-soft)">
-       {logoBottom.map(([letter,x],i)=><text key={letter+"-"+i} x={x} y="282" style={{"--i":i+10} as React.CSSProperties}>{letter}</text>)}
+       {logoBottom.map(([letter,x],i)=><text key={letter+"-"+i} x={x} y="282" style={{"--i":i+10} as Record<string, string | number>}>{letter}</text>)}
       </g>
      </svg>
     </div>
 
     <style>{`
-      .brush-signature{position:relative;z-index:2;width:min(88vw,1180px);height:min(31vw,320px);display:flex;align-items:center;justify-content:center}
-      .brush-signature svg{width:100%;height:100%;overflow:visible}
+      .brush-signature{position:relative;z-index:2;width:min(88vw,1180px);aspect-ratio:1200 / 320;height:auto;display:flex;align-items:center;justify-content:center}
+      .brush-signature svg{width:100%;height:auto;display:block;overflow:visible}
       .brush-signature-word text{
         font-family:"Brush Script MT","Segoe Script","URW Chancery L",cursive;
         font-size:142px;
@@ -63,11 +63,6 @@ export default async function Home({params}:{params:Promise<{locale:string}>}){
         0%{stroke-dashoffset:1000;fill:transparent;opacity:.35}
         72%{stroke-dashoffset:120;fill:transparent;opacity:1}
         100%{stroke-dashoffset:0;fill:#171717;opacity:1}
-      }
-      @media(max-width:700px){
-        .brush-signature{width:100%;height:34vw;min-height:150px}
-        .brush-signature-word text{font-size:142px}
-        .brush-signature-bottom text{font-size:126px}
       }
       @media(prefers-reduced-motion:reduce){
         .brush-signature-word text{animation:none;stroke-dashoffset:0;fill:#171717}

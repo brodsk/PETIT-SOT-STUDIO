@@ -41,19 +41,33 @@ export default function AdminDashboard({initialArtworks}:Props){
     setBusy(false);
   }
 
+  async function compressImage(source:Blob){
+    const bitmap=await createImageBitmap(source);
+    const max=1800;
+    const scale=Math.min(1,max/Math.max(bitmap.width,bitmap.height));
+    const canvas=document.createElement("canvas");
+    canvas.width=Math.max(1,Math.round(bitmap.width*scale));
+    canvas.height=Math.max(1,Math.round(bitmap.height*scale));
+    canvas.getContext("2d")!.drawImage(bitmap,0,0,canvas.width,canvas.height);
+    bitmap.close();
+    return canvas.toDataURL("image/jpeg",0.82);
+  }
+
   async function generateDescription(){
     if(!image && !form.image_path){setMessage("Add an artwork image first.");return;}
     setAiBusy(true);setMessage("");
     try{
       let dataUrl="";
       if(image){
-        dataUrl=await new Promise<string>((resolve,reject)=>{const r=new FileReader();r.onload=()=>resolve(String(r.result));r.onerror=reject;r.readAsDataURL(image);});
+        dataUrl=await compressImage(image);
       }else{
-        const res=await fetch(imageUrl); const blob=await res.blob();
-        dataUrl=await new Promise<string>((resolve,reject)=>{const r=new FileReader();r.onload=()=>resolve(String(r.result));r.onerror=reject;r.readAsDataURL(blob);});
+        const res=await fetch(imageUrl);
+        if(!res.ok) throw new Error("Could not read the uploaded artwork image.");
+        const blob=await res.blob();
+        dataUrl=await compressImage(blob);
       }
       const res=await fetch("/api/admin/generate-description",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({imageDataUrl:dataUrl,title:form.title,medium:form.medium,year:form.year,width_cm:form.width_cm,height_cm:form.height_cm,depth_cm:form.depth_cm})});
-      const json=await res.json(); if(!res.ok) throw new Error(json.error||"AI generation failed.");
+      const json=await res.json(); if(!res.ok) throw new Error([json.error,json.detail].filter(Boolean).join(" ")||"AI generation failed.");
       setSelected({...form,description:json.description,ai_description:json.description} as Artwork); setMessage("AI description generated — edit it if you want.");
     }catch(err:any){setMessage(err?.message||"AI generation failed.");}
     setAiBusy(false);
@@ -90,7 +104,7 @@ export default function AdminDashboard({initialArtworks}:Props){
             <label>Width / cm<input type="number" step="0.1" value={form.width_cm??""} onChange={e=>patch("width_cm",Number(e.target.value)||null)}/></label>
             <label>Height / cm<input type="number" step="0.1" value={form.height_cm??""} onChange={e=>patch("height_cm",Number(e.target.value)||null)}/></label>
             <label>Depth / cm<input type="number" step="0.1" value={form.depth_cm??""} onChange={e=>patch("depth_cm",Number(e.target.value)||null)}/></label>
-            <label>Price / EUR<input type="number" step="0.01" min="0" value={form.price_eur} onChange={e=>patch("price_eur",Number(e.target.value)||0)}/></label>
+            <label>Price / EUR<input type="number" step="0.01" min="0" value={form.price_eur===0?"":form.price_eur} onChange={e=>patch("price_eur",e.target.value===""?0:Number(e.target.value))}/></label>
           </div>
           <div className="admin-description-head"><label>Description<textarea value={form.description} onChange={e=>patch("description",e.target.value)} rows={8}/></label><div><button type="button" className="ai-button" onClick={generateDescription} disabled={aiBusy}>{aiBusy?"Reading artwork…":"✦ Generate with AI"}</button><p>AI uses the actual artwork image and the metadata above. It will not invent dimensions, year or medium.</p></div></div>
           {message && <p className="admin-message">{message}</p>}

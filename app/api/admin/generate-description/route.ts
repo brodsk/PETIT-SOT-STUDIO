@@ -39,7 +39,7 @@ export async function POST(request: Request) {
       method: "POST",
       headers: { "Content-Type": "application/json", "x-goog-api-key": apiKey },
       body: JSON.stringify({
-        contents: [{ role: "user", parts: [{ text: prompt }, { inline_data: { mime_type: match[1].toLowerCase(), data: match[2] } }] }],
+        contents: [{ role: "user", parts: [{ text: prompt }, { inline_data: { mime_type: match[1].toLowerCase(), data: imageDataUrl.slice(match[0].length) } }] }],
         generationConfig: { temperature: 0.7, maxOutputTokens: 900, responseMimeType: "application/json" },
       }),
     },

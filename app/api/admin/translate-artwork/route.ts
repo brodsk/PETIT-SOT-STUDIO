@@ -18,7 +18,7 @@ export async function POST(request: Request) {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) return NextResponse.json({ error: "GEMINI_API_KEY is not configured in Vercel." }, { status: 503 });
 
-  const prompt = "Translate the following contemporary-art catalogue text from Russian to natural, elegant English. Translate the artwork title naturally but do not invent information. Preserve meaning, tone, and paragraph structure. Return ONLY valid JSON in exactly this shape: {"titleEn":"...","descriptionEn":"..."}.\n\nRussian title: " + title + "\n\nRussian description:\n" + description;
+  const prompt = `Translate the following contemporary-art catalogue text from Russian to natural, elegant English. Translate the artwork title naturally but do not invent information. Preserve meaning, tone, and paragraph structure. Return ONLY valid JSON in exactly this shape: {"titleEn":"...","descriptionEn":"..."}.\n\nRussian title: ${title}\n\nRussian description:\n${description}`;
 
   const model = process.env.GEMINI_MODEL || "gemini-3.5-flash-lite";
   const response = await fetch("https://generativelanguage.googleapis.com/v1beta/models/" + encodeURIComponent(model) + ":generateContent", {

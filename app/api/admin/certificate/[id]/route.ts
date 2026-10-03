@@ -32,8 +32,14 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
 
   const pdf = await PDFDocument.create();
   const page = pdf.addPage([595.28, 841.89]);
-  const font = await pdf.embedFont(StandardFonts.Helvetica);
-  const italic = await pdf.embedFont(StandardFonts.HelveticaOblique);
+  const fontUrl = "https://github.com/googlefonts/noto-fonts/raw/main/hinted/ttf/NotoSans/NotoSans-Regular.ttf";
+  const italicUrl = "https://github.com/googlefonts/noto-fonts/raw/main/hinted/ttf/NotoSans/NotoSans-Italic.ttf";
+  const [fontRes, italicRes] = await Promise.all([fetch(fontUrl), fetch(italicUrl)]);
+  if (!fontRes.ok || !italicRes.ok) {
+    return NextResponse.json({ error: "Could not load PDF fonts." }, { status: 502 });
+  }
+  const font = await pdf.embedFont(await fontRes.arrayBuffer());
+  const italic = await pdf.embedFont(await italicRes.arrayBuffer());
   const black = rgb(0.09, 0.09, 0.09);
 
   page.drawText("PETIT.SOT STUDIO", { x: 44, y: 792, size: 14, font, color: black });
@@ -48,15 +54,21 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
       const type = imageRes.headers.get("content-type") || "";
       const image = type.includes("png")
         ? await pdf.embedPng(imageBytes)
-        : await pdf.embedJpg(imageBytes);
+        : type.includes("jpeg") || type.includes("jpg")
+          ? await pdf.embedJpg(imageBytes)
+          : null;
+      if (!image) {
+        y = 720;
+      } else {
       const scale = Math.min(507 / image.width, 420 / image.height);
-      page.drawImage(image, {
-        x: 44,
-        y: y - 420,
-        width: image.width * scale,
-        height: image.height * scale,
-      });
-      y -= 445;
+        page.drawImage(image, {
+          x: 44,
+          y: y - 420,
+          width: image.width * scale,
+          height: image.height * scale,
+        });
+        y -= 445;
+      }
     }
   }
 

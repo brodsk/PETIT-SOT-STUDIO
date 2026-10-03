@@ -46,23 +46,17 @@ export default async function Home({params}:{params:Promise<{locale:string}>}){
         font-size:142px;
         font-style:italic;
         font-weight:500;
-        fill:transparent;
-        stroke:#171717;
-        stroke-width:2.4;
-        stroke-linecap:round;
-        stroke-linejoin:round;
-        paint-order:stroke fill;
-        stroke-dasharray:1000;
-        stroke-dashoffset:1000;
-        animation:signature-write .62s cubic-bezier(.2,.75,.2,1) forwards;
+        fill:#171717;
+        stroke:none;
+        animation:signature-paint .62s cubic-bezier(.2,.75,.2,1) forwards;
         animation-delay:calc(var(--i) * .115s + .18s);
+        clip-path:inset(0 100% 0 0);
       }
       .brush-signature-top text:nth-last-child(1){animation-delay:1.05s}
       .brush-signature-bottom text{font-size:126px}
-      @keyframes signature-write{
-        0%{stroke-dashoffset:1000;fill:transparent;opacity:.35}
-        72%{stroke-dashoffset:120;fill:transparent;opacity:1}
-        100%{stroke-dashoffset:0;fill:#171717;opacity:1}
+      @keyframes signature-paint{
+        0%{clip-path:inset(0 100% 0 0);opacity:1}
+        100%{clip-path:inset(0 0 0 0);opacity:1}
       }
       @media(prefers-reduced-motion:reduce){
         .brush-signature-word text{animation:none;stroke-dashoffset:0;fill:#171717}

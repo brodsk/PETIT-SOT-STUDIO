@@ -45,11 +45,11 @@ export default async function Home({params}:{params:Promise<{locale:string}>}){
         font-family:"Kaushan Script",cursive;
         font-size:142px;
         font-style:italic;
-        font-weight:500;
+        font-weight:700;
         fill:#171717;
         stroke:none;
-        animation:signature-paint .62s cubic-bezier(.2,.75,.2,1) forwards;
-        animation-delay:calc(var(--i) * .115s + .18s);
+        animation:signature-paint .9s cubic-bezier(.18,.72,.22,1) forwards;
+        animation-delay:calc(var(--i) * .07s + .12s);
         clip-path:inset(0 100% 0 0);
       }
       .brush-signature-top text:nth-last-child(1){animation-delay:1.05s}

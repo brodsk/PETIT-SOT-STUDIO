@@ -1,4 +1,5 @@
 import { createClient } from "./supabase/server";
+import { localizeMedium } from "./medium";
 
 export type PublicWork={slug:string;title:string;year:string;medium:string;size:string;description:string;price:number;currency:string;available:boolean;imageUrl?:string;id?:string};
 
@@ -29,3 +30,5 @@ export async function getWork(slug:string){
  const works=await getWorks();
  return works.find(w=>w.slug===slug)||null;
 }
+
+export { localizeMedium };

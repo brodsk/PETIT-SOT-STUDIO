@@ -8,12 +8,12 @@
 [data-locale="ru"] .page-intro h1{font-size:clamp(64px,11vw,165px);letter-spacing:-.06em}
 [data-locale="ru"] .archive-row{grid-template-columns:5% 16% 1fr 16% 3%}
 [data-locale="ru"] .work-info h1{font-size:clamp(42px,5.2vw,78px);letter-spacing:-.045em}
-[data-locale="ru"] .text-page h1,[data-locale="ru"] .contact-page h1{font-size:clamp(70px,12vw,175px);letter-spacing:-.06em}
+[data-locale="ru"] .text-page h1,[data-locale="ru"] .contact-page h1{font-size:clamp(64px,10vw,150px);letter-spacing:-.07em}
 @media(max-width:700px){
   [data-locale="ru"] .hero h1{font-size:17vw;letter-spacing:-.045em;line-height:.88}
   [data-locale="ru"] .page-intro h1{font-size:23vw;line-height:.86}
   [data-locale="ru"] .archive-row{grid-template-columns:8% 24% 1fr 16%}
-  [data-locale="ru"] .text-page h1,[data-locale="ru"] .contact-page h1{font-size:23vw;line-height:.86}
+  [data-locale="ru"] .text-page h1{font-size:23vw;line-height:.86}
 }
 
 /* Image-led gallery direction */
@@ -144,7 +144,7 @@ html,body{overflow-x:hidden;width:100%;max-width:100%}
   [data-locale="ru"] .hero-title{font-size:clamp(56px,18.5vw,86px)}
   [data-locale="ru"] .page-intro h1{font-size:22vw;line-height:.84}
   [data-locale="ru"] .archive-row{grid-template-columns:8% 22% minmax(0,1fr) 14%}
-  [data-locale="ru"] .text-page h1,[data-locale="ru"] .contact-page h1{font-size:22vw;line-height:.84}
+  [data-locale="ru"] .text-page h1{font-size:22vw;line-height:.84}
 }
 @media(max-width:380px){
   .site-header{padding-left:12px;padding-right:12px}

@@ -49,15 +49,36 @@ export default function AdminDashboard({initialArtworks}:Props){
   }
 
   async function compressImage(source:Blob){
-    const bitmap=await createImageBitmap(source);
     const max=1800;
-    const scale=Math.min(1,max/Math.max(bitmap.width,bitmap.height));
     const canvas=document.createElement("canvas");
-    canvas.width=Math.max(1,Math.round(bitmap.width*scale));
-    canvas.height=Math.max(1,Math.round(bitmap.height*scale));
-    canvas.getContext("2d")!.drawImage(bitmap,0,0,canvas.width,canvas.height);
-    bitmap.close();
-    return canvas.toDataURL("image/jpeg",0.82);
+    const ctx=canvas.getContext("2d");
+    if(!ctx) throw new Error("Не удалось подготовить изображение.");
+    try{
+      const bitmap=await createImageBitmap(source);
+      const scale=Math.min(1,max/Math.max(bitmap.width,bitmap.height));
+      canvas.width=Math.max(1,Math.round(bitmap.width*scale));
+      canvas.height=Math.max(1,Math.round(bitmap.height*scale));
+      ctx.drawImage(bitmap,0,0,canvas.width,canvas.height);
+      bitmap.close();
+      return canvas.toDataURL("image/jpeg",0.82);
+    }catch{
+      const url=URL.createObjectURL(source);
+      try{
+        const img=new Image();
+        await new Promise<void>((resolve,reject)=>{
+          img.onload=()=>resolve();
+          img.onerror=()=>reject(new Error("Не удалось декодировать исходное изображение. Попробуйте JPEG или PNG."));
+          img.src=url;
+        });
+        const scale=Math.min(1,max/Math.max(img.naturalWidth,img.naturalHeight));
+        canvas.width=Math.max(1,Math.round(img.naturalWidth*scale));
+        canvas.height=Math.max(1,Math.round(img.naturalHeight*scale));
+        ctx.drawImage(img,0,0,canvas.width,canvas.height);
+        return canvas.toDataURL("image/jpeg",0.82);
+      }finally{
+        URL.revokeObjectURL(url);
+      }
+    }
   }
 
   async function generateDescription(){

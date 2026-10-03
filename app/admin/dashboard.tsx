@@ -75,7 +75,7 @@ export default function AdminDashboard({initialArtworks}:Props){
       }
       const res=await fetch("/api/admin/generate-description",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({imageDataUrl:dataUrl,title:form.title,medium:form.medium,year:form.year,width_cm:form.width_cm,height_cm:form.height_cm,depth_cm:form.depth_cm})});
       const json=await res.json(); if(!res.ok) throw new Error([json.error,json.detail].filter(Boolean).join(" ")||"Не удалось создать описание.");
-      setSelected({...form,description:json.description,ai_description:json.description} as Artwork); setMessage("Описание создано. При необходимости отредактируйте его и сохраните.");
+      setSelected({...form,description:json.descriptionRu||json.description,ai_description:json.descriptionEn||json.description} as Artwork); setMessage("Описание создано. При необходимости отредактируйте его и сохраните.");
     }catch(err:any){setMessage(err?.message||"Не удалось создать описание.");}
     setAiBusy(false);
   }
@@ -114,7 +114,7 @@ export default function AdminDashboard({initialArtworks}:Props){
             <label>Глубина / см<input type="number" step="0.1" value={form.depth_cm??""} onChange={e=>patch("depth_cm",Number(e.target.value)||null)}/></label>
             <label>Цена / EUR<input type="number" step="0.01" min="0" value={form.price_eur===0?"":form.price_eur} onChange={e=>patch("price_eur",e.target.value===""?0:Number(e.target.value))}/></label>
           </div>
-          <div className="admin-description-head"><label>Описание<textarea value={form.description} onChange={e=>patch("description",e.target.value)} rows={8}/></label><div><button type="button" className="ai-button" onClick={generateDescription} disabled={aiBusy}>{aiBusy?"Анализирую картину…":"✦ Создать описание с ИИ"}</button><p>ИИ анализирует само изображение и использует указанные выше данные. Он не придумывает год, технику или размеры.</p></div></div>
+          <div className="admin-description-head"><label>Описание (русский)<textarea value={form.description} onChange={e=>patch("description",e.target.value)} rows={8}/></label><div><button type="button" className="ai-button" onClick={generateDescription} disabled={aiBusy}>{aiBusy?"Анализирую картину…":"✦ Создать описание с ИИ"}</button><p>ИИ анализирует изображение и создаёт описание на русском и английском. Фактические данные не выдумываются.</p></div></div>
           {message && <p className="admin-message">{message}</p>}
           <div className="admin-actions"><button type="submit" disabled={busy}>{busy?"Сохраняю…":"Сохранить картину"} <span>↗</span></button>{form.id&&<button type="button" className="secondary" onClick={passport}>Создать паспорт PDF</button>}</div>
         </form>

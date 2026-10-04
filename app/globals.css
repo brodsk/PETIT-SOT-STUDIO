@@ -744,3 +744,31 @@ footer{background:rgba(247,246,242,.45)}
     order:2!important;
   }
 }
+
+
+/* Mobile artwork gallery: main image first, thumbnails underneath. */
+@media(max-width:700px){
+  .work-page>.artwork-viewer{
+    display:flex!important;
+    flex-direction:column!important;
+  }
+  .work-page>.artwork-viewer .artwork-viewer-main{
+    order:1!important;
+  }
+  .work-page>.artwork-viewer .artwork-gallery-thumbs{
+    order:2!important;
+    width:100%!important;
+    display:flex!important;
+    flex-direction:row!important;
+    gap:6px!important;
+    margin:8px 0 0!important;
+    padding:0!important;
+    overflow-x:auto!important;
+    overflow-y:hidden!important;
+  }
+  .work-page>.artwork-viewer .artwork-gallery-thumbs button{
+    flex:0 0 64px!important;
+    width:64px!important;
+    height:80px!important;
+  }
+}

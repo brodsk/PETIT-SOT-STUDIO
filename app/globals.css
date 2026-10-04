@@ -292,9 +292,6 @@ footer{background:rgba(247,246,242,.45)}
   transform-origin:center;
 }
 .brush-signature-bottom text{font-size:126px}
-/* Brush cursor: bristles toward upper-left */
-@media(min-width:701px){html,body,body *{cursor:none!important}.studio-cursor{display:block!important}}
-@media(max-width:700px){.studio-cursor{display:none!important}}
 /* Artwork viewer */
 .artwork-viewer-main{position:relative;cursor:zoom-in}
 .artwork-zone{position:absolute;top:0;bottom:0;width:50%;border:0;background:transparent;z-index:2;cursor:inherit}

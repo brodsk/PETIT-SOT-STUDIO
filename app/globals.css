@@ -474,3 +474,11 @@ footer{background:rgba(247,246,242,.45)}
   .brush-signature{width:94vw}
   .brush-signature-word text{font-size:126px}
 }
+
+
+/* Justify artwork descriptions on mobile too. */
+.work-description{
+  text-align:justify!important;
+  text-justify:inter-word!important;
+  hyphens:auto!important;
+}

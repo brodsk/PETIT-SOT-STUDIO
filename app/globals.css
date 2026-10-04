@@ -486,3 +486,11 @@ footer{background:rgba(247,246,242,.45)}
   .brush-signature-top text{font-size:150px!important}
   .brush-signature-bottom text{font-size:92px!important}
 }
+
+
+/* Artwork detail: smaller navigation arrows and a tighter image/info connection. */
+.artwork-viewer-hint{font-size:22px!important}
+@media(min-width:701px){
+  .work-page{grid-template-columns:minmax(0,1fr) minmax(320px,400px)!important}
+  .work-page>.work-info{padding-left:18px!important}
+}

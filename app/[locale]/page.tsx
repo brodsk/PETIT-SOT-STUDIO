@@ -21,9 +21,21 @@ export default async function Home({params}:{params:Promise<{locale:string}>}){
    <div className="hero-top"><span>OLGA TRIKHLEB</span><span>{ru?"Художница":"Artist"} / {new Date().getFullYear()}</span></div>
 
    <div className="hero-title-wrap">
-    <div className="studio-static-title" aria-label="PETIT.SOT STUDIO">
-     <span>PETIT.SOT</span>
-     <span>STUDIO</span>
+    <div className="brush-signature" aria-label="PETIT.SOT STUDIO">
+     <svg viewBox="0 0 1200 320" role="img" aria-hidden="true">
+      <defs>
+       <filter id="brush-soft">
+        <feTurbulence type="fractalNoise" baseFrequency=".018" numOctaves="2" seed="7" result="noise"/>
+        <feDisplacementMap in="SourceGraphic" in2="noise" scale="1.8"/>
+       </filter>
+      </defs>
+      <g className="brush-signature-word brush-signature-top" filter="url(#brush-soft)">
+       {logoTop.map(([letter,x],i)=><text key={letter+"-"+i} x={x} y="142" style={{"--i":i} as Record<string, string | number>}>{letter}</text>)}
+      </g>
+      <g className="brush-signature-word brush-signature-bottom" filter="url(#brush-soft)">
+       {logoBottom.map(([letter,x],i)=><text key={letter+"-"+i} x={x} y="282" style={{"--i":i+10} as Record<string, string | number>}>{letter}</text>)}
+      </g>
+     </svg>
     </div>
 
     <span className="hero-orbit hero-orbit-a"></span><span className="hero-orbit hero-orbit-b"></span>

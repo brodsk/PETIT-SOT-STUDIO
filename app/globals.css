@@ -477,3 +477,12 @@ footer{background:rgba(247,246,242,.45)}
   overflow-wrap:normal!important;
   word-break:normal!important;
 }
+
+
+/* Studio title hierarchy: PETIT.SOT larger, STUDIO smaller. */
+.brush-signature-top text{font-size:150px!important}
+.brush-signature-bottom text{font-size:92px!important}
+@media(max-width:700px){
+  .brush-signature-top text{font-size:150px!important}
+  .brush-signature-bottom text{font-size:92px!important}
+}

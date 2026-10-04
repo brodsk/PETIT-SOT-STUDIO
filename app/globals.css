@@ -397,3 +397,80 @@ footer{background:rgba(247,246,242,.45)}
   }
   .studio-static-title span:last-child{font-size:.62em}
 }
+
+
+/* Final artwork composition: one compact block — main image, thumbnails below, info immediately beside it. */
+@media(min-width:701px){
+  .work-page{
+    grid-template-columns:minmax(0,1fr) minmax(320px,400px)!important;
+    column-gap:0!important;
+    align-items:start!important;
+  }
+  .work-page>.artwork-viewer{
+    grid-column:1!important;
+    width:100%!important;
+    min-width:0!important;
+    margin:0!important;
+  }
+  .work-page>.work-info{
+    grid-column:2!important;
+    width:100%!important;
+    min-width:0!important;
+    margin:0!important;
+    padding:0 0 0 42px!important;
+    border-left:1px solid rgba(23,23,23,.22)!important;
+    max-width:none!important;
+    min-height:0!important;
+  }
+  .work-page>.artwork-viewer .artwork-viewer-main{
+    width:100%!important;
+    height:min(calc(100vh - 170px),760px)!important;
+    min-height:0!important;
+    margin:0!important;
+  }
+  .work-page>.artwork-viewer .artwork-gallery-thumbs{
+    width:100%!important;
+    margin:12px 0 0!important;
+    padding:0!important;
+    display:flex!important;
+    gap:10px!important;
+    overflow-x:auto!important;
+  }
+  .work-page>.artwork-viewer .artwork-gallery-thumbs button{
+    flex:0 0 auto!important;
+  }
+  .work-info h1{margin-top:0!important}
+  .work-description{
+    max-width:none!important;
+    width:100%!important;
+    text-align:justify!important;
+    text-justify:inter-word!important;
+    hyphens:auto!important;
+  }
+}
+
+/* Keep the original painted/brush lettering, but make it completely static. */
+.brush-signature{
+  width:min(82vw,1200px);
+  margin:0 auto;
+}
+.brush-signature svg{
+  display:block;
+  width:100%;
+  height:auto;
+  overflow:visible;
+}
+.brush-signature-word text{
+  visibility:visible!important;
+  opacity:1!important;
+  fill:#171717;
+  stroke:none;
+  clip-path:none!important;
+  -webkit-clip-path:none!important;
+  animation:none!important;
+  transform:none!important;
+}
+@media(max-width:700px){
+  .brush-signature{width:94vw}
+  .brush-signature-word text{font-size:126px}
+}

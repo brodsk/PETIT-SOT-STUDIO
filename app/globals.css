@@ -525,3 +525,70 @@ footer{background:rgba(247,246,242,.45)}
 }
 .hero-wordmark{display:block;width:100%;font-size:clamp(42px,8.7vw,150px)!important;font-weight:700;letter-spacing:.08em;line-height:.9;white-space:nowrap;text-align:center}
 .hero-wordmark span{font-weight:400;margin-left:clamp(5px,.6vw,10px)}
+
+
+/* eBay-style artwork gallery: thumbnails beside the main image, information remains on the right. */
+@media(min-width:701px){
+  .work-page>.artwork-viewer{
+    display:grid!important;
+    grid-template-columns:84px minmax(0,1fr)!important;
+    column-gap:12px!important;
+    align-items:start!important;
+  }
+  .work-page>.artwork-viewer .artwork-gallery-thumbs{
+    grid-column:1!important;
+    grid-row:1!important;
+    width:84px!important;
+    height:min(calc(100vh - 150px),720px)!important;
+    margin:0!important;
+    padding:0!important;
+    display:flex!important;
+    flex-direction:column!important;
+    gap:8px!important;
+    overflow-y:auto!important;
+    overflow-x:hidden!important;
+  }
+  .work-page>.artwork-viewer .artwork-gallery-thumbs button{
+    width:84px!important;
+    height:106px!important;
+    flex:0 0 auto!important;
+    opacity:.55!important;
+    border:1px solid transparent!important;
+  }
+  .work-page>.artwork-viewer .artwork-gallery-thumbs button.active{
+    opacity:1!important;
+    border-color:#171717!important;
+  }
+  .work-page>.artwork-viewer .artwork-gallery-thumbs img{
+    width:100%!important;
+    height:100%!important;
+    object-fit:cover!important;
+  }
+  .work-page>.artwork-viewer .artwork-viewer-main{
+    grid-column:2!important;
+    grid-row:1!important;
+  }
+}
+@media(max-width:700px){
+  .hero-wordmark{
+    font-size:clamp(24px,7.3vw,30px)!important;
+    letter-spacing:.045em!important;
+    line-height:1!important;
+    white-space:nowrap!important;
+  }
+  .hero-wordmark span{margin-left:4px!important}
+  .work-page>.artwork-viewer .artwork-gallery-thumbs{
+    width:100%!important;
+    display:flex!important;
+    flex-direction:row!important;
+    gap:6px!important;
+    overflow-x:auto!important;
+    overflow-y:hidden!important;
+    margin-top:8px!important;
+  }
+  .work-page>.artwork-viewer .artwork-gallery-thumbs button{
+    width:64px!important;
+    height:80px!important;
+    flex:0 0 auto!important;
+  }
+}

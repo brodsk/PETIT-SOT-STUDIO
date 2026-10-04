@@ -295,19 +295,37 @@ footer{background:rgba(247,246,242,.45)}
 /* Final signature + cursor pass */
 .brush-signature-word text{
   visibility:visible !important;
-  opacity:1 !important;
-  fill:#171717 !important;
-  stroke:none !important;
+  opacity:.98 !important;
+  fill:transparent !important;
+  stroke:#171717 !important;
+  stroke-width:7 !important;
+  stroke-linecap:round !important;
+  stroke-linejoin:round !important;
+  paint-order:stroke fill !important;
+  pathLength:1 !important;
+  stroke-dasharray:1 !important;
+  stroke-dashoffset:1 !important;
   clip-path:none !important;
-  stroke-dasharray:none !important;
-  stroke-dashoffset:0 !important;
-  animation:none !important;
   transform:none !important;
+  animation:signature-brush 1.15s cubic-bezier(.2,.78,.18,1) forwards !important;
+  animation-delay:calc(var(--i) * .38s + .15s) !important;
+  filter:url(#brush-soft);
+}
+.brush-signature-bottom text{
+  font-size:126px !important;
+  animation-delay:calc(var(--i) * .38s + 3.7s) !important;
+}
+@keyframes signature-brush{
+  0%{stroke-dashoffset:1;fill:transparent;opacity:.2}
+  62%{stroke-dashoffset:0;fill:transparent;opacity:1}
+  78%,100%{stroke-dashoffset:0;fill:#171717;opacity:1}
 }
 .brush-signature{visibility:visible !important;opacity:1 !important}
+
+/* The actual 🖌 brush emoji, rotated so the bristles point ↖. */
 @media(min-width:701px){
   html,body,body *{
-    cursor:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 48 48'%3E%3Cg transform='rotate(180 24 24)'%3E%3Cpath d='M7 9C8 5 12 3 16 5L29 20L25 24L10 13C7 11 6 10 7 9Z' fill='%23171717'/%3E%3Cpath d='M25 21L31 17L36 22L30 27Z' fill='%23aaa59d' stroke='%23171717' stroke-width='1'/%3E%3Cpath d='M30 26L36 21L43 31L39 40L32 36Z' fill='%23c5b9a5' stroke='%23171717' stroke-width='1'/%3E%3Cpath d='M33 35L39 40L35 43L30 37Z' fill='%23171717'/%3E%3C/g%3E%3C/svg%3E") 7 9,auto !important;
+    cursor:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 48 48'%3E%3Cg transform='rotate(180 24 24)'%3E%3Ctext x='24' y='34' text-anchor='middle' font-size='30' font-family='Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif'%3E%F0%9F%96%8C%3C/text%3E%3C/g%3E%3C/svg%3E") 8 8,auto !important;
   }
   .studio-cursor{display:none !important}
 }

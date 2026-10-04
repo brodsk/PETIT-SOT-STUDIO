@@ -37,7 +37,6 @@ export default function FaviconAnimator(){
       window.clearInterval(timer);
       if(previous)URL.revokeObjectURL(previous);
       link.remove();
-      style.remove();
     };
   },[]);
   return null;

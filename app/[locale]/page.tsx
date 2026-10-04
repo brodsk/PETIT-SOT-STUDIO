@@ -42,7 +42,7 @@ export default async function Home({params}:{params:Promise<{locale:string}>}){
       .brush-signature{position:relative;z-index:2;width:min(88vw,1180px);aspect-ratio:1200 / 320;height:auto;display:flex;align-items:center;justify-content:center}
       .brush-signature svg{width:100%;height:auto;display:block;overflow:visible}
       .brush-signature-word text{
-        font-family:"Berkshire Swash",cursive;
+        font-family:"Mr Dafoe",cursive;
         font-size:142px;
         font-style:italic;
         font-weight:700;

@@ -15,9 +15,9 @@ export default function StudioCursor(){
   return()=>window.removeEventListener("mousemove",move);
  },[]);
  return <div className={"studio-cursor"+(link?" is-link":"")} style={{left:pos.x,top:pos.y}} aria-hidden="true">
-  <svg viewBox="0 0 28 32" aria-hidden="true">
-   <path d="M3 2.5 24.8 15 15.9 17.1 20.4 28.8 17.1 30 12.6 18.2 6.2 23.8Z" fill="#171717"/>
-   <path d="M12.6 18.2 15.9 17.1" fill="none" stroke="#eeeae3" strokeWidth="1" strokeLinecap="round"/>
-  </svg>
+  <span className="studio-cursor-ring"/>
+  <span className="studio-cursor-dot"/>
+  <span className="studio-cursor-line horizontal"/>
+  <span className="studio-cursor-line vertical"/>
  </div>;
 }

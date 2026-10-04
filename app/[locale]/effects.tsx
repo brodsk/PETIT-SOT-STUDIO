@@ -7,6 +7,42 @@ export default function Effects(){
   const pathname=usePathname();
 
   useEffect(()=>{
+    // The visible pointer is deliberately rendered as a DOM cursor.
+    // Inject this stylesheet last so older cursor:url()/pointer rules cannot win.
+    const cursorStyle=document.createElement("style");
+    cursorStyle.id="petit-sot-cursor-override";
+    cursorStyle.textContent=`
+      html,html *,body,body *{cursor:none!important}
+      .studio-cursor{
+        position:fixed!important;
+        left:0!important;
+        top:0!important;
+        width:32px!important;
+        height:32px!important;
+        margin:0!important;
+        padding:0!important;
+        pointer-events:none!important;
+        z-index:2147483647!important;
+        opacity:1!important;
+        display:block!important;
+        transform:translate(-2px,-2px)!important;
+      }
+      .studio-cursor-brush{
+        position:absolute!important;
+        left:0!important;
+        top:0!important;
+        display:block!important;
+        width:32px!important;
+        height:32px!important;
+        font-size:28px!important;
+        line-height:32px!important;
+        font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif!important;
+        transform:rotate(-35deg)!important;
+        transform-origin:20% 80%!important;
+      }
+    `;
+    document.head.appendChild(cursorStyle);
+
     const cursor=document.createElement("div");
     cursor.className="studio-cursor";
     cursor.innerHTML="<span class=\"studio-cursor-brush\">🖌️</span>";
@@ -54,6 +90,7 @@ export default function Effects(){
         document.removeEventListener("mouseover",over);
         document.removeEventListener("mouseout",out);
         cursor.remove();
+        cursorStyle.remove();
       };
     }
 
@@ -63,6 +100,7 @@ export default function Effects(){
       document.removeEventListener("mouseover",over);
       document.removeEventListener("mouseout",out);
       cursor.remove();
+      cursorStyle.remove();
     };
   },[pathname]);
 

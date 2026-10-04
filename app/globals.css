@@ -480,5 +480,7 @@ footer{background:rgba(247,246,242,.45)}
 .work-description{
   text-align:justify!important;
   text-justify:inter-word!important;
-  hyphens:auto!important;
+  hyphens:none!important;
+  overflow-wrap:normal!important;
+  word-break:normal!important;
 }

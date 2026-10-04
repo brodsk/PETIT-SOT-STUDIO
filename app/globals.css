@@ -388,3 +388,33 @@ footer{background:rgba(247,246,242,.45)}
   }
   .studio-cursor{display:none !important}
 }
+
+
+/* Brush-body signature: solid paint, not hollow glyph outlines. */
+.brush-signature-word text{
+  fill:#171717 !important;
+  stroke:#171717 !important;
+  stroke-width:3.8 !important;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+  paint-order:stroke fill;
+  stroke-dasharray:none !important;
+  stroke-dashoffset:0 !important;
+  clip-path:inset(0 100% 0 0) !important;
+  animation:signature-brush-fill .62s cubic-bezier(.22,.72,.2,1) forwards !important;
+  filter:url(#brush-soft);
+}
+@keyframes signature-brush-fill{
+  0%{clip-path:inset(0 100% 0 0);transform:translateX(-5px) scaleX(.93) rotate(-.7deg);opacity:.15}
+  28%{clip-path:inset(0 68% 0 0);transform:translateX(-2px) scaleX(.98) rotate(.2deg);opacity:1}
+  72%{clip-path:inset(0 18% 0 0);transform:translateX(1px) scaleX(1.01) rotate(-.15deg)}
+  100%{clip-path:inset(0 0 0 0);transform:none;opacity:1}
+}
+@media(prefers-reduced-motion:reduce){
+  .brush-signature-word text{
+    animation:none !important;
+    clip-path:none !important;
+    fill:#171717 !important;
+    stroke:#171717 !important;
+  }
+}

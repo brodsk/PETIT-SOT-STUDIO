@@ -333,49 +333,53 @@ footer{background:rgba(247,246,242,.45)}
 }
 @media(max-width:700px){.studio-cursor{display:none !important}}
 
-/* Final visual correction: visible painted signature + transparent bristle-tip cursor */
+/* Final signature pass: draw each glyph like a brush stroke */
 .brush-signature{
   visibility:visible !important;
   opacity:1 !important;
 }
-.brush-signature svg{
-  visibility:visible !important;
-  opacity:1 !important;
-}
+.brush-signature svg{visibility:visible !important;opacity:1 !important}
 .brush-signature-word text{
   visibility:visible !important;
-  fill:#171717 !important;
-  opacity:1 !important;
+  fill:transparent !important;
+  stroke:#171717 !important;
+  stroke-width:2.2 !important;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+  paint-order:stroke;
+  stroke-dasharray:900;
+  stroke-dashoffset:900;
+  animation:signature-draw .95s cubic-bezier(.45,.05,.2,1) forwards !important;
+  transform:none !important;
   clip-path:none !important;
-  animation:signature-letter-reveal .58s cubic-bezier(.22,.72,.2,1) both !important;
-  transform-origin:0 100% !important;
+  opacity:1 !important;
+  filter:url(#brush-soft);
 }
 .brush-signature-top text:nth-child(1){animation-delay:.15s !important}
-.brush-signature-top text:nth-child(2){animation-delay:.75s !important}
-.brush-signature-top text:nth-child(3){animation-delay:1.35s !important}
-.brush-signature-top text:nth-child(4){animation-delay:1.95s !important}
-.brush-signature-top text:nth-child(5){animation-delay:2.55s !important}
-.brush-signature-top text:nth-child(6){animation-delay:3.15s !important}
-.brush-signature-top text:nth-child(7){animation-delay:3.75s !important}
-.brush-signature-top text:nth-child(8){animation-delay:4.35s !important}
-.brush-signature-top text:nth-child(9){animation-delay:4.95s !important}
-.brush-signature-bottom text:nth-child(1){animation-delay:5.55s !important}
-.brush-signature-bottom text:nth-child(2){animation-delay:6.15s !important}
-.brush-signature-bottom text:nth-child(3){animation-delay:6.75s !important}
-.brush-signature-bottom text:nth-child(4){animation-delay:7.35s !important}
-.brush-signature-bottom text:nth-child(5){animation-delay:7.95s !important}
-.brush-signature-bottom text:nth-child(6){animation-delay:8.55s !important}
-@keyframes signature-letter-reveal{
-  0%{opacity:.08;transform:translateX(-7px) scaleX(.08) rotate(-1deg)}
-  18%{opacity:.65;transform:translateX(-3px) scaleX(.72) rotate(.4deg)}
-  55%{opacity:1;transform:translateX(1px) scaleX(1.03) rotate(-.15deg)}
-  100%{opacity:1;transform:translateX(0) scaleX(1) rotate(0)}
+.brush-signature-top text:nth-child(2){animation-delay:1.05s !important}
+.brush-signature-top text:nth-child(3){animation-delay:1.95s !important}
+.brush-signature-top text:nth-child(4){animation-delay:2.85s !important}
+.brush-signature-top text:nth-child(5){animation-delay:3.75s !important}
+.brush-signature-top text:nth-child(6){animation-delay:4.65s !important}
+.brush-signature-top text:nth-child(7){animation-delay:5.55s !important}
+.brush-signature-top text:nth-child(8){animation-delay:6.45s !important}
+.brush-signature-top text:nth-child(9){animation-delay:7.35s !important}
+.brush-signature-bottom text:nth-child(1){animation-delay:8.25s !important}
+.brush-signature-bottom text:nth-child(2){animation-delay:9.15s !important}
+.brush-signature-bottom text:nth-child(3){animation-delay:10.05s !important}
+.brush-signature-bottom text:nth-child(4){animation-delay:10.95s !important}
+.brush-signature-bottom text:nth-child(5){animation-delay:11.85s !important}
+.brush-signature-bottom text:nth-child(6){animation-delay:12.75s !important}
+@keyframes signature-draw{
+  0%{stroke-dashoffset:900;fill:transparent}
+  72%{stroke-dashoffset:0;fill:transparent}
+  100%{stroke-dashoffset:0;fill:#171717}
 }
 @media(prefers-reduced-motion:reduce){
   .brush-signature-word text{
     animation:none !important;
-    opacity:1 !important;
-    transform:none !important;
+    stroke-dashoffset:0 !important;
+    fill:#171717 !important;
   }
 }
 @media(min-width:701px){

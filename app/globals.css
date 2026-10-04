@@ -294,161 +294,21 @@ footer{background:rgba(247,246,242,.45)}
 
 /* Final signature + cursor pass */
 .brush-signature-word text{
-  animation:signature-letter-paint .58s cubic-bezier(.22,.72,.2,1) forwards !important;
-  clip-path:inset(0 100% 0 0) !important;
+  visibility:visible !important;
   opacity:1 !important;
-  transform-origin:50% 100%;
-  will-change:clip-path,transform;
+  fill:#171717 !important;
+  stroke:none !important;
+  clip-path:none !important;
+  stroke-dasharray:none !important;
+  stroke-dashoffset:0 !important;
+  animation:none !important;
+  transform:none !important;
 }
-.brush-signature-top text:nth-child(1){animation-delay:.15s !important}
-.brush-signature-top text:nth-child(2){animation-delay:.75s !important}
-.brush-signature-top text:nth-child(3){animation-delay:1.35s !important}
-.brush-signature-top text:nth-child(4){animation-delay:1.95s !important}
-.brush-signature-top text:nth-child(5){animation-delay:2.55s !important}
-.brush-signature-top text:nth-child(6){animation-delay:3.15s !important}
-.brush-signature-top text:nth-child(7){animation-delay:3.75s !important}
-.brush-signature-top text:nth-child(8){animation-delay:4.35s !important}
-.brush-signature-top text:nth-child(9){animation-delay:4.95s !important}
-.brush-signature-bottom text:nth-child(1){animation-delay:5.55s !important}
-.brush-signature-bottom text:nth-child(2){animation-delay:6.15s !important}
-.brush-signature-bottom text:nth-child(3){animation-delay:6.75s !important}
-.brush-signature-bottom text:nth-child(4){animation-delay:7.35s !important}
-.brush-signature-bottom text:nth-child(5){animation-delay:7.95s !important}
-.brush-signature-bottom text:nth-child(6){animation-delay:8.55s !important}
-@keyframes signature-letter-paint{
-  0%{clip-path:inset(0 100% 0 0);transform:translateX(-3px) scaleX(.94) rotate(-.6deg)}
-  22%{clip-path:inset(0 72% 0 0);transform:translateX(-1px) scaleX(.985) rotate(.2deg)}
-  72%{clip-path:inset(0 12% 0 0);transform:translateX(1px) scaleX(1.01) rotate(-.1deg)}
-  100%{clip-path:inset(0 0 0 0);transform:none}
-}
-@media(prefers-reduced-motion:reduce){
-  .brush-signature-word text{animation:none !important;clip-path:none !important;opacity:1 !important}
-}
+.brush-signature{visibility:visible !important;opacity:1 !important}
 @media(min-width:701px){
-  /* The actual cursor is a paintbrush; the hotspot is the bristle tip. */
   html,body,body *{
-    cursor:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewBox='0 0 40 40'%3E%3Cpath d='M8 5L13 3L27 24L23 27L8 8Z' fill='%23171717'/%3E%3Cpath d='M22 23L28 20L33 25L27 30L22 27Z' fill='%23aaa59d' stroke='%23171717' stroke-width='1'/%3E%3Cpath d='M27 28L34 23L38 31L36 37L30 34Z' fill='%23171717'/%3E%3Cpath d='M30 34L36 37L33 38L28 35Z' fill='%230d0d0d'/%3E%3C/svg%3E") 36 37,auto !important;
+    cursor:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 48 48'%3E%3Cg transform='rotate(180 24 24)'%3E%3Cpath d='M7 9C8 5 12 3 16 5L29 20L25 24L10 13C7 11 6 10 7 9Z' fill='%23171717'/%3E%3Cpath d='M25 21L31 17L36 22L30 27Z' fill='%23aaa59d' stroke='%23171717' stroke-width='1'/%3E%3Cpath d='M30 26L36 21L43 31L39 40L32 36Z' fill='%23c5b9a5' stroke='%23171717' stroke-width='1'/%3E%3Cpath d='M33 35L39 40L35 43L30 37Z' fill='%23171717'/%3E%3C/g%3E%3C/svg%3E") 7 9,auto !important;
   }
   .studio-cursor{display:none !important}
 }
 @media(max-width:700px){.studio-cursor{display:none !important}}
-
-/* Final signature pass: draw each glyph like a brush stroke */
-.brush-signature{
-  visibility:visible !important;
-  opacity:1 !important;
-}
-.brush-signature svg{visibility:visible !important;opacity:1 !important}
-.brush-signature-word text{
-  visibility:visible !important;
-  fill:transparent !important;
-  stroke:#171717 !important;
-  stroke-width:2.2 !important;
-  stroke-linecap:round;
-  stroke-linejoin:round;
-  paint-order:stroke;
-  stroke-dasharray:900;
-  stroke-dashoffset:900;
-  animation:signature-draw .95s cubic-bezier(.45,.05,.2,1) forwards !important;
-  transform:none !important;
-  clip-path:none !important;
-  opacity:1 !important;
-  filter:url(#brush-soft);
-}
-.brush-signature-top text:nth-child(1){animation-delay:.15s !important}
-.brush-signature-top text:nth-child(2){animation-delay:1.05s !important}
-.brush-signature-top text:nth-child(3){animation-delay:1.95s !important}
-.brush-signature-top text:nth-child(4){animation-delay:2.85s !important}
-.brush-signature-top text:nth-child(5){animation-delay:3.75s !important}
-.brush-signature-top text:nth-child(6){animation-delay:4.65s !important}
-.brush-signature-top text:nth-child(7){animation-delay:5.55s !important}
-.brush-signature-top text:nth-child(8){animation-delay:6.45s !important}
-.brush-signature-top text:nth-child(9){animation-delay:7.35s !important}
-.brush-signature-bottom text:nth-child(1){animation-delay:8.25s !important}
-.brush-signature-bottom text:nth-child(2){animation-delay:9.15s !important}
-.brush-signature-bottom text:nth-child(3){animation-delay:10.05s !important}
-.brush-signature-bottom text:nth-child(4){animation-delay:10.95s !important}
-.brush-signature-bottom text:nth-child(5){animation-delay:11.85s !important}
-.brush-signature-bottom text:nth-child(6){animation-delay:12.75s !important}
-@keyframes signature-draw{
-  0%{stroke-dashoffset:900;fill:transparent}
-  72%{stroke-dashoffset:0;fill:transparent}
-  100%{stroke-dashoffset:0;fill:#171717}
-}
-@media(prefers-reduced-motion:reduce){
-  .brush-signature-word text{
-    animation:none !important;
-    stroke-dashoffset:0 !important;
-    fill:#171717 !important;
-  }
-}
-@media(min-width:701px){
-  html,body,body *{
-    cursor:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='44' height='44' viewBox='0 0 44 44'%3E%3Cpath d='M5 6L9 4L18 16L13 20Z' fill='none' stroke='%23847f76' stroke-width='1.2'/%3E%3Cpath d='M13 20L18 16L25 23L20 27Z' fill='none' stroke='%23847f76' stroke-width='1.2'/%3E%3Cpath d='M20 27L24 23L38 36L35 40Z' fill='none' stroke='%23847f76' stroke-width='1.2'/%3E%3Cpath d='M5 6L9 4L18 16L13 20Z' fill='rgba(255,255,255,.12)'/%3E%3Cpath d='M13 20L18 16L25 23L20 27Z' fill='rgba(255,255,255,.08)'/%3E%3Cpath d='M20 27L24 23L38 36L35 40Z' fill='rgba(255,255,255,.06)'/%3E%3Cpath d='M4 5L6 3L9 4L5 6Z' fill='rgba(132,127,118,.45)'/%3E%3C/svg%3E") 5 6,auto !important;
-  }
-  .studio-cursor{display:none !important}
-}
-
-
-/* Brush-body signature: solid paint, not hollow glyph outlines. */
-.brush-signature-word text{
-  fill:#171717 !important;
-  stroke:#171717 !important;
-  stroke-width:3.8 !important;
-  stroke-linecap:round;
-  stroke-linejoin:round;
-  paint-order:stroke fill;
-  stroke-dasharray:none !important;
-  stroke-dashoffset:0 !important;
-  clip-path:inset(0 100% 0 0) !important;
-  animation:signature-brush-fill .62s cubic-bezier(.22,.72,.2,1) forwards !important;
-  filter:url(#brush-soft);
-}
-@keyframes signature-brush-fill{
-  0%{clip-path:inset(0 100% 0 0);transform:translateX(-5px) scaleX(.93) rotate(-.7deg);opacity:.15}
-  28%{clip-path:inset(0 68% 0 0);transform:translateX(-2px) scaleX(.98) rotate(.2deg);opacity:1}
-  72%{clip-path:inset(0 18% 0 0);transform:translateX(1px) scaleX(1.01) rotate(-.15deg)}
-  100%{clip-path:inset(0 0 0 0);transform:none;opacity:1}
-}
-@media(prefers-reduced-motion:reduce){
-  .brush-signature-word text{
-    animation:none !important;
-    clip-path:none !important;
-    fill:#171717 !important;
-    stroke:#171717 !important;
-  }
-}
-
-
-/* Solid hand-painted signature + refined brush cursor */
-.brush-signature-word text{
-  visibility:visible !important;
-  fill:#171717 !important;
-  stroke:#171717 !important;
-  stroke-width:2.6 !important;
-  stroke-linecap:round;
-  stroke-linejoin:round;
-  paint-order:stroke fill;
-  stroke-dasharray:none !important;
-  stroke-dashoffset:0 !important;
-  clip-path:none !important;
-  opacity:0 !important;
-  animation:signature-brush-appear .62s cubic-bezier(.22,.72,.2,1) forwards !important;
-  filter:url(#brush-soft);
-}
-@keyframes signature-brush-appear{
-  0%{opacity:0;transform:translateX(-7px) scaleX(.9) rotate(-.8deg)}
-  35%{opacity:1;transform:translateX(-2px) scaleX(.97) rotate(.25deg)}
-  72%{opacity:1;transform:translateX(1px) scaleX(1.015) rotate(-.12deg)}
-  100%{opacity:1;transform:none}
-}
-@media(prefers-reduced-motion:reduce){
-  .brush-signature-word text{animation:none !important;opacity:1 !important;transform:none !important}
-}
-
-@media(min-width:701px){
-  html,body,body *{
-    cursor:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 48 48'%3E%3Cg transform='rotate(0 6 6)'%3E%3Cpath d='M4 4C5 2 8 2 10 4L18 15L14 20L5 10C3 8 2 6 4 4Z' fill='none' stroke='%237b766e' stroke-width='1.2'/%3E%3Cpath d='M5 5C7 4 9 5 10 7L16 15L13 18L7 11C5 9 4 7 5 5Z' fill='rgba(123,118,110,.12)'/%3E%3Cpath d='M14 18L19 13L27 21L22 26Z' fill='rgba(123,118,110,.08)' stroke='%237b766e' stroke-width='1.2'/%3E%3Cpath d='M22 25L27 20L39 32L36 38L31 40L19 28Z' fill='none' stroke='%237b766e' stroke-width='1.2'/%3E%3Cpath d='M27 22L39 34L36 38L24 26Z' fill='rgba(123,118,110,.05)'/%3E%3Cpath d='M31 40L36 38L41 42L38 44Z' fill='rgba(123,118,110,.18)' stroke='%237b766e' stroke-width='1'/%3E%3C/g%3E%3C/svg%3E") 5 5,auto !important;
-  }
-  .studio-cursor{display:none !important}
-}

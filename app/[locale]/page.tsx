@@ -18,7 +18,7 @@ export default async function Home({params}:{params:Promise<{locale:string}>}){
 
  return <main className="gallery-home">
   <section className="hero-gallery">
-   <div className="hero-top"><span>OLGA TRIKHLEB</span><span>{ru?"Художница":"Artist"} / {new Date().getFullYear()}</span></div>
+   <div className="hero-top"><span>OLGA TRIKHLEB</span><span className="hero-artist">{ru?"Художница":"Artist"} / {new Date().getFullYear()}</span></div>
 
    <div className="hero-title-wrap">
     <div className="hero-wordmark">PETIT.SOT <span className="wordmark-divider">|</span> <span>STUDIO</span></div>

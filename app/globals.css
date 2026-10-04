@@ -316,11 +316,6 @@ footer{background:rgba(247,246,242,.45)}
   .artwork-gallery{padding-right:0}
 }
 
-/* Deterministic brush cursor: bristles point upper-left */
-@media(min-width:701px){
-  .studio-cursor svg{transform:rotate(180deg)!important}
-}
-
 
 /* Final artwork spacing: image and information sit directly next to each other. */
 @media(min-width:701px){

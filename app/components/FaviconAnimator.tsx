@@ -4,19 +4,6 @@ import {useEffect} from "react";
 
 export default function FaviconAnimator(){
   useEffect(()=>{
-    /* One runtime patch keeps this whole visual fix in one deploy/commit. */
-    const style=document.createElement("style");
-    style.setAttribute("data-petit-sot-final-fixes","true");
-    style.textContent=`
-      @media(min-width:701px){
-        html,body,body *{
-          cursor:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 48 48'%3E%3Ctext x='24' y='34' text-anchor='middle' font-size='30' font-family='Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif' transform='rotate(90 24 24)'%3E%F0%9F%96%8C%3C/text%3E%3C/svg%3E") 8 8,auto!important
-        }
-        .studio-cursor{display:none!important}
-      }
-    `;
-    document.head.appendChild(style);
-
     /* Animated PNG favicon via Blob URLs; this avoids the browser caching every data-URI frame. */
     const link=document.createElement("link");
     link.rel="icon"; link.type="image/png";

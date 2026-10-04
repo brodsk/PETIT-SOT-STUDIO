@@ -38,32 +38,6 @@ export default async function Home({params}:{params:Promise<{locale:string}>}){
      </svg>
     </div>
 
-    <style>{`
-      .brush-signature{position:relative;z-index:2;width:min(88vw,1180px);aspect-ratio:1200 / 320;height:auto;display:flex;align-items:center;justify-content:center}
-      .brush-signature svg{width:100%;height:auto;display:block;overflow:visible}
-      .brush-signature-word text{
-        font-family:"Brush Script MT","Segoe Script","URW Chancery L",cursive;
-        font-size:142px;
-        font-style:italic;
-        font-weight:500;
-        fill:#171717;
-        stroke:none;
-        opacity:1;
-        clip-path:inset(0 100% 0 0);
-        animation:signature-paint 1.05s cubic-bezier(.18,.78,.2,1) forwards;
-        animation-delay:calc(var(--i) * .38s + .15s);
-        filter:url(#brush-soft);
-      }
-      .brush-signature-bottom text{font-size:126px;animation-delay:calc(var(--i) * .38s + 3.7s)}
-      @keyframes signature-paint{
-        0%{clip-path:inset(0 100% 0 0)}
-        72%{clip-path:inset(0 7% 0 0)}
-        100%{clip-path:inset(0 0 0 0)}
-      }
-      @media(prefers-reduced-motion:reduce){
-        .brush-signature-word text{animation:none;stroke-dashoffset:0;fill:#171717}
-      }
-    `}</style>
     <span className="hero-orbit hero-orbit-a"></span><span className="hero-orbit hero-orbit-b"></span>
    </div>
 

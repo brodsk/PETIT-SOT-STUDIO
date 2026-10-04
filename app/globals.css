@@ -348,3 +348,52 @@ footer{background:rgba(247,246,242,.45)}
 @media(min-width:701px){
   .studio-cursor svg{transform:rotate(180deg)!important}
 }
+
+
+/* Final artwork spacing: image and information sit directly next to each other. */
+@media(min-width:701px){
+  .work-page{
+    grid-template-columns:minmax(0,1fr) minmax(300px,380px)!important;
+    column-gap:0!important;
+  }
+  .artwork-gallery{
+    width:100%!important;
+    padding-right:0!important;
+  }
+  .work-info{
+    margin:0!important;
+    padding:0 0 0 24px!important;
+    border-left:0!important;
+    max-width:none!important;
+    min-height:0!important;
+  }
+  .work-info h1{margin-top:0!important}
+}
+
+/* Static homepage title — no brush/signature animation. */
+.studio-static-title{
+  position:relative;
+  z-index:2;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  color:#171717;
+  font-size:clamp(64px,10vw,150px);
+  line-height:.82;
+  letter-spacing:-.075em;
+  font-weight:500;
+  white-space:nowrap;
+}
+.studio-static-title span:last-child{
+  font-size:.62em;
+  line-height:.88;
+}
+@media(max-width:700px){
+  .studio-static-title{
+    font-size:clamp(56px,18vw,88px);
+    line-height:.8;
+  }
+  .studio-static-title span:last-child{font-size:.62em}
+}

@@ -164,15 +164,7 @@ html,body{overflow-x:hidden;width:100%;max-width:100%}
 main{animation:page-enter .55s cubic-bezier(.22,1,.36,1) both}
 @keyframes page-enter{from{opacity:.65;transform:translateY(8px)}to{opacity:1;transform:none}}
 
-/* PETIT.SOT pointer cursor */
-.studio-cursor{position:fixed;left:var(--cursor-x,-100px);top:var(--cursor-y,-100px);width:22px;height:22px;margin:0;pointer-events:none;z-index:9999;opacity:0;transform:translate(-2px,-2px);transition:opacity .15s ease;mix-blend-mode:multiply}
-.studio-cursor-brush{position:absolute;left:0;top:0;font-size:22px;line-height:1;display:block;transform:rotate(-90deg);transform-origin:18% 82%;filter:drop-shadow(0 0 0 #171717)}
-.studio-cursor.is-link{transform:translate(-2px,-2px) scale(1.15)}
-@media(min-width:701px){body:hover .studio-cursor{opacity:1}html,body,body *{cursor:none!important}.studio-cursor{opacity:1!important;display:block!important}}
-@media(max-width:700px),(prefers-reduced-motion:reduce){.motion-reveal{opacity:1;transform:none;transition:none}main{animation:none}.studio-cursor{display:none}}
-@media(prefers-reduced-motion:reduce){
-  .archive-card .art-placeholder,.gallery-piece .art-placeholder,.gallery-footer-image .art-placeholder{transition:none}
-}
+
 
 
 :root{

@@ -9,11 +9,12 @@ export default function Effects(){
   useEffect(()=>{
     const cursor=document.createElement("div");
     cursor.className="studio-cursor";
-    cursor.innerHTML="<span></span>";
+    cursor.innerHTML="<span class=\"studio-cursor-corner tl\"></span><span class=\"studio-cursor-corner tr\"></span><span class=\"studio-cursor-corner bl\"></span><span class=\"studio-cursor-corner br\"></span><span class=\"studio-cursor-center\"></span>";
     document.body.appendChild(cursor);
 
     const move=(e:MouseEvent)=>{
-      cursor.style.transform="translate3d("+e.clientX+"px,"+e.clientY+"px,0)";
+      cursor.style.left=e.clientX+"px";
+      cursor.style.top=e.clientY+"px";
     };
     const over=(e:Event)=>{
       const target=e.target as HTMLElement;

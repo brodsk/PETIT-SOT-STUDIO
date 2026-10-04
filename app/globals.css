@@ -772,3 +772,6 @@ footer{background:rgba(247,246,242,.45)}
     height:80px!important;
   }
 }
+
+
+/* Trigger fresh Vercel production build while preserving the latest gallery changes. */

@@ -22,27 +22,6 @@ export default function FaviconAnimator(){
     `;
     document.head.appendChild(style);
 
-    /* Paint the PETIT.SOT STUDIO title with a real sequential reveal, independent of CSS animation settings. */
-    const signature=Array.from(document.querySelectorAll<SVGTextElement>(".brush-signature-word text"));
-    let cancelled=false;
-    const started=performance.now();
-    const paint=()=>{
-      if(cancelled)return;
-      const elapsed=performance.now()-started;
-      signature.forEach((el,i)=>{
-        const delay=i<9?100+i*90:1000+(i-9)*90;
-        const p=Math.max(0,Math.min(1,(elapsed-delay)/620));
-        el.style.animation="none";
-        el.style.opacity=p>0? "1":"0";
-        el.style.clipPath=`inset(0 ${Math.max(0,100-p*100)}% 0 0)`;
-        el.style.setProperty("-webkit-clip-path", `inset(0 ${Math.max(0,100-p*100)}% 0 0)`);
-        el.style.transform=`translateX(${(1-p)*-10}px)`;
-      });
-      if(elapsed<2300) requestAnimationFrame(paint);
-      else signature.forEach(el=>{el.style.opacity="1";el.style.clipPath="none";el.style.setProperty("-webkit-clip-path", "none");el.style.transform="none";});
-    };
-    const paintRaf=requestAnimationFrame(paint);
-
     /* Animated PNG favicon via Blob URLs; this avoids the browser caching every data-URI frame. */
     const link=document.createElement("link");
     link.rel="icon"; link.type="image/png";

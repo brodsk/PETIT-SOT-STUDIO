@@ -9,12 +9,12 @@ export default function Effects(){
   useEffect(()=>{
     const cursor=document.createElement("div");
     cursor.className="studio-cursor";
-    cursor.innerHTML="<span class=\"studio-cursor-pointer\"><i></i><b></b></span>";
+    cursor.innerHTML="<span class=\"studio-cursor-brush\">🖌️</span>";
     document.body.appendChild(cursor);
 
     const move=(e:MouseEvent)=>{
-      cursor.style.setProperty("--cursor-x",e.clientX+"px");
-      cursor.style.setProperty("--cursor-y",e.clientY+"px");
+      cursor.style.left=e.clientX+"px";
+      cursor.style.top=e.clientY+"px";
     };
     const over=(e:Event)=>{
       const target=e.target as HTMLElement;

@@ -293,30 +293,23 @@ footer{background:rgba(247,246,242,.45)}
 
 
 
-/* Painted studio signature */
+/* Static painted studio signature — brush-like, no animation */
 .brush-signature-word text{
-  visibility:visible;
-  opacity:0;
+  visibility:visible!important;
+  opacity:1!important;
   fill:#171717;
   stroke:none;
-  clip-path:inset(0 100% 0 0);
-  animation:signature-painted .48s cubic-bezier(.2,.78,.18,1) forwards;
-  animation-delay:calc(var(--i) * .075s + .04s);
+  clip-path:none!important;
+  -webkit-clip-path:none!important;
+  animation:none!important;
+  font-family:"Brush Script MT","Segoe Print","Comic Sans MS",cursive!important;
+  font-weight:600;
+  letter-spacing:1px;
   filter:url(#brush-soft);
   transform:skewX(-2deg);
   transform-origin:center;
 }
-.brush-signature-bottom text{
-  font-size:126px;
-  animation-delay:calc((var(--i) - 10) * .075s + .72s);
-}
-@keyframes signature-painted{
-  0%{opacity:0;clip-path:inset(0 100% 0 0);transform:skewX(-2deg) translateX(-7px)}
-  18%{opacity:.9}
-  72%{opacity:1;clip-path:inset(0 7% 0 0);transform:skewX(-1deg) translateX(1px)}
-  100%{opacity:1;clip-path:inset(0 0 0 0);transform:skewX(0) translateX(0)}
-}
-@media(prefers-reduced-motion:reduce){.brush-signature-word text{animation:none;opacity:1;clip-path:none}}
+.brush-signature-bottom text{font-size:126px}
 /* Brush cursor: bristles toward upper-left */
 @media(min-width:701px){html,body,body *{cursor:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 48 48'%3E%3Cg transform='translate(48 0) scale(-1 1)'%3E%3Ctext x='24' y='34' text-anchor='middle' font-size='30' font-family='Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif'%3E%F0%9F%96%8C%3C/text%3E%3C/g%3E%3C/svg%3E") 8 8,auto!important}.studio-cursor{display:none!important}}
 @media(max-width:700px){.studio-cursor{display:none!important}}

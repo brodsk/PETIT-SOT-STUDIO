@@ -15,10 +15,9 @@ export default function StudioCursor(){
   return()=>window.removeEventListener("mousemove",move);
  },[]);
  return <div className={"studio-cursor"+(link?" is-link":"")} style={{left:pos.x,top:pos.y}} aria-hidden="true">
-  <svg viewBox="0 0 40 40" style={{transform:"rotate(180deg)"}}>
-   <path className="brush-handle" d="M9 5h7l9 19-5 3L9 8z"/>
-   <path className="brush-ferrule" d="M20 23l5-3 5 6-6 4z"/>
-   <path className="brush-tip" d="M24 30l6-4 5 8-8-2z"/>
+  <svg viewBox="0 0 28 32" aria-hidden="true">
+   <path className="cursor-stroke" d="M3 2.5 24.8 15 15.9 17.1 20.4 28.8 17.1 30 12.6 18.2 6.2 23.8Z"/>
+   <path className="cursor-cut" d="M12.6 18.2 15.9 17.1"/>
   </svg>
  </div>;
 }

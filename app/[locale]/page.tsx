@@ -48,15 +48,21 @@ export default async function Home({params}:{params:Promise<{locale:string}>}){
         font-weight:500;
         fill:#171717;
         stroke:none;
-        animation:signature-paint .58s cubic-bezier(.2,.75,.2,1) forwards;
-        animation-delay:calc(var(--i) * .59s + .15s);
+        animation:signature-paint .9s cubic-bezier(.2,.8,.18,1) forwards;
+        animation-delay:calc(var(--i) * .72s + .12s);
         clip-path:inset(0 100% 0 0);
+        transform-origin:0 100%;
+        filter:url(#brush-soft);
       }
       .brush-signature-top text:nth-last-child(1){animation-delay:1.05s}
+      .brush-signature-bottom text{will-change:clip-path,transform,opacity}
+      .brush-signature-top text,.brush-signature-bottom text{paint-order:stroke fill}
       .brush-signature-bottom text{font-size:126px}
       @keyframes signature-paint{
-        0%{clip-path:inset(0 100% 0 0);opacity:1}
-        100%{clip-path:inset(0 0 0 0);opacity:1}
+        0%{clip-path:inset(0 100% 0 0);opacity:.12;transform:translateX(-8px) scaleX(.72) rotate(-2deg)}
+        18%{opacity:.82;transform:translateX(-2px) scaleX(.92) rotate(.5deg)}
+        72%{opacity:1;transform:translateX(1px) scaleX(1.015) rotate(-.2deg)}
+        100%{clip-path:inset(0 0 0 0);opacity:1;transform:translateX(0) scaleX(1) rotate(0)}
       }
       @media(prefers-reduced-motion:reduce){
         .brush-signature-word text{animation:none;stroke-dashoffset:0;fill:#171717}

@@ -164,12 +164,15 @@ html,body{overflow-x:hidden;width:100%;max-width:100%}
 main{animation:page-enter .55s cubic-bezier(.22,1,.36,1) both}
 @keyframes page-enter{from{opacity:.65;transform:translateY(8px)}to{opacity:1;transform:none}}
 
-.studio-cursor{position:fixed;left:0;top:0;width:12px;height:12px;margin:-6px 0 0 -6px;border:1px solid #171717;border-radius:50%;pointer-events:none;z-index:9999;opacity:0;transition:width .25s ease,height .25s ease,margin .25s ease,background .25s ease,opacity .2s ease;mix-blend-mode:multiply}
-.studio-cursor span:after{content:"";display:block}
+.studio-cursor{position:fixed;left:0;top:0;width:34px;height:34px;margin:-17px 0 0 -17px;pointer-events:none;z-index:9999;opacity:0;transition:opacity .2s ease,transform .2s ease;mix-blend-mode:multiply}
+.studio-cursor svg{width:34px;height:34px;display:block;overflow:visible;transform:rotate(-18deg);transform-origin:50% 50%}
+.studio-cursor .brush-handle{fill:#171717}
+.studio-cursor .brush-ferrule{fill:#b8b3aa;stroke:#171717;stroke-width:1}
+.studio-cursor .brush-tip{fill:#171717}
+.studio-cursor.is-link{transform:scale(1.22) rotate(-4deg)}
+.studio-cursor.is-link:after{content:"";position:absolute;right:-7px;bottom:-5px;width:7px;height:7px;border-radius:50%;background:#171717;opacity:.55}
 @media(min-width:701px){
   body:hover .studio-cursor{opacity:1}
-  .studio-cursor.is-link{width:58px;height:58px;margin:-29px 0 0 -29px;background:#171717}
-  .studio-cursor.is-link span:after{content:"OPEN";color:#eeeae3;font-size:8px;letter-spacing:.12em;text-align:center;line-height:58px}
   a,.archive-card,.gallery-piece,.work-card{cursor:none}
 }
 @media(max-width:700px),(prefers-reduced-motion:reduce){

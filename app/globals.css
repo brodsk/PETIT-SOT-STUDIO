@@ -291,59 +291,44 @@ footer{background:rgba(247,246,242,.45)}
 .hero-title{flex-direction:column!important;align-items:center;justify-content:center;font-size:clamp(64px,10vw,150px)!important;line-height:.82;gap:.02em}.hero-title em{margin-left:0!important;font-size:.62em!important;line-height:.88}.hero-title b{display:none}.hero-orbit{display:none}.gallery-tiles{display:block}.gallery-tiles-grid{min-height:1px}.gallery-tile .art-placeholder{height:auto;aspect-ratio:4/5;overflow:hidden}.artwork-gallery{width:100%}.artwork-gallery .single-art{width:100%}.artwork-gallery-thumbs{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px;margin-top:10px}.artwork-gallery-thumbs a{display:block;aspect-ratio:4/5;overflow:hidden;border:1px solid transparent}.artwork-gallery-thumbs img{width:100%;height:100%;object-fit:cover;display:block}.admin-gallery-manager{border-top:1px solid #aaa59d;padding-top:18px;margin-bottom:28px}.admin-gallery-head{display:flex;justify-content:space-between;align-items:flex-end;gap:20px;margin-bottom:14px}.admin-gallery-head h3{font-size:20px;font-weight:400;margin:8px 0 0}.admin-gallery-add{position:relative;background:#171717;color:#f7f6f2;padding:11px 13px;font-size:10px;text-transform:uppercase;letter-spacing:.1em;cursor:pointer}.admin-gallery-add input{display:none}.admin-gallery-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;align-items:start}.admin-gallery-item{background:#e9e7e1;min-width:0;max-width:170px}.admin-gallery-item img{width:100%;height:150px;object-fit:cover;display:block}.admin-gallery-item-actions{display:flex;align-items:center;justify-content:space-between;padding:7px;font-size:10px}.admin-gallery-item-actions button{border:0;background:transparent;color:inherit;cursor:pointer;padding:3px 6px}.admin-gallery-item-actions button:disabled{opacity:.25;cursor:default}.admin-gallery-item-actions .delete{font-size:18px;line-height:1}.admin-gallery-item.pending{outline:1px dashed #999}.admin-gallery-empty{font-size:11px;opacity:.55;margin:0 0 8px}@media(max-width:1000px) and (min-width:701px){.admin-gallery-grid{grid-template-columns:repeat(4,minmax(0,1fr))}.admin-gallery-item{max-width:150px}}@media(max-width:700px){.hero-title{font-size:clamp(56px,18vw,88px)!important}.hero-title em{font-size:.62em!important}.gallery-tiles{padding:0 16px 80px}.gallery-tiles-grid{display:block}.gallery-tile{display:block;margin-bottom:60px}.gallery-tile .art-placeholder{height:auto;aspect-ratio:4/5}.artwork-gallery-thumbs{grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}.admin-gallery-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.admin-gallery-item{max-width:none}.admin-gallery-item img{height:auto;aspect-ratio:4/5}}
 
 
-/* Signature sequencing + studio cursor correction */
-@media(min-width:701px){
-  /* The browser cursor is replaced everywhere, not only over links. */
-  html,body,body *{
-    cursor:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2040%2040%22%3E%3Cpath%20d%3D%22M7%206h5l10%2018-4%203L8%2010z%22%20fill%3D%22%23171717%22%2F%3E%3Cpath%20d%3D%22M18%2024l5-3%205%206-6%203z%22%20fill%3D%22%23b7b2aa%22%2F%3E%3Cpath%20d%3D%22M22%2029l6-4%205%208-8-2z%22%20fill%3D%22%23171717%22%2F%3E%3C%2Fsvg%3E") 8 28,auto !important;
-  }
-  .studio-cursor{display:none !important}
 
-  /* One continuous writing order: PETIT.SOT, then STUDIO. */
-  .brush-signature-word text{
-    text-anchor:middle;
-    animation:signature-letter-paint .62s cubic-bezier(.22,.72,.2,1) forwards !important;
-    clip-path:inset(0 100% 0 0) !important;
-    opacity:0 !important;
-    transform-origin:50% 100%;
-    will-change:clip-path,transform,opacity;
-  }
-  .brush-signature-top text:nth-child(1){animation-delay:.12s !important}
-  .brush-signature-top text:nth-child(2){animation-delay:.76s !important}
-  .brush-signature-top text:nth-child(3){animation-delay:1.40s !important}
-  .brush-signature-top text:nth-child(4){animation-delay:2.04s !important}
-  .brush-signature-top text:nth-child(5){animation-delay:2.68s !important}
-  .brush-signature-top text:nth-child(6){animation-delay:3.32s !important}
-  .brush-signature-top text:nth-child(7){animation-delay:3.96s !important}
-  .brush-signature-top text:nth-child(8){animation-delay:4.60s !important}
-  .brush-signature-top text:nth-child(9){animation-delay:5.24s !important}
-  .brush-signature-bottom text:nth-child(1){animation-delay:5.88s !important}
-  .brush-signature-bottom text:nth-child(2){animation-delay:6.52s !important}
-  .brush-signature-bottom text:nth-child(3){animation-delay:7.16s !important}
-  .brush-signature-bottom text:nth-child(4){animation-delay:7.80s !important}
-  .brush-signature-bottom text:nth-child(5){animation-delay:8.44s !important}
-  .brush-signature-bottom text:nth-child(6){animation-delay:9.08s !important}
+/* Final signature + cursor pass */
+.brush-signature-word text{
+  animation:signature-letter-paint .58s cubic-bezier(.22,.72,.2,1) forwards !important;
+  clip-path:inset(0 100% 0 0) !important;
+  opacity:1 !important;
+  transform-origin:50% 100%;
+  will-change:clip-path,transform;
 }
+.brush-signature-top text:nth-child(1){animation-delay:.15s !important}
+.brush-signature-top text:nth-child(2){animation-delay:.75s !important}
+.brush-signature-top text:nth-child(3){animation-delay:1.35s !important}
+.brush-signature-top text:nth-child(4){animation-delay:1.95s !important}
+.brush-signature-top text:nth-child(5){animation-delay:2.55s !important}
+.brush-signature-top text:nth-child(6){animation-delay:3.15s !important}
+.brush-signature-top text:nth-child(7){animation-delay:3.75s !important}
+.brush-signature-top text:nth-child(8){animation-delay:4.35s !important}
+.brush-signature-top text:nth-child(9){animation-delay:4.95s !important}
+.brush-signature-bottom text:nth-child(1){animation-delay:5.55s !important}
+.brush-signature-bottom text:nth-child(2){animation-delay:6.15s !important}
+.brush-signature-bottom text:nth-child(3){animation-delay:6.75s !important}
+.brush-signature-bottom text:nth-child(4){animation-delay:7.35s !important}
+.brush-signature-bottom text:nth-child(5){animation-delay:7.95s !important}
+.brush-signature-bottom text:nth-child(6){animation-delay:8.55s !important}
 @keyframes signature-letter-paint{
-  0%{
-    clip-path:inset(0 100% 0 0);
-    opacity:0;
-    transform:translateX(-5px) scaleX(.88) rotate(-1.2deg);
-  }
-  16%{
-    opacity:.7;
-    transform:translateX(-2px) scaleX(.96) rotate(.35deg);
-  }
-  72%{
-    opacity:1;
-    transform:translateX(1px) scaleX(1.012) rotate(-.15deg);
-  }
-  100%{
-    clip-path:inset(0 0 0 0);
-    opacity:1;
-    transform:translateX(0) scaleX(1) rotate(0);
-  }
+  0%{clip-path:inset(0 100% 0 0);transform:translateX(-3px) scaleX(.94) rotate(-.6deg)}
+  22%{clip-path:inset(0 72% 0 0);transform:translateX(-1px) scaleX(.985) rotate(.2deg)}
+  72%{clip-path:inset(0 12% 0 0);transform:translateX(1px) scaleX(1.01) rotate(-.1deg)}
+  100%{clip-path:inset(0 0 0 0);transform:none}
 }
-@media(max-width:700px){
+@media(prefers-reduced-motion:reduce){
+  .brush-signature-word text{animation:none !important;clip-path:none !important;opacity:1 !important}
+}
+@media(min-width:701px){
+  /* The actual cursor is a paintbrush; the hotspot is the bristle tip. */
+  html,body,body *{
+    cursor:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewBox='0 0 40 40'%3E%3Cpath d='M8 5L13 3L27 24L23 27L8 8Z' fill='%23171717'/%3E%3Cpath d='M22 23L28 20L33 25L27 30L22 27Z' fill='%23aaa59d' stroke='%23171717' stroke-width='1'/%3E%3Cpath d='M27 28L34 23L38 31L36 37L30 34Z' fill='%23171717'/%3E%3Cpath d='M30 34L36 37L33 38L28 35Z' fill='%230d0d0d'/%3E%3C/svg%3E") 36 37,auto !important;
+  }
   .studio-cursor{display:none !important}
 }
+@media(max-width:700px){.studio-cursor{display:none !important}}

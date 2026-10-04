@@ -13,11 +13,6 @@ export default function FaviconAnimator(){
           cursor:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 48 48'%3E%3Ctext x='24' y='34' text-anchor='middle' font-size='30' font-family='Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif' transform='rotate(90 24 24)'%3E%F0%9F%96%8C%3C/text%3E%3C/svg%3E") 8 8,auto!important
         }
         .studio-cursor{display:none!important}
-        .work-page{grid-template-columns:minmax(0,1fr) minmax(320px,420px)!important;column-gap:24px!important;padding-left:4vw!important;padding-right:4vw!important}
-        .artwork-gallery{width:100%!important;padding-right:0!important}
-        .artwork-gallery .single-art{width:100%!important;height:min(calc(100vh - 170px),760px)!important;aspect-ratio:auto!important}
-        .work-info{margin-left:0!important;padding:0!important;border-left:1px solid rgba(23,23,23,.16)!important;max-width:none!important;min-height:min(calc(100vh - 170px),760px)!important}
-        .work-info h1{margin-top:0!important}
       }
     `;
     document.head.appendChild(style);
@@ -52,8 +47,6 @@ export default function FaviconAnimator(){
     draw(); timer=window.setInterval(draw,90);
 
     return()=>{
-      cancelled=true;
-      cancelAnimationFrame(paintRaf);
       window.clearInterval(timer);
       if(previous)URL.revokeObjectURL(previous);
       link.remove();

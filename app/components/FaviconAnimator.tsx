@@ -35,11 +35,11 @@ export default function FaviconAnimator(){
         el.style.animation="none";
         el.style.opacity=p>0? "1":"0";
         el.style.clipPath=`inset(0 ${Math.max(0,100-p*100)}% 0 0)`;
-        el.style.webkitClipPath=`inset(0 ${Math.max(0,100-p*100)}% 0 0)`;
+        el.style.setProperty("-webkit-clip-path", `inset(0 ${Math.max(0,100-p*100)}% 0 0)`);
         el.style.transform=`translateX(${(1-p)*-10}px)`;
       });
       if(elapsed<2300) requestAnimationFrame(paint);
-      else signature.forEach(el=>{el.style.opacity="1";el.style.clipPath="none";el.style.webkitClipPath="none";el.style.transform="none";});
+      else signature.forEach(el=>{el.style.opacity="1";el.style.clipPath="none";el.style.setProperty("-webkit-clip-path", "none");el.style.transform="none";});
     };
     const paintRaf=requestAnimationFrame(paint);
 

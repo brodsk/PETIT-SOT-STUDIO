@@ -164,15 +164,17 @@ html,body{overflow-x:hidden;width:100%;max-width:100%}
 main{animation:page-enter .55s cubic-bezier(.22,1,.36,1) both}
 @keyframes page-enter{from{opacity:.65;transform:translateY(8px)}to{opacity:1;transform:none}}
 
-/* PETIT.SOT editorial cursor */
-.studio-cursor{position:fixed;left:0;top:0;width:30px;height:30px;margin:-15px 0 0 -15px;pointer-events:none;z-index:9999;opacity:0;transition:opacity .18s ease,transform .22s cubic-bezier(.22,1,.36,1);mix-blend-mode:multiply}
-.studio-cursor-ring{position:absolute;inset:5px;border:1px solid #171717;border-radius:50%;transition:transform .22s cubic-bezier(.22,1,.36,1),border-color .22s ease}
-.studio-cursor-dot{position:absolute;left:50%;top:50%;width:3px;height:3px;margin:-1.5px;border-radius:50%;background:#171717}
-.studio-cursor-line{position:absolute;background:#171717;opacity:.55}
-.studio-cursor-line.horizontal{left:0;right:0;top:50%;height:1px;margin-top:-.5px}
-.studio-cursor-line.vertical{top:0;bottom:0;left:50%;width:1px;margin-left:-.5px}
-.studio-cursor.is-link{transform:scale(1.35)}
-.studio-cursor.is-link .studio-cursor-ring{transform:scale(.72);border-width:1.5px}
+/* PETIT.SOT gallery cursor */
+.studio-cursor{position:fixed;left:0;top:0;width:26px;height:26px;margin:-13px 0 0 -13px;pointer-events:none;z-index:9999;opacity:0;transition:opacity .15s ease,transform .2s cubic-bezier(.22,1,.36,1);mix-blend-mode:multiply}
+.studio-cursor-corner{position:absolute;width:8px;height:8px;border-color:#171717;border-style:solid;transition:all .2s cubic-bezier(.22,1,.36,1)}
+.studio-cursor-corner.tl{left:1px;top:1px;border-width:1px 0 0 1px}
+.studio-cursor-corner.tr{right:1px;top:1px;border-width:1px 1px 0 0}
+.studio-cursor-corner.bl{left:1px;bottom:1px;border-width:0 0 1px 1px}
+.studio-cursor-corner.br{right:1px;bottom:1px;border-width:0 1px 1px 0}
+.studio-cursor-center{position:absolute;left:50%;top:50%;width:4px;height:4px;margin:-2px;border:1px solid #171717;transform:rotate(45deg);background:var(--canvas,#f7f6f2);transition:transform .2s cubic-bezier(.22,1,.36,1),background .2s ease}
+.studio-cursor.is-link{transform:scale(1.18)}
+.studio-cursor.is-link .studio-cursor-corner{width:10px;height:10px}
+.studio-cursor.is-link .studio-cursor-center{transform:rotate(45deg) scale(1.35);background:#171717}
 @media(min-width:701px){
   body:hover .studio-cursor{opacity:1}
   a,.archive-card,.gallery-piece,.work-card{cursor:none}

@@ -7,46 +7,56 @@ export default function Effects(){
   const pathname=usePathname();
 
   useEffect(()=>{
-    // Minimal PETIT.SOT cursor: abstract pointer, no brush or emoji.
+    // PETIT.SOT cursor — rebuilt from scratch: abstract point + orbit + ink-like motion trail.
     const cursorStyle=document.createElement("style");
-    cursorStyle.id="petit-sot-cursor-override";
+    cursorStyle.id="petit-sot-cursor";
     cursorStyle.textContent=`
       html,html *,body,body *{cursor:none!important}
-      .studio-cursor{position:fixed!important;left:0!important;top:0!important;width:26px!important;height:26px!important;pointer-events:none!important;z-index:2147483647!important;opacity:0!important;display:block!important;transform:translate(-5px,-5px)!important;transition:opacity .16s ease}
-      .studio-cursor.is-visible{opacity:1!important}
-      .studio-cursor-shape{position:absolute;left:0;top:0;width:20px;height:20px;transform:rotate(45deg);transition:transform .24s cubic-bezier(.2,.8,.2,1)}
-      .studio-cursor-shape:before{content:"";position:absolute;inset:1px;background:#171717;clip-path:polygon(0 0,100% 72%,62% 67%,48% 100%);transform:scale(.88);transform-origin:20% 20%}
-      .studio-cursor-shape:after{content:"";position:absolute;width:4px;height:4px;left:3px;top:3px;background:#eeeae3;clip-path:polygon(0 0,100% 70%,65% 62%,48% 100%)}
-      .studio-cursor-ring{position:absolute;left:-1px;top:-1px;width:22px;height:22px;border:1px solid rgba(23,23,23,.28);border-radius:50%;transform:scale(.45);opacity:0;transition:transform .28s cubic-bezier(.2,.8,.2,1),opacity .2s ease}
-      .studio-cursor.is-link .studio-cursor-shape{transform:rotate(45deg) scale(.72)}
-      .studio-cursor.is-link .studio-cursor-ring{transform:scale(1);opacity:1}
-      .studio-cursor-dot{position:absolute;left:8px;top:8px;width:4px;height:4px;border-radius:50%;background:#171717;opacity:.7}
-      .studio-cursor-trail{position:fixed;left:0;top:0;width:3px;height:3px;border-radius:50%;background:#171717;pointer-events:none;z-index:2147483646;opacity:0;transition:opacity .3s ease}
-      @media(max-width:700px),(prefers-reduced-motion:reduce){.studio-cursor,.studio-cursor-trail{display:none!important}}
+      .ps-cursor{position:fixed;left:0;top:0;width:28px;height:28px;pointer-events:none;z-index:2147483647;opacity:0;display:block;will-change:transform}
+      .ps-cursor.visible{opacity:1}
+      .ps-cursor-orbit{position:absolute;inset:1px;border:1px solid rgba(23,23,23,.48);border-radius:50%;transform:scale(.42);transition:transform .3s cubic-bezier(.22,1,.36,1),border-color .25s}
+      .ps-cursor-core{position:absolute;left:10px;top:10px;width:8px;height:8px;background:#171717;border-radius:1px;transform:rotate(45deg);transition:transform .25s cubic-bezier(.22,1,.36,1),border-radius .25s}
+      .ps-cursor-cross{position:absolute;left:13px;top:5px;width:2px;height:18px;background:#171717;opacity:.18;transform:scaleY(.45);transition:transform .3s,opacity .25s}
+      .ps-cursor.cross-right .ps-cursor-cross{transform:scaleY(.45) rotate(90deg)}
+      .ps-cursor.link .ps-cursor-orbit{transform:scale(1.05);border-color:rgba(23,23,23,.8)}
+      .ps-cursor.link .ps-cursor-core{transform:rotate(45deg) scale(.72);border-radius:50%}
+      .ps-cursor-trail{position:fixed;left:0;top:0;width:4px;height:4px;background:#171717;border-radius:50%;pointer-events:none;z-index:2147483646;opacity:0;will-change:transform,opacity}
+      .ps-cursor-trail.t1{width:3px;height:3px;transition:transform .13s ease,opacity .22s ease}
+      .ps-cursor-trail.t2{width:2px;height:2px;transition:transform .24s ease,opacity .32s ease}
+      .ps-cursor-trail.t3{width:1px;height:1px;transition:transform .38s ease,opacity .45s ease}
+      @media(max-width:700px),(prefers-reduced-motion:reduce){.ps-cursor,.ps-cursor-trail{display:none!important}}
     `;
     document.head.appendChild(cursorStyle);
 
     const cursor=document.createElement("div");
-    cursor.className="studio-cursor";
-    cursor.innerHTML=`<span class="studio-cursor-shape"></span><span class="studio-cursor-ring"></span><span class="studio-cursor-dot"></span>`;
+    cursor.className="ps-cursor";
+    cursor.innerHTML=`<span class="ps-cursor-orbit"></span><span class="ps-cursor-core"></span><span class="ps-cursor-cross"></span>`;
     document.body.appendChild(cursor);
 
-    const trails=[1,2,3].map((n)=>{const el=document.createElement("span");el.className="studio-cursor-trail";document.body.appendChild(el);return el});
-    let movingTimer:ReturnType<typeof setTimeout>|undefined;
-    const move=(ev:MouseEvent)=>{
-      const x=ev.clientX,y=ev.clientY;
-      cursor.style.transform="translate("+(x-5)+"px,"+(y-5)+"px)";
-      trails[0].style.transform="translate("+(x+8)+"px,"+(y+8)+"px)";
-      trails[1].style.transform="translate("+(x+14)+"px,"+(y+14)+"px)";
-      trails[2].style.transform="translate("+(x+20)+"px,"+(y+20)+"px)";
-      trails.forEach((el,i)=>el.style.opacity=String(.18-i*.05));
-      cursor.classList.add("is-visible");
+    const trails=[1,2,3].map(n=>{const el=document.createElement("span");el.className="ps-cursor-trail t"+n;document.body.appendChild(el);return el});
+    let lastX=0,lastY=0,movingTimer:ReturnType<typeof setTimeout>|undefined;
+    const move=(e:MouseEvent)=>{
+      const x=e.clientX,y=e.clientY,dx=x-lastX,dy=y-lastY;
+      lastX=x;lastY=y;
+      cursor.style.transform=`translate(${x-14}px,${y-14}px)`;
+      trails[0].style.transform=`translate(${x+6}px,${y+6}px)`;
+      trails[1].style.transform=`translate(${x+12}px,${y+12}px)`;
+      trails[2].style.transform=`translate(${x+19}px,${y+19}px)`;
+      trails.forEach((el,i)=>el.style.opacity=String(Math.max(0,.2-i*.055)));
+      cursor.classList.add("visible");
+      if(Math.abs(dx)+Math.abs(dy)>2)cursor.classList.toggle("cross-right",(x+y)%2>1);
       if(movingTimer)clearTimeout(movingTimer);
-      movingTimer=setTimeout(()=>trails.forEach(el=>el.style.opacity="0"),70);
+      movingTimer=setTimeout(()=>trails.forEach(el=>el.style.opacity="0"),80);
     };
-    const over=(e:Event)=>{const target=e.target as HTMLElement;if(target.closest("a,.archive-card,.gallery-piece,.work-card,button"))cursor.classList.add("is-link")};
-    const out=(e:Event)=>{const target=e.target as HTMLElement;if(target.closest("a,.archive-card,.gallery-piece,.work-card,button"))cursor.classList.remove("is-link")};
-    const leave=()=>{cursor.classList.remove("is-visible","is-link");trails.forEach(el=>el.style.opacity="0")};
+    const over=(e:Event)=>{
+      const t=e.target as HTMLElement;
+      if(t.closest("a,button,.archive-card,.gallery-piece,.work-card,.artwork-zone"))cursor.classList.add("link");
+    };
+    const out=(e:Event)=>{
+      const t=e.target as HTMLElement;
+      if(t.closest("a,button,.archive-card,.gallery-piece,.work-card,.artwork-zone"))cursor.classList.remove("link");
+    };
+    const leave=()=>{cursor.classList.remove("visible","link");trails.forEach(el=>el.style.opacity="0")};
     window.addEventListener("mousemove",move,{passive:true});
     document.addEventListener("mouseover",over);
     document.addEventListener("mouseout",out);

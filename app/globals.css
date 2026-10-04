@@ -248,9 +248,9 @@ footer{background:rgba(247,246,242,.45)}
 .archive-grid-even .archive-image{width:100%;height:min(58vh,620px);aspect-ratio:4/5}
 .archive-grid-even .archive-card-meta{font-size:10px}
 .archive-grid-even .archive-card p{font-size:9px}
-.work-page{grid-template-columns:minmax(0,1.35fr) minmax(300px,.72fr);gap:4vw;align-items:start}
+.work-page{grid-template-columns:minmax(0,1.35fr) minmax(300px,.72fr);gap:0;align-items:start;padding-left:4vw;padding-right:4vw}
 .single-art{height:min(calc(100vh - 170px),760px);min-height:0;aspect-ratio:4/5}
-.work-info{padding-top:4vh;max-width:520px}
+.work-info{padding:4vh 2vw 0 3vw;max-width:520px}
 .work-info h1{margin:16px 0 48px}
 .work-description{margin-top:42px}
 .purchase-box{margin-top:40px}
@@ -335,3 +335,16 @@ footer{background:rgba(247,246,242,.45)}
 .artwork-lightbox-close{top:24px;right:28px}.artwork-lightbox-arrow{top:50%;transform:translateY(-50%);font-size:42px}
 .artwork-lightbox-arrow.left{left:25px}.artwork-lightbox-arrow.right{right:25px}
 .artwork-lightbox-count{position:absolute;bottom:22px;left:50%;transform:translateX(-50%);font-size:12px;letter-spacing:.12em}
+
+/* Artwork / information side fields — keep the composition tight */
+.artwork-gallery{padding-right:2vw}
+@media(max-width:700px){
+  .work-page{padding-left:16px;padding-right:16px}
+  .work-info{padding:32px 0 0}
+  .artwork-gallery{padding-right:0}
+}
+
+/* Deterministic brush cursor: bristles point upper-left */
+@media(min-width:701px){
+  .studio-cursor svg{transform:rotate(180deg)!important}
+}

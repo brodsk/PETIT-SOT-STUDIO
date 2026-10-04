@@ -418,3 +418,37 @@ footer{background:rgba(247,246,242,.45)}
     stroke:#171717 !important;
   }
 }
+
+
+/* Solid hand-painted signature + refined brush cursor */
+.brush-signature-word text{
+  visibility:visible !important;
+  fill:#171717 !important;
+  stroke:#171717 !important;
+  stroke-width:2.6 !important;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+  paint-order:stroke fill;
+  stroke-dasharray:none !important;
+  stroke-dashoffset:0 !important;
+  clip-path:none !important;
+  opacity:0 !important;
+  animation:signature-brush-appear .62s cubic-bezier(.22,.72,.2,1) forwards !important;
+  filter:url(#brush-soft);
+}
+@keyframes signature-brush-appear{
+  0%{opacity:0;transform:translateX(-7px) scaleX(.9) rotate(-.8deg)}
+  35%{opacity:1;transform:translateX(-2px) scaleX(.97) rotate(.25deg)}
+  72%{opacity:1;transform:translateX(1px) scaleX(1.015) rotate(-.12deg)}
+  100%{opacity:1;transform:none}
+}
+@media(prefers-reduced-motion:reduce){
+  .brush-signature-word text{animation:none !important;opacity:1 !important;transform:none !important}
+}
+
+@media(min-width:701px){
+  html,body,body *{
+    cursor:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 48 48'%3E%3Cg transform='rotate(0 6 6)'%3E%3Cpath d='M4 4C5 2 8 2 10 4L18 15L14 20L5 10C3 8 2 6 4 4Z' fill='none' stroke='%237b766e' stroke-width='1.2'/%3E%3Cpath d='M5 5C7 4 9 5 10 7L16 15L13 18L7 11C5 9 4 7 5 5Z' fill='rgba(123,118,110,.12)'/%3E%3Cpath d='M14 18L19 13L27 21L22 26Z' fill='rgba(123,118,110,.08)' stroke='%237b766e' stroke-width='1.2'/%3E%3Cpath d='M22 25L27 20L39 32L36 38L31 40L19 28Z' fill='none' stroke='%237b766e' stroke-width='1.2'/%3E%3Cpath d='M27 22L39 34L36 38L24 26Z' fill='rgba(123,118,110,.05)'/%3E%3Cpath d='M31 40L36 38L41 42L38 44Z' fill='rgba(123,118,110,.18)' stroke='%237b766e' stroke-width='1'/%3E%3C/g%3E%3C/svg%3E") 5 5,auto !important;
+  }
+  .studio-cursor{display:none !important}
+}

@@ -515,3 +515,13 @@ footer{background:rgba(247,246,242,.45)}
 .artwork-zone{background:transparent!important;opacity:0!important;cursor:pointer!important}
 .hero-wordmark{font-size:14px;font-weight:700;letter-spacing:.08em;color:inherit;white-space:nowrap}
 .hero-wordmark span{font-weight:400;margin-left:7px}
+
+
+/* Correct artwork side positions: keep photos left, pull info toward them. */
+@media(min-width:701px){
+  .work-page{grid-template-columns:minmax(0,1fr) minmax(300px,360px)!important;column-gap:0!important}
+  .work-page>.artwork-viewer{grid-column:1!important;grid-row:2!important;padding-left:0!important;padding-right:6px!important}
+  .work-page>.work-info{grid-column:2!important;grid-row:2!important;padding-left:0!important;padding-right:0!important;border-left:1px solid rgba(23,23,23,.22)!important;border-right:0!important}
+}
+.hero-wordmark{display:block;width:100%;font-size:clamp(42px,8.7vw,150px)!important;font-weight:700;letter-spacing:.08em;line-height:.9;white-space:nowrap;text-align:center}
+.hero-wordmark span{font-weight:400;margin-left:clamp(5px,.6vw,10px)}

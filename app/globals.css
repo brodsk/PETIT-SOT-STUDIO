@@ -515,7 +515,7 @@ footer{background:rgba(247,246,242,.45)}
   .work-page>.artwork-viewer{grid-column:1!important;grid-row:2!important;padding-left:0!important;padding-right:6px!important}
   .work-page>.work-info{grid-column:2!important;grid-row:2!important;padding-left:0!important;padding-right:0!important;border-left:1px solid rgba(23,23,23,.22)!important;border-right:0!important}
 }
-.hero-wordmark{display:block;width:100%;font-size:clamp(42px,8.7vw,150px)!important;font-weight:700;letter-spacing:.08em;line-height:.9;white-space:nowrap;text-align:center}
+@media(min-width:701px){.hero-wordmark{display:block;width:100%;padding-left:32px;padding-right:32px;font-size:clamp(42px,8.7vw,150px)!important;font-weight:700;letter-spacing:.08em;line-height:.9;white-space:nowrap;text-align:center}}
 .hero-wordmark span{font-weight:400;margin-left:clamp(5px,.6vw,10px)}
 
 

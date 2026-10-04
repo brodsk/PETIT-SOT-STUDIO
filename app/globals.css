@@ -292,41 +292,42 @@ footer{background:rgba(247,246,242,.45)}
 
 
 
-/* Final signature + cursor pass */
+
+/* Painted studio signature */
 .brush-signature-word text{
-  visibility:visible !important;
-  opacity:.98 !important;
-  fill:transparent !important;
-  stroke:#171717 !important;
-  stroke-width:7 !important;
-  stroke-linecap:round !important;
-  stroke-linejoin:round !important;
-  paint-order:stroke fill !important;
-  pathLength:1 !important;
-  stroke-dasharray:1 !important;
-  stroke-dashoffset:1 !important;
-  clip-path:none !important;
-  transform:none !important;
-  animation:signature-brush 1.15s cubic-bezier(.2,.78,.18,1) forwards !important;
-  animation-delay:calc(var(--i) * .38s + .15s) !important;
+  visibility:visible;
+  opacity:0;
+  fill:#171717;
+  stroke:none;
+  clip-path:polygon(0 0,0 0,18% 0,12% 14%,30% 11%,24% 27%,0 24%);
+  animation:signature-painted 1.35s cubic-bezier(.16,.72,.18,1) forwards;
+  animation-delay:calc(var(--i) * .38s + .15s);
   filter:url(#brush-soft);
 }
-.brush-signature-bottom text{
-  font-size:126px !important;
-  animation-delay:calc(var(--i) * .38s + 3.7s) !important;
+.brush-signature-bottom text{font-size:126px;animation-delay:calc(var(--i) * .38s + 3.7s)}
+@keyframes signature-painted{
+  0%{opacity:0;clip-path:polygon(0 0,0 0,18% 0,12% 14%,30% 11%,24% 27%,0 24%)}
+  22%{opacity:1;clip-path:polygon(0 0,18% 2%,42% 0,38% 19%,68% 16%,63% 34%,0 38%)}
+  48%{clip-path:polygon(0 0,44% 3%,70% 0,67% 18%,100% 14%,96% 38%,8% 44%,0 68%)}
+  72%{clip-path:polygon(0 0,70% 2%,100% 0,100% 24%,78% 30%,100% 43%,100% 72%,18% 76%,0 92%)}
+  100%{opacity:1;clip-path:polygon(0 0,100% 0,100% 100%,0 100%)}
 }
-@keyframes signature-brush{
-  0%{stroke-dashoffset:1;fill:transparent;opacity:.2}
-  62%{stroke-dashoffset:0;fill:transparent;opacity:1}
-  78%,100%{stroke-dashoffset:0;fill:#171717;opacity:1}
-}
-.brush-signature{visibility:visible !important;opacity:1 !important}
-
-/* The actual 🖌 brush emoji, rotated so the bristles point ↖. */
-@media(min-width:701px){
-  html,body,body *{
-    cursor:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 48 48'%3E%3Cg transform='rotate(180 24 24)'%3E%3Ctext x='24' y='34' text-anchor='middle' font-size='30' font-family='Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif'%3E%F0%9F%96%8C%3C/text%3E%3C/g%3E%3C/svg%3E") 8 8,auto !important;
-  }
-  .studio-cursor{display:none !important}
-}
-@media(max-width:700px){.studio-cursor{display:none !important}}
+@media(prefers-reduced-motion:reduce){.brush-signature-word text{animation:none;opacity:1;clip-path:none}}
+/* Brush cursor: bristles toward upper-left */
+@media(min-width:701px){html,body,body *{cursor:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 48 48'%3E%3Cg transform='rotate(180 24 24)'%3E%3Ctext x='24' y='34' text-anchor='middle' font-size='30' font-family='Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif'%3E%F0%9F%96%8C%3C/text%3E%3C/g%3E%3C/svg%3E") 8 8,auto!important}.studio-cursor{display:none!important}}
+@media(max-width:700px){.studio-cursor{display:none!important}}
+/* Artwork viewer */
+.artwork-viewer-main{position:relative;cursor:zoom-in}
+.artwork-zone{position:absolute;top:0;bottom:0;width:50%;border:0;background:transparent;z-index:2;cursor:inherit}
+.artwork-zone-left{left:0}.artwork-zone-right{right:0}
+.artwork-viewer-hint{position:absolute;top:50%;z-index:3;opacity:0;transform:translateY(-50%);font-size:34px;transition:opacity .2s;pointer-events:none}
+.artwork-viewer-main:hover .artwork-viewer-hint{opacity:.65}.artwork-viewer-hint.left{left:18px}.artwork-viewer-hint.right{right:18px}
+.artwork-gallery-thumbs{display:flex;gap:10px;margin-top:12px;overflow-x:auto}
+.artwork-gallery-thumbs button{padding:0;border:0;background:none;opacity:.58;cursor:pointer;flex:0 0 auto}
+.artwork-gallery-thumbs button.active{opacity:1}.artwork-gallery-thumbs img{display:block;width:84px;height:106px;object-fit:cover}
+.artwork-lightbox{position:fixed;inset:0;z-index:1000;background:rgba(245,242,236,.96);display:flex;align-items:center;justify-content:center;padding:4vh 6vw;cursor:zoom-out}
+.artwork-lightbox>img{max-width:92vw;max-height:90vh;width:auto;height:auto;object-fit:contain;box-shadow:0 20px 70px rgba(0,0,0,.12);cursor:default}
+.artwork-lightbox-close,.artwork-lightbox-arrow{position:absolute;border:0;background:transparent;font-size:38px;line-height:1;cursor:pointer;z-index:2}
+.artwork-lightbox-close{top:24px;right:28px}.artwork-lightbox-arrow{top:50%;transform:translateY(-50%);font-size:42px}
+.artwork-lightbox-arrow.left{left:25px}.artwork-lightbox-arrow.right{right:25px}
+.artwork-lightbox-count{position:absolute;bottom:22px;left:50%;transform:translateX(-50%);font-size:12px;letter-spacing:.12em}

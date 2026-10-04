@@ -661,3 +661,86 @@ footer{background:rgba(247,246,242,.45)}
     overflow-x:auto!important;
   }
 }
+
+/* Artwork detail: large contained main image, thumbnails underneath, description on the right. */
+@media(min-width:701px){
+  .work-page{
+    padding:20px 32px 80px!important;
+    grid-template-columns:minmax(0,1fr) minmax(300px,390px)!important;
+    column-gap:0!important;
+    align-items:start!important;
+  }
+  .work-page>.artwork-viewer{
+    grid-column:1!important;
+    grid-row:2!important;
+    display:flex!important;
+    flex-direction:column!important;
+    width:100%!important;
+    min-width:0!important;
+    padding:0 18px 0 0!important;
+    margin:0!important;
+  }
+  .work-page>.artwork-viewer .artwork-viewer-main{
+    order:1!important;
+    width:100%!important;
+    height:calc(100vh - 190px)!important;
+    min-height:420px!important;
+    max-height:760px!important;
+    margin:0!important;
+    background:transparent!important;
+  }
+  .work-page>.artwork-viewer .artwork-viewer-main>img{
+    display:block!important;
+    width:100%!important;
+    height:100%!important;
+    object-fit:contain!important;
+    object-position:center!important;
+  }
+  .work-page>.artwork-viewer .artwork-gallery-thumbs{
+    order:2!important;
+    width:100%!important;
+    height:106px!important;
+    margin:10px 0 0!important;
+    padding:0!important;
+    display:flex!important;
+    flex-direction:row!important;
+    gap:8px!important;
+    overflow-x:auto!important;
+    overflow-y:hidden!important;
+  }
+  .work-page>.artwork-viewer .artwork-gallery-thumbs button{
+    width:84px!important;
+    height:106px!important;
+    flex:0 0 84px!important;
+    border:0!important;
+    opacity:.55!important;
+  }
+  .work-page>.artwork-viewer .artwork-gallery-thumbs button.active{
+    opacity:1!important;
+  }
+  .work-page>.work-info{
+    grid-column:2!important;
+    grid-row:2!important;
+    width:100%!important;
+    margin:0!important;
+    padding:0 0 0 18px!important;
+    border-left:1px solid rgba(23,23,23,.22)!important;
+    max-width:none!important;
+  }
+  .work-page>.work-info h1,
+  .work-page>.work-info dl,
+  .work-page>.work-info .work-description,
+  .work-page>.work-info .purchase-box{
+    margin-left:0!important;
+  }
+}
+@media(max-width:700px){
+  .work-page>.artwork-viewer .artwork-viewer-main>img{
+    width:100%!important;
+    height:100%!important;
+    object-fit:contain!important;
+  }
+  .work-page>.artwork-viewer .artwork-gallery-thumbs{
+    order:2!important;
+  }
+}

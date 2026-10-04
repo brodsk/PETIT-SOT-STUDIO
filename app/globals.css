@@ -494,3 +494,12 @@ footer{background:rgba(247,246,242,.45)}
   .work-page{grid-template-columns:minmax(0,1fr) minmax(320px,400px)!important}
   .work-page>.work-info{padding-left:18px!important}
 }
+
+
+/* Artwork detail: make the two columns read as one compact composition. */
+@media(min-width:701px){
+  .work-page{grid-template-columns:minmax(0,1fr) minmax(300px,360px)!important;column-gap:0!important}
+  .work-page>.work-info{padding-left:6px!important}
+  .work-page>.artwork-viewer .artwork-viewer-main{height:min(calc(100vh - 150px),720px)!important}
+  .work-page>.artwork-viewer .artwork-gallery-thumbs{margin-top:8px!important}
+}

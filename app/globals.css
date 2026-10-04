@@ -166,9 +166,7 @@ main{animation:page-enter .55s cubic-bezier(.22,1,.36,1) both}
 
 /* PETIT.SOT pointer cursor */
 .studio-cursor{position:fixed;left:var(--cursor-x,-100px);top:var(--cursor-y,-100px);width:22px;height:22px;margin:0;pointer-events:none;z-index:9999;opacity:0;transform:translate(-2px,-2px);transition:opacity .15s ease;mix-blend-mode:multiply}
-.studio-cursor-pointer{position:absolute;left:0;top:0;width:0;height:0;border-top:11px solid #171717;border-right:7px solid transparent;filter:drop-shadow(0 0 0 #171717);transform:rotate(-12deg)}
-.studio-cursor-pointer i{position:absolute;left:-8px;top:-8px;width:12px;height:2px;background:#171717;transform:rotate(25deg);transform-origin:right center}
-.studio-cursor-pointer b{position:absolute;left:-7px;top:-5px;width:9px;height:1px;background:#171717;transform:rotate(25deg);transform-origin:right center}
+.studio-cursor-brush{position:absolute;left:0;top:0;font-size:22px;line-height:1;display:block;transform:rotate(-35deg);transform-origin:18% 82%;filter:drop-shadow(0 0 0 #171717)}
 .studio-cursor.is-link{transform:translate(-2px,-2px) scale(1.15)}
 @media(min-width:701px){body:hover .studio-cursor{opacity:1}a,.archive-card,.gallery-piece,.work-card{cursor:none}}
 @media(max-width:700px),(prefers-reduced-motion:reduce){.motion-reveal{opacity:1;transform:none;transition:none}main{animation:none}.studio-cursor{display:none}}

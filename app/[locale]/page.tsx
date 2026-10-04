@@ -42,14 +42,14 @@ export default async function Home({params}:{params:Promise<{locale:string}>}){
       .brush-signature{position:relative;z-index:2;width:min(88vw,1180px);aspect-ratio:1200 / 320;height:auto;display:flex;align-items:center;justify-content:center}
       .brush-signature svg{width:100%;height:auto;display:block;overflow:visible}
       .brush-signature-word text{
-        font-family:"Yellowtail",cursive;
+        font-family:"Berkshire Swash",cursive;
         font-size:142px;
         font-style:italic;
         font-weight:700;
         fill:#171717;
         stroke:none;
-        animation:signature-paint .9s cubic-bezier(.18,.72,.22,1) forwards;
-        animation-delay:calc(var(--i) * .07s + .12s);
+        animation:signature-paint .58s cubic-bezier(.2,.75,.2,1) forwards;
+        animation-delay:calc(var(--i) * .59s + .15s);
         clip-path:inset(0 100% 0 0);
       }
       .brush-signature-top text:nth-last-child(1){animation-delay:1.05s}

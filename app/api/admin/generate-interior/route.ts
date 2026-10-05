@@ -96,7 +96,7 @@ export async function POST(request:Request){
     ].filter(Boolean).join("\n");
 
     const hf = new InferenceClient(hfToken);
-    let generated:Blob|string;
+    let generated:unknown;
     try{
       generated = await hf.textToImage({
         provider:"fal-ai",
@@ -127,9 +127,11 @@ export async function POST(request:Request){
       if(!match) return NextResponse.json({error:"The image model returned an invalid image."},{status:502});
       generatedMime=match[1];
       generatedBuffer=Buffer.from(match[2],"base64");
-    }else{
+    }else if(generated instanceof Blob){
       generatedBuffer=Buffer.from(await generated.arrayBuffer());
       generatedMime=(generated.type||"image/jpeg").split(";")[0];
+    }else{
+      return NextResponse.json({error:"The image model returned an unsupported image format."},{status:502});
     }
     if(generatedBuffer.length===0) return NextResponse.json({error:"The image model returned no image."},{status:502});
 

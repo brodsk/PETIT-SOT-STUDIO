@@ -52,3 +52,4 @@ export default function ContactForm({ru}:{ru:boolean}){
     </form>
   );
 }
+

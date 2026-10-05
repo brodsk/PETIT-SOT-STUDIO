@@ -1,14 +1,12 @@
 import Link from "next/link";
 import {notFound} from "next/navigation";
 import LanguageSwitcher from "./language-switcher";
-import FaviconAnimator from "../components/FaviconAnimator";
 
 export default async function LocaleLayout({children,params}:{children:React.ReactNode;params:Promise<{locale:string}>}){
   const {locale}=await params;
   if(locale!=="en" && locale!=="ru") notFound();
   const ru=locale==="ru";
   return <div data-locale={locale}>
-    <FaviconAnimator />
     <header className="site-header">
       <Link href={"/"+locale} className="wordmark">PETIT.SOT <span className="wordmark-divider">|</span> <span>STUDIO</span></Link>
       <nav>

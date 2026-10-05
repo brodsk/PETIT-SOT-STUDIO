@@ -1128,3 +1128,70 @@ footer{background:rgba(247,246,242,.45)}
     text-justify:inter-word!important;
   }
 }
+
+/* Final desktop artwork page rebuild — clean full-height artwork, no frame. */
+@media(min-width:701px){
+  .work-page{
+    grid-template-columns:minmax(0,1fr) 330px!important;
+    column-gap:0!important;
+    padding:18px 42px 70px!important;
+  }
+  .work-page>.artwork-viewer{
+    padding:0 28px 0 0!important;
+    margin:0!important;
+    min-width:0!important;
+  }
+  .work-page>.artwork-viewer .artwork-viewer-main{
+    width:100%!important;
+    height:calc(100vh - 150px)!important;
+    min-height:0!important;
+    max-height:none!important;
+    margin:0!important;
+    background:transparent!important;
+    border:0!important;
+    overflow:visible!important;
+    box-shadow:none!important;
+  }
+  .work-page>.artwork-viewer .artwork-viewer-main:before{
+    display:none!important;
+  }
+  .work-page>.artwork-viewer .artwork-viewer-main>img{
+    position:static!important;
+    display:block!important;
+    width:100%!important;
+    height:100%!important;
+    max-width:100%!important;
+    max-height:100%!important;
+    object-fit:contain!important;
+    object-position:center!important;
+  }
+  .work-page>.artwork-viewer .artwork-gallery-thumbs{
+    height:64px!important;
+    margin:10px 0 0!important;
+    gap:8px!important;
+  }
+  .work-page>.artwork-viewer .artwork-gallery-thumbs button{
+    width:52px!important;
+    height:64px!important;
+    flex-basis:52px!important;
+  }
+  .work-page>.work-info{
+    transform:translateX(-151px)!important;
+    width:calc(100% + 151px)!important;
+    min-height:calc(100vh - 150px)!important;
+    padding:8px 0 0 28px!important;
+    border-left:1px solid rgba(23,23,23,.28)!important;
+  }
+  .work-page>.work-info h1{
+    font-size:clamp(58px,6vw,96px)!important;
+    line-height:.84!important;
+    margin:0 0 46px!important;
+  }
+  .work-page>.work-info .work-description{
+    max-width:390px!important;
+    font-size:14px!important;
+    line-height:1.65!important;
+    text-align:justify!important;
+    text-justify:inter-word!important;
+  }
+}

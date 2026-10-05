@@ -158,7 +158,9 @@ export default function AdminDashboard({initialArtworks}:Props){
     try{
       const {data:gallery,error:galleryError}=await supabase.from("petit_sot_artwork_images").select("image_path").eq("artwork_id",form.id);
       if(galleryError)throw galleryError;
-      const paths=[form.image_path,...(gallery||[]).map(x=>x.image_path)].filter(Boolean) as string[];
+      const {data:interiorRows,error:interiorError}=await supabase.from("petit_sot_artwork_interiors").select("image_path").eq("artwork_id",form.id);
+      if(interiorError)throw interiorError;
+      const paths=[form.image_path,...(gallery||[]).map(x=>x.image_path),...(interiorRows||[]).map(x=>x.image_path)].filter(Boolean) as string[];
       if(paths.length){const storage=await supabase.storage.from("petit-sot-artworks").remove(paths);if(storage.error)throw storage.error;}
       const {error}=await supabase.from("petit_sot_artworks").delete().eq("id",form.id);if(error)throw error;
       setArtworks(prev=>prev.filter(x=>x.id!==form.id));setSelected(null);setImage(null);setImagePreview("");setGalleryImages([]);setNewImages([]);setMessage("Картина удалена.");

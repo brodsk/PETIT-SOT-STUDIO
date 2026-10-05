@@ -1222,8 +1222,8 @@ footer{background:rgba(247,246,242,.45)}
     animation:studio-cursor-pulse-fast .9s ease-out infinite!important;
   }
   @keyframes studio-cursor-pulse-fast{
-    0%{opacity:.6;transform:scale:.8}
-    100%{opacity:0;transform:scale(1.35)}
+    0%{opacity:.6;transform:scale(.8);}
+    100%{opacity:0;transform:scale(1.35);}
   }
 
   .gallery-tiles-all .gallery-tiles-grid{

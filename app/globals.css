@@ -1245,43 +1245,34 @@ footer{background:rgba(247,246,242,.45)}
 /* 2026 final gallery polish: four-column archive, aligned work data, larger artwork, and studio cursor. */
 @media(min-width:701px){
   html,body,body *{cursor:none!important}
+
   .studio-cursor{
     position:fixed;
     left:0;top:0;
-    width:20px;height:20px;
-    margin:-10px 0 0 -10px;
-    border:1px solid rgba(23,23,23,.78);
-    border-radius:50%;
+    width:12px;height:12px;
+    margin:-6px 0 0 -6px;
     pointer-events:none;
     z-index:99999;
-    opacity:1!important;
     transform:translate3d(-100px,-100px,0);
     will-change:transform;
-    transition:none;
   }
+  /* A small asymmetric ink-spark cursor: sharp, editorial, and intentionally not a standard pointer. */
   .studio-cursor:before{
     content:"";
     position:absolute;
-    left:50%;top:50%;
-    width:4px;height:4px;
-    margin:-2px 0 0 -2px;
-    border-radius:50%;
+    width:9px;height:9px;
+    left:0;top:0;
     background:#171717;
+    clip-path:polygon(50% 0,62% 38%,100% 50%,62% 62%,50% 100%,38% 62%,0 50%,38% 38%);
   }
   .studio-cursor:after{
     content:"";
     position:absolute;
-    inset:-5px;
-    border:1px solid rgba(23,23,23,.16);
+    width:3px;height:3px;
+    right:-7px;bottom:-6px;
+    border:1px solid #171717;
     border-radius:50%;
-    opacity:0;
-  }
-  .studio-cursor.is-moving:after{
-    animation:studio-cursor-ring .5s ease-out;
-  }
-  @keyframes studio-cursor-ring{
-    0%{opacity:.55;transform:scale(.8)}
-    100%{opacity:0;transform:scale(1.35)}
+    opacity:.65;
   }
 
   .gallery-tiles-all .gallery-tiles-grid{
@@ -1303,52 +1294,12 @@ footer{background:rgba(247,246,242,.45)}
     column-gap:18px!important;
     align-items:baseline!important;
   }
-  .work-page>.work-info dt{
-    margin:0!important;
-  }
-  .work-page>.work-info dd{
-    margin:0!important;
-    text-align:left!important;
-  }
+  .work-page>.work-info dt{margin:0!important}
+  .work-page>.work-info dd{margin:0!important;text-align:left!important}
   .work-page>.work-info .work-description{
     margin-top:42px!important;
     text-align:justify!important;
     text-justify:inter-word!important;
-  }
-
-  .studio-cursor{
-    position:fixed;
-    left:0;top:0;
-    width:22px;height:22px;
-    margin:-11px 0 0 -11px;
-    border:1px solid rgba(23,23,23,.72);
-    border-radius:50%;
-    pointer-events:none;
-    z-index:99999;
-    mix-blend-mode:multiply;
-    transition:width .18s ease,height .18s ease,margin .18s ease,border-color .18s ease;
-  }
-  .studio-cursor:before{
-    content:"";
-    position:absolute;
-    left:50%;top:50%;
-    width:4px;height:4px;
-    margin:-2px 0 0 -2px;
-    border-radius:50%;
-    background:#171717;
-  }
-  .studio-cursor:after{
-    content:"";
-    position:absolute;
-    inset:-7px;
-    border:1px solid rgba(23,23,23,.12);
-    border-radius:50%;
-    transform:scale(.72);
-    animation:studio-cursor-pulse 2.2s ease-out infinite;
-  }
-  @keyframes studio-cursor-pulse{
-    0%{opacity:.7;transform:scale(.72)}
-    100%{opacity:0;transform:scale(1.5)}
   }
 }
 @media(max-width:700px){

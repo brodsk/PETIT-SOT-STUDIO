@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { InferenceClient } from "@huggingface/inference";
 import { createClient } from "../../../../lib/supabase/server";
 
 export const runtime = "nodejs";
@@ -38,8 +39,8 @@ export async function POST(request:Request){
     if(artworkError||!artwork) return NextResponse.json({error:"Artwork not found."},{status:404});
     if(!artwork.image_path) return NextResponse.json({error:"The artwork needs a main image first."},{status:400});
 
-    const apiKey = process.env.GEMINI_API_KEY;
-    if(!apiKey) return NextResponse.json({error:"GEMINI_API_KEY is not configured."},{status:503});
+    const hfToken = process.env.HF_TOKEN;
+    if(!hfToken) return NextResponse.json({error:"HF_TOKEN is not configured."},{status:503});
 
     const publicUrl = supabase.storage.from("petit-sot-artworks").getPublicUrl(artwork.image_path).data.publicUrl;
     const sourceResponse = await fetch(publicUrl,{cache:"no-store"});
@@ -68,35 +69,28 @@ export async function POST(request:Request){
       "Create a premium editorial interior photograph suitable for an art gallery website.",
     ].filter(Boolean).join("\n");
 
-    const response = await fetch("https://generativelanguage.googleapis.com/v1beta/interactions",{
-      method:"POST",
-      headers:{"Content-Type":"application/json","x-goog-api-key":apiKey},
-      body:JSON.stringify({
-        model:process.env.GEMINI_IMAGE_MODEL||"gemini-3.1-flash-image",
-        input:[
-          {type:"text",text:prompt},
-          {type:"image",mime_type:mimeType,data:base64},
-        ],
-        response_format:{type:"image",mime_type:"image/jpeg",aspect_ratio:"4:5",image_size:"1K"},
-      }),
-    });
-
-    if(!response.ok) return NextResponse.json({error:"Image generation failed.",detail:(await response.text()).slice(0,1200)},{status:502});
-
-    const data = await response.json();
-    let outputBase64 = "";
-    for(const step of data.steps||[]){
-      for(const block of step.content||[]){
-        if(block.type==="image"&&block.data){outputBase64=block.data;break;}
-      }
-      if(outputBase64) break;
+    const hf = new InferenceClient(hfToken);
+    let generated:Blob;
+    try{
+      generated = await hf.imageToImage({
+        provider:"fal-ai",
+        model:"black-forest-labs/FLUX.2-klein-4B",
+        inputs:new Blob([sourceBuffer],{type:mimeType}),
+        parameters:{prompt},
+      });
+    }catch(error:any){
+      const message=error?.message||"Hugging Face image generation failed.";
+      console.error("Hugging Face generation error",error);
+      return NextResponse.json({error:"Image generation failed.",detail:message.slice(0,1200)},{status:502});
     }
-    if(!outputBase64&&data.output_image?.data) outputBase64=data.output_image.data;
-    if(!outputBase64) return NextResponse.json({error:"The image model returned no image."},{status:502});
 
-    const outputBuffer = Buffer.from(outputBase64,"base64");
-    const path = "interiors/"+artworkId+"/"+crypto.randomUUID()+".jpg";
-    const upload = await supabase.storage.from("petit-sot-artworks").upload(path,outputBuffer,{contentType:"image/jpeg",upsert:false});
+    if(!generated||generated.size===0) return NextResponse.json({error:"The image model returned no image."},{status:502});
+
+    const generatedMime=(generated.type||"image/jpeg").split(";")[0];
+    const extension=generatedMime==="image/png"?"png":"jpg";
+    const outputBuffer = Buffer.from(await generated.arrayBuffer());
+    const path = "interiors/"+artworkId+"/"+crypto.randomUUID()+"."+extension;
+    const upload = await supabase.storage.from("petit-sot-artworks").upload(path,outputBuffer,{contentType:generatedMime,upsert:false});
     if(upload.error) throw upload.error;
 
     const {data:row,error:insertError} = await supabase

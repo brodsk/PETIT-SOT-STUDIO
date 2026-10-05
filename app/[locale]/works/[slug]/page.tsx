@@ -35,7 +35,6 @@ export default async function WorkPage({params}:{params:Promise<{locale:string;s
     <div><dt>{ru?"Год":"Year"}</dt><dd>{w.year}</dd></div>
    </dl>
    <p className="work-description">{ru?w.descriptionRu:w.descriptionEn}</p>
-   {interiors.length>0&&<a className="interior-button" href="#interior">{ru?"Показать в интерьере":"View in interior"} <span>↘</span></a>}
    <div className="purchase-box">{w.available?<><div><span className="purchase-label">{ru?"Доступна":"Available"}</span><strong>{w.price>0?new Intl.NumberFormat(ru?"ru-RU":"en-GB",{style:"currency",currency:w.currency}).format(w.price):(ru?"Цена по запросу":"Price on request")}</strong></div><Link className="purchase-button" href={"/"+locale+"/contact?work="+encodeURIComponent(ru?w.titleRu:w.titleEn)}>{ru?"Приобрести работу":"Acquire this work"} <span>↗</span></Link><p>{ru?"Безопасная оплата через Stripe появится здесь. Пока отправьте запрос на приобретение.":"Secure online payment via Stripe will be available here. For now, send a purchase enquiry."}</p></>:<><span className="purchase-label">{ru?"Статус":"Status"}</span><strong>{ru?"Продано / недоступно":"Sold / unavailable"}</strong></>}</div>
   </aside>
   <InteriorShowcase interiors={interiors} ru={ru}/>

@@ -1347,3 +1347,53 @@ footer{background:rgba(247,246,242,.45)}
   .contact-form textarea{min-height:130px}
   .contact-form button{margin-top:15px}
 }
+
+
+/* Back to top — quiet editorial control, fixed to the lower-right corner. */
+.back-to-top{
+  position:fixed;
+  right:24px;
+  bottom:24px;
+  z-index:40;
+  width:42px;
+  height:42px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border:1px solid rgba(23,23,23,.28);
+  border-radius:50%;
+  background:rgba(238,234,227,.86);
+  color:#171717;
+  backdrop-filter:blur(8px);
+  -webkit-backdrop-filter:blur(8px);
+  cursor:pointer;
+  opacity:0;
+  visibility:hidden;
+  transform:translateY(10px);
+  transition:opacity .35s ease,transform .35s ease,visibility .35s ease,background .2s ease;
+  padding:0;
+}
+.back-to-top.is-visible{opacity:1;visibility:visible;transform:translateY(0)}
+.back-to-top:hover{background:#171717;color:#eeeae3}
+.back-to-top span{font-size:17px;line-height:1;transform:translateY(-1px)}
+@media(max-width:700px){
+  .back-to-top{right:14px;bottom:14px;width:38px;height:38px}
+  .back-to-top span{font-size:15px}
+}
+
+/* Center the Works / Работы masthead. */
+.gallery-archive .archive-mast{
+  grid-template-columns:1fr!important;
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:center!important;
+  text-align:center!important;
+}
+.gallery-archive .archive-mast .eyebrow{align-self:center!important}
+.gallery-archive .archive-mast h1{width:100%!important;text-align:center!important}
+.gallery-archive .archive-mast p{max-width:360px!important;margin:24px auto 0!important}
+@media(max-width:700px){
+  .gallery-archive .archive-mast{align-items:center!important;text-align:center!important}
+  .gallery-archive .archive-mast h1{margin:28px 0 24px!important}
+  .gallery-archive .archive-mast p{margin:0 auto!important}
+}

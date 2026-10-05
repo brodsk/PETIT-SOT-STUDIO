@@ -96,7 +96,7 @@ export async function POST(request:Request){
     ].filter(Boolean).join("\n");
 
     const hf = new InferenceClient(hfToken);
-    let generated:Blob;
+    let generated:Blob|string;
     try{
       generated = await hf.textToImage({
         provider:"fal-ai",
@@ -115,10 +115,23 @@ export async function POST(request:Request){
       return NextResponse.json({error:"Image generation failed.",detail:message.slice(0,1200)},{status:502});
     }
 
-    if(!generated||generated.size===0) return NextResponse.json({error:"The image model returned no image."},{status:502});
+    if(!generated) return NextResponse.json({error:"The image model returned no image."},{status:502});
 
-    const generatedBuffer = Buffer.from(await generated.arrayBuffer());
-    const generatedMime = (generated.type||"image/jpeg").split(";")[0];
+    // Hugging Face typings allow textToImage to return either a Blob or a string.
+    // Normalize both forms before building the final SVG.
+    let generatedBuffer:Buffer;
+    let generatedMime="image/jpeg";
+    if(typeof generated==="string"){
+      if(!generated.startsWith("data:")) return NextResponse.json({error:"The image model returned an unsupported image format."},{status:502});
+      const match=generated.match(/^data:([^;]+);base64,(.+)$/);
+      if(!match) return NextResponse.json({error:"The image model returned an invalid image."},{status:502});
+      generatedMime=match[1];
+      generatedBuffer=Buffer.from(match[2],"base64");
+    }else{
+      generatedBuffer=Buffer.from(await generated.arrayBuffer());
+      generatedMime=(generated.type||"image/jpeg").split(";")[0];
+    }
+    if(generatedBuffer.length===0) return NextResponse.json({error:"The image model returned no image."},{status:502});
 
     // Do not ask the image model to determine the artwork's physical size.
     // Generate the room first, then compose the original artwork in SVG at a
@@ -154,8 +167,9 @@ export async function POST(request:Request){
 
     const outputBuffer = Buffer.from(svg);
 
+    const extension="svg";
     const path = "interiors/"+artworkId+"/"+crypto.randomUUID()+"."+extension;
-    const upload = await supabase.storage.from("petit-sot-artworks").upload(path,outputBuffer,{contentType:generatedMime,upsert:false});
+    const upload = await supabase.storage.from("petit-sot-artworks").upload(path,outputBuffer,{contentType:"image/svg+xml",upsert:false});
     if(upload.error) throw upload.error;
 
     const {data:row,error:insertError} = await supabase

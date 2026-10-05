@@ -2,38 +2,28 @@
 
 import {useState} from "react";
 
-type Interior = {
-  image_url:string;
-  style:string;
-};
+type Interior = {image_url:string;style:string};
 
 export default function InteriorShowcase({interiors,ru}:{interiors:Interior[];ru:boolean}){
-  const [active,setActive]=useState(0);
-  if(!interiors.length)return null;
-
-  const labels:Record<string,string> = {
-    minimal:ru?"Минимализм / галерея":"Minimal / Gallery",
-    modern:ru?"Современный интерьер":"Modern Apartment",
-    warm:ru?"Тёплый интерьер":"Warm Interior",
-    luxury:ru?"Премиальный интерьер":"Luxury",
-  };
-
-  return <section className="work-interior" id="interior">
-    <div className="work-interior-head">
-      <div>
-        <p className="eyebrow">AI / INTERIOR</p>
-        <h2>{ru?"В интерьере":"In an interior"}</h2>
-      </div>
-      <p>{ru?"Визуализация масштаба и атмосферы работы в пространстве.":"A visualisation of the work's scale and atmosphere in a space."}</p>
-    </div>
-    <div className="work-interior-main">
-      <img src={interiors[active].image_url} alt={ru?"Картина в интерьере":"Artwork in an interior"} />
-    </div>
-    {interiors.length>1&&<div className="work-interior-thumbs">
-      {interiors.map((item,i)=><button type="button" className={i===active?"active":""} onClick={()=>setActive(i)} key={item.image_url+i}>
-        <img src={item.image_url} alt="" />
-        <span>{labels[item.style]||item.style}</span>
-      </button>)}
-    </div>}
-  </section>;
+ const [open,setOpen]=useState<number|null>(null);
+ if(!interiors.length)return null;
+ const labels:Record<string,string>={minimal:ru?"Минимализм / галерея":"Minimal / Gallery",modern:ru?"Современный интерьер":"Modern Apartment",warm:ru?"Тёплый интерьер":"Warm Interior",luxury:ru?"Премиальный интерьер":"Luxury"};
+ const expanded=open===-1;
+ return <div className="work-interior-compact">
+  <button type="button" className="interior-button" onClick={()=>setOpen(expanded?null:-1)}>
+   <span>{ru?"Показать в интерьере":"View in interior"}</span><span className="interior-button-arrow">{expanded?"−":"+"}</span>
+  </button>
+  {expanded&&<div className="work-interior-thumbs">
+   {interiors.map((item,i)=><button type="button" className="work-interior-thumb" onClick={()=>setOpen(i)} key={item.image_url+i}>
+    <img src={item.image_url} alt={ru?"Картина в интерьере":"Artwork in an interior"}/><span>{labels[item.style]||item.style}</span>
+   </button>)}
+  </div>}
+  {open!==null&&!expanded&&<div className="interior-lightbox" role="dialog" aria-modal="true" onClick={()=>setOpen(-1)}>
+   <div className="interior-lightbox-inner" onClick={e=>e.stopPropagation()}>
+    <button type="button" className="interior-lightbox-close" onClick={()=>setOpen(-1)} aria-label={ru?"Закрыть":"Close"}>×</button>
+    <img src={interiors[open].image_url} alt={ru?"Картина в интерьере":"Artwork in an interior"}/>
+    <div className="interior-lightbox-caption">{labels[interiors[open].style]||interiors[open].style}</div>
+   </div>
+  </div>}
+ </div>;
 }

@@ -1195,3 +1195,78 @@ footer{background:rgba(247,246,242,.45)}
     text-justify:inter-word!important;
   }
 }
+
+/* 2026 final gallery polish: four-column archive, aligned work data, larger artwork, and studio cursor. */
+@media(min-width:701px){
+  html,body,body *{cursor:none!important}
+
+  .gallery-tiles-all .gallery-tiles-grid{
+    grid-template-columns:repeat(4,minmax(0,1fr))!important;
+    gap:28px 18px!important;
+  }
+
+  .work-page>.artwork-viewer .artwork-viewer-main{
+    height:calc(100vh - 125px)!important;
+  }
+
+  .work-page>.work-info dl{
+    display:grid!important;
+    grid-template-columns:1fr!important;
+  }
+  .work-page>.work-info dl div{
+    display:grid!important;
+    grid-template-columns:92px minmax(0,1fr)!important;
+    column-gap:18px!important;
+    align-items:baseline!important;
+  }
+  .work-page>.work-info dt{
+    margin:0!important;
+  }
+  .work-page>.work-info dd{
+    margin:0!important;
+    text-align:left!important;
+  }
+  .work-page>.work-info .work-description{
+    margin-top:42px!important;
+    text-align:justify!important;
+    text-justify:inter-word!important;
+  }
+
+  .studio-cursor{
+    position:fixed;
+    left:0;top:0;
+    width:22px;height:22px;
+    margin:-11px 0 0 -11px;
+    border:1px solid rgba(23,23,23,.72);
+    border-radius:50%;
+    pointer-events:none;
+    z-index:99999;
+    mix-blend-mode:multiply;
+    transition:width .18s ease,height .18s ease,margin .18s ease,border-color .18s ease;
+  }
+  .studio-cursor:before{
+    content:"";
+    position:absolute;
+    left:50%;top:50%;
+    width:4px;height:4px;
+    margin:-2px 0 0 -2px;
+    border-radius:50%;
+    background:#171717;
+  }
+  .studio-cursor:after{
+    content:"";
+    position:absolute;
+    inset:-7px;
+    border:1px solid rgba(23,23,23,.12);
+    border-radius:50%;
+    transform:scale(.72);
+    animation:studio-cursor-pulse 2.2s ease-out infinite;
+  }
+  @keyframes studio-cursor-pulse{
+    0%{opacity:.7;transform:scale(.72)}
+    100%{opacity:0;transform:scale(1.5)}
+  }
+}
+@media(max-width:700px){
+  .studio-cursor{display:none!important}
+}

@@ -11,8 +11,14 @@ export default function ArtworkViewer({images,alt}:{images:string[];alt:string})
    const viewer=viewerRef.current, image=imageRef.current;
    if(!viewer||!image)return;
    const vr=viewer.getBoundingClientRect(), ir=image.getBoundingClientRect();
-   viewer.style.setProperty("--artwork-thumbs-top",`${ir.bottom-vr.top}px`);
-   viewer.style.setProperty("--artwork-thumbs-left",`${ir.left-vr.left}px`);
+   const nw=image.naturalWidth, nh=image.naturalHeight;
+   if(!nw||!nh)return;
+   const scale=Math.min(ir.width/nw,ir.height/nh);
+   const renderedW=nw*scale, renderedH=nh*scale;
+   const left=ir.left-vr.left+(ir.width-renderedW)/2;
+   const top=ir.top-vr.top+(ir.height-renderedH)/2;
+   viewer.style.setProperty("--artwork-thumbs-top",String(top+renderedH)+"px");
+   viewer.style.setProperty("--artwork-thumbs-left",String(left)+"px");
   };
   const image=imageRef.current;
   image?.addEventListener("load",positionThumbs);

@@ -3,19 +3,19 @@ import {useEffect} from "react";
 
 export default function StudioCursor(){
  useEffect(()=>{
-  if(window.matchMedia("(pointer:fine)").matches===false)return;
+  if(!window.matchMedia("(pointer:fine)").matches)return;
   const el=document.createElement("div");
   el.className="studio-cursor";
   document.body.appendChild(el);
-  let x=-100,y=-100,tx=-100,ty=-100,raf=0;
-  const move=(e:MouseEvent)=>{tx=e.clientX;ty=e.clientY};
-  const tick=()=>{
-   x+=(tx-x)*.22;y+=(ty-y)*.22;
-   el.style.transform=`translate3d(${x}px,${y}px,0)`;
-   raf=requestAnimationFrame(tick);
+  let raf=0,moved=false;
+  const move=(e:MouseEvent)=>{
+    el.style.transform=`translate3d(${e.clientX}px,${e.clientY}px,0)`;
+    el.classList.add("is-moving");
+    moved=true;
+    cancelAnimationFrame(raf);
+    raf=requestAnimationFrame(()=>{moved=false;el.classList.remove("is-moving")});
   };
   window.addEventListener("mousemove",move,{passive:true});
-  raf=requestAnimationFrame(tick);
   return()=>{window.removeEventListener("mousemove",move);cancelAnimationFrame(raf);el.remove()};
  },[]);
  return null;

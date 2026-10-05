@@ -48,8 +48,6 @@ export async function POST(request:Request){
     if(!sourceResponse.ok) return NextResponse.json({error:"Could not read the artwork image."},{status:502});
     const sourceBuffer = Buffer.from(await sourceResponse.arrayBuffer());
     if(sourceBuffer.length>12*1024*1024) return NextResponse.json({error:"The artwork image is too large for AI generation."},{status:413});
-    const mimeType = (sourceResponse.headers.get("content-type")||"image/jpeg").split(";")[0];
-
     const width = Number(artwork.width_cm);
     const height = Number(artwork.height_cm);
     const hasDimensions = Number.isFinite(width) && width>0 && Number.isFinite(height) && height>0;
@@ -106,7 +104,9 @@ export async function POST(request:Request){
         inputs:prompt,
         parameters:{
           guidance_scale:4,
-          target_size:{width:1024,height:768},
+          num_inference_steps:4,
+          width:1024,
+          height:768,
         },
       });
     }catch(error:any){
@@ -127,7 +127,6 @@ export async function POST(request:Request){
     const outputHeight = 768;
     const wallWidthPx = 960;
     const wallHeightPx = 648;
-    const wallLeftPx = Math.round((outputWidth-wallWidthPx)/2);
     const wallTopPx = 30;
     const artWidthPx = hasDimensions
       ? Math.max(4,Math.round(wallWidthPx*(width/referenceWallWidth)))
@@ -145,7 +144,7 @@ export async function POST(request:Request){
 
     const artworkLayer = await sharp(sourceBuffer)
       .autoOrient()
-      .resize(artWidthPx,artHeightPx,{fit:"fill"})
+      .resize(artWidthPx,artHeightPx,{fit:"contain",background:{r:0,g:0,b:0,alpha:0}})
       .png()
       .toBuffer();
 

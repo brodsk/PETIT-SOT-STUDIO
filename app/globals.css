@@ -1348,3 +1348,10 @@ footer{background:rgba(247,246,242,.45)}
  .interior-lightbox-inner{width:92vw;height:auto;min-height:45vh;padding:12px}
  .interior-lightbox-inner img{max-width:100%;max-height:76vh}
 }
+
+
+/* Keep admin interior controls separated and prevent button overlap. */
+.admin-interior-controls{display:flex;flex-direction:column;gap:14px!important}
+.admin-interior-styles{display:flex;flex-wrap:wrap;gap:8px!important;align-items:center}
+.admin-interior-styles button{position:relative;flex:0 0 auto;white-space:nowrap}
+.admin-interior-generate{align-self:flex-start}

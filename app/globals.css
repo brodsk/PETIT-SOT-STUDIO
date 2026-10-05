@@ -1355,3 +1355,68 @@ footer{background:rgba(247,246,242,.45)}
 .admin-interior-styles{display:flex;flex-wrap:wrap;gap:8px!important;align-items:center}
 .admin-interior-styles button{position:relative;flex:0 0 auto;white-space:nowrap}
 .admin-interior-generate{align-self:flex-start}
+
+
+/* Editorial back-to-top control */
+.back-to-top{
+  position:fixed!important;
+  right:26px!important;
+  bottom:26px!important;
+  z-index:1000!important;
+  width:54px!important;
+  height:54px!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  padding:0!important;
+  border:1px solid rgba(23,23,23,.34)!important;
+  border-radius:50%!important;
+  background:rgba(238,234,227,.9)!important;
+  color:#171717!important;
+  box-shadow:0 8px 30px rgba(23,23,23,.08)!important;
+  backdrop-filter:blur(10px)!important;
+  -webkit-backdrop-filter:blur(10px)!important;
+  cursor:pointer!important;
+  opacity:0!important;
+  visibility:hidden!important;
+  transform:translate3d(0,14px,0) rotate(0deg)!important;
+  transition:opacity .35s ease,visibility .35s ease,transform .45s cubic-bezier(.22,1,.36,1),background .25s ease,color .25s ease,border-color .25s ease!important;
+}
+.back-to-top.is-visible{
+  opacity:1!important;
+  visibility:visible!important;
+  transform:translate3d(0,0,0) rotate(0deg)!important;
+}
+.back-to-top::before{
+  content:"";
+  width:13px;
+  height:13px;
+  border-left:1px solid currentColor;
+  border-top:1px solid currentColor;
+  transform:translateY(3px) rotate(45deg);
+  transition:transform .35s cubic-bezier(.22,1,.36,1);
+}
+.back-to-top::after{
+  content:"";
+  position:absolute;
+  width:1px;
+  height:22px;
+  background:currentColor;
+  transform:translateY(4px);
+  transform-origin:center bottom;
+  transition:height .35s ease,transform .35s ease;
+}
+.back-to-top span{display:none!important}
+.back-to-top:hover{
+  background:#171717!important;
+  color:#eeeae3!important;
+  border-color:#171717!important;
+  transform:translate3d(0,-3px,0) rotate(-4deg)!important;
+}
+.back-to-top:hover::before{transform:translateY(0) rotate(45deg)}
+.back-to-top:hover::after{height:25px;transform:translateY(2px)}
+@media(max-width:700px){
+  .back-to-top{right:16px!important;bottom:16px!important;width:46px!important;height:46px!important}
+  .back-to-top::before{width:11px;height:11px}
+  .back-to-top::after{height:19px}
+}

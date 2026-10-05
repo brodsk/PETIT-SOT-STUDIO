@@ -100,10 +100,10 @@ export async function POST(request:Request){
     try{
       generated = await hf.textToImage({
         provider:"fal-ai",
-        model:"black-forest-labs/FLUX.2-klein-4B",
+        model:"black-forest-labs/FLUX.1-schnell",
         inputs:prompt,
         parameters:{
-          guidance_scale:4,
+          guidance_scale:0,
           num_inference_steps:4,
           width:1024,
           height:768,

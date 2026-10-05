@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import { InferenceClient } from "@huggingface/inference";
-import sharp from "sharp";
 import { createClient } from "../../../../lib/supabase/server";
 
 export const runtime = "nodejs";
@@ -46,6 +45,7 @@ export async function POST(request:Request){
     const publicUrl = supabase.storage.from("petit-sot-artworks").getPublicUrl(artwork.image_path).data.publicUrl;
     const sourceResponse = await fetch(publicUrl,{cache:"no-store"});
     if(!sourceResponse.ok) return NextResponse.json({error:"Could not read the artwork image."},{status:502});
+    const sourceMime = (sourceResponse.headers.get("content-type")||"image/jpeg").split(";")[0];
     const sourceBuffer = Buffer.from(await sourceResponse.arrayBuffer());
     if(sourceBuffer.length>12*1024*1024) return NextResponse.json({error:"The artwork image is too large for AI generation."},{status:413});
     const width = Number(artwork.width_cm);
@@ -118,16 +118,18 @@ export async function POST(request:Request){
     if(!generated||generated.size===0) return NextResponse.json({error:"The image model returned no image."},{status:502});
 
     const generatedBuffer = Buffer.from(await generated.arrayBuffer());
+    const generatedMime = (generated.type||"image/jpeg").split(";")[0];
 
-    // The model creates only the room/background. The actual artwork is then
-    // composited at a deterministic pixel size derived from its real dimensions.
-    // This is deliberately not left to the image model: prompt-only scale control
-    // cannot guarantee that a 12 × 24 cm work will not become a wall-sized poster.
+    // Do not ask the image model to determine the artwork's physical size.
+    // Generate the room first, then compose the original artwork in SVG at a
+    // deterministic pixel size derived from the real centimetre dimensions.
+    // This avoids a native image-processing dependency and guarantees scale.
     const outputWidth = 1024;
     const outputHeight = 768;
     const wallWidthPx = 960;
     const wallHeightPx = 648;
     const wallTopPx = 30;
+
     const artWidthPx = hasDimensions
       ? Math.max(4,Math.round(wallWidthPx*(width/referenceWallWidth)))
       : 230;
@@ -137,33 +139,21 @@ export async function POST(request:Request){
     const artLeftPx = Math.round((outputWidth-artWidthPx)/2);
     const artTopPx = Math.round(wallTopPx+(wallHeightPx-artHeightPx)*0.42);
 
-    const backgroundBuffer = await sharp(generatedBuffer)
-      .resize(outputWidth,outputHeight,{fit:"cover"})
-      .jpeg({quality:92})
-      .toBuffer();
+    const backgroundData = generatedBuffer.toString("base64");
+    const artworkData = sourceBuffer.toString("base64");
+    const safeBackgroundMime = /^image\\/(png|jpe?g|webp|avif)$/i.test(generatedMime) ? generatedMime : "image/jpeg";
+    const safeArtworkMime = /^image\\/(png|jpe?g|webp|avif)$/i.test(sourceMime) ? sourceMime : "image/jpeg";
 
-    const artworkLayer = await sharp(sourceBuffer)
-      .autoOrient()
-      .resize(artWidthPx,artHeightPx,{fit:"contain",background:{r:0,g:0,b:0,alpha:0}})
-      .png()
-      .toBuffer();
+    const shadowX = artLeftPx+3;
+    const shadowY = artTopPx+5;
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${outputWidth}" height="${outputHeight}" viewBox="0 0 ${outputWidth} ${outputHeight}">
+      <image href="data:${safeBackgroundMime};base64,${backgroundData}" x="0" y="0" width="${outputWidth}" height="${outputHeight}" preserveAspectRatio="xMidYMid slice"/>
+      <rect x="${shadowX}" y="${shadowY}" width="${artWidthPx}" height="${artHeightPx}" rx="1" fill="#000" opacity=".16"/>
+      <image href="data:${safeArtworkMime};base64,${artworkData}" x="${artLeftPx}" y="${artTopPx}" width="${artWidthPx}" height="${artHeightPx}" preserveAspectRatio="xMidYMid meet"/>
+    </svg>`;
 
-    const shadowWidth = Math.max(4,artWidthPx+10);
-    const shadowHeight = Math.max(4,artHeightPx+10);
-    const shadow = Buffer.from(
-      `<svg width="${shadowWidth}" height="${shadowHeight}" xmlns="http://www.w3.org/2000/svg"><rect x="5" y="5" width="${artWidthPx}" height="${artHeightPx}" rx="1" fill="rgba(0,0,0,0.16)"/></svg>`
-    );
+    const outputBuffer = Buffer.from(svg);
 
-    const outputBuffer = await sharp(backgroundBuffer)
-      .composite([
-        {input:shadow,left:artLeftPx+3,top:artTopPx+5},
-        {input:artworkLayer,left:artLeftPx,top:artTopPx},
-      ])
-      .jpeg({quality:94,mozjpeg:true})
-      .toBuffer();
-
-    const generatedMime="image/jpeg";
-    const extension="jpg";
     const path = "interiors/"+artworkId+"/"+crypto.randomUUID()+"."+extension;
     const upload = await supabase.storage.from("petit-sot-artworks").upload(path,outputBuffer,{contentType:generatedMime,upsert:false});
     if(upload.error) throw upload.error;

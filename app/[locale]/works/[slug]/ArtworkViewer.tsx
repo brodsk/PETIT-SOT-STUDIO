@@ -12,6 +12,7 @@ export default function ArtworkViewer({images,alt}:{images:string[];alt:string})
    if(!viewer||!image)return;
    const vr=viewer.getBoundingClientRect(), ir=image.getBoundingClientRect();
    viewer.style.setProperty("--artwork-thumbs-top",`${ir.bottom-vr.top}px`);
+   viewer.style.setProperty("--artwork-thumbs-left",`${ir.left-vr.left}px`);
   };
   const image=imageRef.current;
   image?.addEventListener("load",positionThumbs);

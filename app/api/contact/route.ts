@@ -12,13 +12,21 @@ export async function POST(request:Request){
     if(!name||name.length>80||!email||email.length>160||!message||message.length>4000){
       return NextResponse.json({error:"Invalid form data"},{status:400});
     }
-    if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){
+    if(!/^([^\s@]+)@([^\s@]+)\.([^\s@]+)$/.test(email)){
       return NextResponse.json({error:"Invalid email"},{status:400});
     }
 
     const token=process.env.TELEGRAM_BOT_TOKEN;
-    const chatId=process.env.TELEGRAM_CHAT_ID;
-    if(!token||!chatId){
+    const primaryChatId=process.env.TELEGRAM_CHAT_ID;
+    const additionalChatIds=String(process.env.TELEGRAM_ADDITIONAL_CHAT_IDS||"")
+      .split(",")
+      .map(id=>id.trim())
+      .filter(Boolean);
+    const chatIds=[primaryChatId,...additionalChatIds].filter(
+      (id,index,arr):id is string=>Boolean(id)&&arr.indexOf(id)===index
+    );
+
+    if(!token||chatIds.length===0){
       console.error("Telegram contact form is not configured");
       return NextResponse.json({error:"Contact form is not configured"},{status:503});
     }
@@ -35,14 +43,17 @@ export async function POST(request:Request){
       `Sent: ${new Date().toLocaleString("en-GB",{timeZone:"Europe/Bratislava"})}`,
     ].join("\n");
 
-    const telegram=await fetch(`https://api.telegram.org/bot${token}/sendMessage`,{
-      method:"POST",
-      headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({chat_id:chatId,text}),
-    });
+    const results=await Promise.all(
+      chatIds.map(chatId=>fetch(`https://api.telegram.org/bot${token}/sendMessage`,{
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({chat_id:chatId,text}),
+      }))
+    );
 
-    if(!telegram.ok){
-      console.error("Telegram send failed",await telegram.text());
+    const failed=results.findIndex(result=>!result.ok);
+    if(failed!==-1){
+      console.error("Telegram send failed",await results[failed].text());
       return NextResponse.json({error:"Telegram delivery failed"},{status:502});
     }
 

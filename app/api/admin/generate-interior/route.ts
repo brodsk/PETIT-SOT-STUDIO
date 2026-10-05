@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { InferenceClient } from "@huggingface/inference";
+import sharp from "sharp";
 import { createClient } from "../../../../lib/supabase/server";
 
 export const runtime = "nodejs";
@@ -78,35 +79,33 @@ export async function POST(request:Request){
 
     const styleText = STYLE_PROMPTS[style]||STYLE_PROMPTS.minimal;
     const prompt = [
-      "Create a photorealistic interior-design mockup for PETIT.SOT STUDIO.",
-      "The supplied image is the actual original artwork. Treat the artwork as a fixed, sacred reference and preserve it as a physical rectangular object placed into the room.",
-      "HARD CONSTRAINT — DO NOT CHANGE THE ARTWORK SHAPE OR PROPORTIONS.",
-      "Do NOT repaint, reinterpret, restyle, crop, mirror, stretch, squash, rotate, recolor, simplify, add, remove, or invent any part of the artwork.",
-      "The visible artwork must keep its exact source aspect ratio and exact proportions from edge to edge. Never turn a portrait artwork into a square or landscape artwork, and never crop its edges.",
-      "Artwork title: "+(artwork.title||"Untitled")+".",
-      "Physical artwork dimensions: "+size+".",
+      "Create a photorealistic interior-design background for PETIT.SOT STUDIO.",
+      "Generate the room around a single dedicated blank wall intended for one artwork that will be composited afterward.",
+      "IMPORTANT: do not generate any paintings, posters, photographs, canvases, framed art, wall graphics, mirrors, or decorative artwork on the dedicated wall. Leave that wall completely empty.",
+      "Use a mostly front-facing camera toward the dedicated wall so the final artwork can be placed on the wall without perspective distortion.",
+      "The dedicated wall should occupy most of the image, with believable floor, furniture and architectural context around it.",
+      "The final artwork will be inserted afterward at its exact physical scale. Do not reserve an oversized focal-art area and do not imply a large painting.",
+      "Artwork title: "+(artwork.title||"Untitled")+" is provided only as metadata; do not render the title as text.",
+      "Physical artwork dimensions for the later composite: "+size+".",
       ratioText,
       scaleText,
-      "Use this physical placement reference as a hard composition constraint: size the artwork on the wall before designing the surrounding room. Do not enlarge it merely because it is the focal point.",
-      "Keep the artwork centered or naturally aligned on the wall with visible wall area around it, unless the additional studio direction explicitly asks otherwise.",
-      "Do NOT make the artwork arbitrarily oversized, tiny, or square just because it is the focal point. A 60 × 80 cm artwork must look like a 60 × 80 cm artwork in the room, not like a 100 × 100 cm artwork.",
-      "The artwork must remain the same physical object; generate the room, wall, perspective, lighting and surrounding furniture around its dimensions.",
+      "Treat the 400 × 270 cm wall reference as the composition scale: the empty wall must have believable real-world proportions.",
+      "Do not generate a placeholder rectangle or fake artwork where the real artwork will go.",
       "Interior direction: "+styleText+".",
       customPrompt?"Additional direction from the studio: "+customPrompt+".":"",
-      "Show the artwork naturally mounted on a wall with realistic perspective, contact shadows and physically plausible lighting. If a frame is already visibly present in the source, preserve its frame proportions; otherwise do not invent a thick frame.",
-      "The room should support the artwork rather than compete with it. No people, no text, no logos, no extra paintings that resemble the supplied artwork.",
+      "The room should support the artwork rather than compete with it. No people, no text, no logos, no extra wall art.",
       "Create a premium editorial interior photograph suitable for an art gallery website.",
     ].filter(Boolean).join("\n");
 
     const hf = new InferenceClient(hfToken);
     let generated:Blob;
     try{
-      generated = await hf.imageToImage({
+      generated = await hf.textToImage({
         provider:"fal-ai",
         model:"black-forest-labs/FLUX.2-klein-4B",
-        inputs:new Blob([sourceBuffer],{type:mimeType}),
+        inputs:prompt,
         parameters:{
-          prompt,
+          guidance_scale:4,
           target_size:{width:1024,height:768},
         },
       });
@@ -118,9 +117,54 @@ export async function POST(request:Request){
 
     if(!generated||generated.size===0) return NextResponse.json({error:"The image model returned no image."},{status:502});
 
-    const generatedMime=(generated.type||"image/jpeg").split(";")[0];
-    const extension=generatedMime==="image/png"?"png":"jpg";
-    const outputBuffer = Buffer.from(await generated.arrayBuffer());
+    const generatedBuffer = Buffer.from(await generated.arrayBuffer());
+
+    // The model creates only the room/background. The actual artwork is then
+    // composited at a deterministic pixel size derived from its real dimensions.
+    // This is deliberately not left to the image model: prompt-only scale control
+    // cannot guarantee that a 12 × 24 cm work will not become a wall-sized poster.
+    const outputWidth = 1024;
+    const outputHeight = 768;
+    const wallWidthPx = 960;
+    const wallHeightPx = 648;
+    const wallLeftPx = Math.round((outputWidth-wallWidthPx)/2);
+    const wallTopPx = 30;
+    const artWidthPx = hasDimensions
+      ? Math.max(4,Math.round(wallWidthPx*(width/referenceWallWidth)))
+      : 230;
+    const artHeightPx = hasDimensions
+      ? Math.max(4,Math.round(wallHeightPx*(height/referenceWallHeight)))
+      : 300;
+    const artLeftPx = Math.round((outputWidth-artWidthPx)/2);
+    const artTopPx = Math.round(wallTopPx+(wallHeightPx-artHeightPx)*0.42);
+
+    const backgroundBuffer = await sharp(generatedBuffer)
+      .resize(outputWidth,outputHeight,{fit:"cover"})
+      .jpeg({quality:92})
+      .toBuffer();
+
+    const artworkLayer = await sharp(sourceBuffer)
+      .autoOrient()
+      .resize(artWidthPx,artHeightPx,{fit:"fill"})
+      .png()
+      .toBuffer();
+
+    const shadowWidth = Math.max(4,artWidthPx+10);
+    const shadowHeight = Math.max(4,artHeightPx+10);
+    const shadow = Buffer.from(
+      `<svg width="${shadowWidth}" height="${shadowHeight}" xmlns="http://www.w3.org/2000/svg"><rect x="5" y="5" width="${artWidthPx}" height="${artHeightPx}" rx="1" fill="rgba(0,0,0,0.16)"/></svg>`
+    );
+
+    const outputBuffer = await sharp(backgroundBuffer)
+      .composite([
+        {input:shadow,left:artLeftPx+3,top:artTopPx+5},
+        {input:artworkLayer,left:artLeftPx,top:artTopPx},
+      ])
+      .jpeg({quality:94,mozjpeg:true})
+      .toBuffer();
+
+    const generatedMime="image/jpeg";
+    const extension="jpg";
     const path = "interiors/"+artworkId+"/"+crypto.randomUUID()+"."+extension;
     const upload = await supabase.storage.from("petit-sot-artworks").upload(path,outputBuffer,{contentType:generatedMime,upsert:false});
     if(upload.error) throw upload.error;

@@ -1200,6 +1200,26 @@ footer{background:rgba(247,246,242,.45)}
   }
 }
 
+/* Artwork gallery: thumbnails stay directly under the main artwork. */
+@media(min-width:701px){
+  .work-page>.artwork-viewer{
+    display:flex!important;
+    flex-direction:column!important;
+    align-items:stretch!important;
+  }
+  .work-page>.artwork-viewer .artwork-viewer-main{
+    order:0!important;
+    flex:0 0 auto!important;
+  }
+  .work-page>.artwork-viewer .artwork-gallery-thumbs{
+    order:1!important;
+    width:100%!important;
+    flex:0 0 auto!important;
+    align-self:stretch!important;
+    margin:12px 0 0!important;
+  }
+}
+
 /* 2026 final gallery polish: four-column archive, aligned work data, larger artwork, and studio cursor. */
 @media(min-width:701px){
   html,body,body *{cursor:none!important}

@@ -1270,3 +1270,11 @@ footer{background:rgba(247,246,242,.45)}
 @media(max-width:700px){
   .studio-cursor{display:none!important}
 }
+
+/* Align artwork description with the data values above it. */
+@media(min-width:701px){
+  .work-page>.work-info .work-description{
+    margin-left:110px!important;
+    max-width:calc(100% - 110px)!important;
+  }
+}

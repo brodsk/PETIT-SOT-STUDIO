@@ -206,6 +206,20 @@ export default function AdminDashboard({initialArtworks}:Props){
     setAiBusy(false);
   }
 
+  async function deleteInterior(item:InteriorImage){
+    if(!window.confirm("Удалить эту генерацию?"))return;
+    setBusy(true);setMessage("");
+    try{
+      const storage=await supabase.storage.from("petit-sot-artworks").remove([item.image_path]);
+      if(storage.error)throw storage.error;
+      const {error}=await supabase.from("petit_sot_artwork_interiors").delete().eq("id",item.id);
+      if(error)throw error;
+      setInteriors(prev=>prev.filter(x=>x.id!==item.id));
+      setMessage("Генерация удалена.");
+    }catch(err:any){setMessage(err?.message||"Не удалось удалить генерацию.");}
+    setBusy(false);
+  }
+
   async function generateInterior(){
     if(!form.id){setMessage("Сначала сохраните картину.");return;}
     if(!form.image_path){setMessage("Сначала добавьте главное изображение картины.");return;}
@@ -253,7 +267,7 @@ export default function AdminDashboard({initialArtworks}:Props){
             <input className="admin-interior-prompt" value={interiorPrompt} onChange={e=>setInteriorPrompt(e.target.value)} placeholder="Дополнительно: например, светлая квартира в Вене, бетон и дуб" disabled={interiorBusy}/>
             <button type="button" className="ai-button admin-interior-generate" onClick={generateInterior} disabled={interiorBusy||!form.id||!form.image_path}>{interiorBusy?"Создаю интерьер…":"✦ Generate in interior"}</button>
           </div>
-          {interiors.length>0&&<div className="admin-interior-grid">{interiors.map(item=><figure key={item.id}><img src={item.image_url} alt="" /><figcaption><span>{item.style}</span><small>{new Date(item.created_at).toLocaleDateString("ru-RU")}</small></figcaption></figure>)}</div>}
+          {interiors.length>0&&<div className="admin-interior-grid">{interiors.map(item=><figure key={item.id}><img src={item.image_url} alt="" /><figcaption><span>{item.style}</span><small>{new Date(item.created_at).toLocaleDateString("ru-RU")}</small><button type="button" className="delete-interior" onClick={()=>deleteInterior(item)} disabled={busy}>Удалить</button></figcaption></figure>)}</div>}
           {!interiors.length&&<p className="admin-interior-empty">После генерации здесь появится превью. Каждый новый вариант сохраняется отдельно.</p>}
         </div>
         {message&&<p className="admin-message">{message}</p>}

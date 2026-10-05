@@ -1,6 +1,7 @@
 import Link from "next/link";
 import {notFound} from "next/navigation";
 import LanguageSwitcher from "./language-switcher";
+import BackToTop from "../components/BackToTop";
 
 export default async function LocaleLayout({children,params}:{children:React.ReactNode;params:Promise<{locale:string}>}){
   const {locale}=await params;
@@ -17,6 +18,7 @@ export default async function LocaleLayout({children,params}:{children:React.Rea
       </nav>
     </header>
     {children}
+    <BackToTop />
     <footer><span>© {new Date().getFullYear()} PETIT.SOT STUDIO</span><span>Olga Trikhleb</span><a href="https://www.instagram.com/petit.sot/" target="_blank" rel="noreferrer">Instagram ↗</a></footer>
   </div>
 }

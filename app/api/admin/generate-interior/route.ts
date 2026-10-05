@@ -141,8 +141,8 @@ export async function POST(request:Request){
 
     const backgroundData = generatedBuffer.toString("base64");
     const artworkData = sourceBuffer.toString("base64");
-    const safeBackgroundMime = /^image\\/(png|jpe?g|webp|avif)$/i.test(generatedMime) ? generatedMime : "image/jpeg";
-    const safeArtworkMime = /^image\\/(png|jpe?g|webp|avif)$/i.test(sourceMime) ? sourceMime : "image/jpeg";
+    const safeBackgroundMime = ["image/png","image/jpeg","image/jpg","image/webp","image/avif"].includes(generatedMime) ? generatedMime : "image/jpeg";
+    const safeArtworkMime = ["image/png","image/jpeg","image/jpg","image/webp","image/avif"].includes(sourceMime) ? sourceMime : "image/jpeg";
 
     const shadowX = artLeftPx+3;
     const shadowY = artTopPx+5;

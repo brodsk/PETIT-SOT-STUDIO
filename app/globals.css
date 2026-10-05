@@ -1366,3 +1366,62 @@ footer{background:rgba(247,246,242,.45)}
     max-width:390px!important;
   }
 }
+
+
+/* FINAL OVERRIDES — artwork image determines gallery height; cursor stays visible. */
+@media(min-width:701px){
+  .work-page>.artwork-viewer{
+    display:flex!important;
+    flex-direction:column!important;
+    align-items:center!important;
+  }
+  .work-page>.artwork-viewer .artwork-viewer-main{
+    order:0!important;
+    width:100%!important;
+    height:auto!important;
+    min-height:0!important;
+    max-height:none!important;
+    flex:0 0 auto!important;
+    display:flex!important;
+    align-items:flex-start!important;
+    justify-content:center!important;
+    margin:0!important;
+  }
+  .work-page>.artwork-viewer .artwork-viewer-main>img{
+    position:static!important;
+    display:block!important;
+    width:auto!important;
+    height:auto!important;
+    max-width:100%!important;
+    max-height:calc(100vh - 125px)!important;
+    object-fit:contain!important;
+  }
+  .work-page>.artwork-viewer .artwork-gallery-thumbs{
+    order:1!important;
+    width:100%!important;
+    height:72px!important;
+    flex:0 0 72px!important;
+    margin:12px 0 0!important;
+    align-self:stretch!important;
+  }
+
+  .studio-cursor{
+    opacity:1!important;
+    width:20px!important;
+    height:20px!important;
+    margin:-10px 0 0 -10px!important;
+    border:1px solid rgba(23,23,23,.78)!important;
+    border-radius:50%!important;
+    transition:none!important;
+  }
+  .studio-cursor:before{
+    width:4px!important;
+    height:4px!important;
+    margin:-2px 0 0 -2px!important;
+    background:#171717!important;
+  }
+  .studio-cursor:after{
+    animation:none!important;
+    opacity:0!important;
+  }
+}

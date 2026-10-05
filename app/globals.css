@@ -1047,3 +1047,84 @@ footer{background:rgba(247,246,242,.45)}
     margin:34px 0 0!important;
   }
 }
+
+/* 2026 desktop cleanup: one lightweight cursor, tighter artwork layout, justified descriptions. */
+@media(min-width:701px){
+  html,body,body *{
+    cursor:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='7.5' fill='%23eeeae3' fill-opacity='.92' stroke='%23171717' stroke-width='1.4'/%3E%3Ccircle cx='12' cy='12' r='1.8' fill='%23171717'/%3E%3C/svg%3E") 12 12,auto!important;
+  }
+  .gallery-tiles-all .gallery-tiles-grid{
+    display:grid!important;
+    grid-template-columns:repeat(3,minmax(0,1fr))!important;
+    gap:28px 22px!important;
+  }
+  .gallery-tiles-all .gallery-tile{
+    min-width:0!important;
+  }
+  .gallery-tiles-all .gallery-tile .art-placeholder{
+    aspect-ratio:4/5!important;
+    overflow:hidden!important;
+  }
+  .gallery-tiles-all .gallery-tile .art-placeholder img{
+    width:100%!important;
+    height:100%!important;
+    object-fit:cover!important;
+    display:block!important;
+  }
+  .gallery-tiles-all .gallery-tiles-head{
+    margin-bottom:28px!important;
+  }
+
+  .work-page>.artwork-viewer .artwork-viewer-main{
+    height:min(78vh,760px)!important;
+    min-height:540px!important;
+  }
+  .work-page>.artwork-viewer .artwork-viewer-main>img{
+    inset:12px 12px 10px!important;
+    width:calc(100% - 24px)!important;
+    height:calc(100% - 22px)!important;
+  }
+  .work-page>.work-info{
+    transform:translateX(-151px)!important;
+    z-index:2!important;
+    width:calc(100% + 151px)!important;
+    padding-left:28px!important;
+  }
+  .work-page>.work-info h1{
+    font-size:clamp(58px,6vw,96px)!important;
+    line-height:.84!important;
+  }
+  .work-page>.work-info dd{
+    font-size:13px!important;
+  }
+  .work-page>.work-info .work-description{
+    max-width:390px!important;
+    font-size:14px!important;
+    line-height:1.65!important;
+    text-align:justify!important;
+    text-justify:inter-word!important;
+  }
+  .work-page>.work-info .purchase-box{
+    max-width:390px!important;
+  }
+}
+@media(max-width:700px){
+  .gallery-tiles-all .gallery-tiles-grid{
+    display:grid!important;
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    gap:22px 12px!important;
+  }
+  .gallery-tiles-all .gallery-tile .art-placeholder{
+    aspect-ratio:4/5!important;
+    overflow:hidden!important;
+  }
+  .gallery-tiles-all .gallery-tile .art-placeholder img{
+    width:100%!important;
+    height:100%!important;
+    object-fit:cover!important;
+  }
+  .work-page>.work-info .work-description{
+    text-align:justify!important;
+    text-justify:inter-word!important;
+  }
+}

@@ -15,7 +15,6 @@ export default function ArtworkViewer({images,alt}:{images:string[];alt:string})
     <button className="artwork-zone artwork-zone-left" onClick={prev} aria-label="Previous photo"/>
     <button className="artwork-zone artwork-zone-right" onClick={next} aria-label="Next photo"/>
     <span className="artwork-viewer-hint left">←</span><span className="artwork-viewer-hint right">→</span>
-    <span className="artwork-gallery-count">{active+1} / {items.length}</span>
    </>}
   </div>
   {open&&<div className="artwork-lightbox" role="dialog" aria-modal="true" onClick={()=>setOpen(false)}>
@@ -23,7 +22,6 @@ export default function ArtworkViewer({images,alt}:{images:string[];alt:string})
    {items.length>1&&<button className="artwork-lightbox-arrow left" onClick={prev} aria-label="Previous photo">←</button>}
    <img src={items[active]} alt={alt} onClick={e=>e.stopPropagation()}/>
    {items.length>1&&<button className="artwork-lightbox-arrow right" onClick={next} aria-label="Next photo">→</button>}
-   <span className="artwork-lightbox-count">{active+1} / {items.length}</span>
   </div>}
  </div>;
 }

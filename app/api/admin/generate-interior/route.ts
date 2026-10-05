@@ -65,6 +65,17 @@ export async function POST(request:Request){
       ? "Exact artwork aspect ratio: "+width.toFixed(2)+" : "+height.toFixed(2)+" ("+aspectRatio.toFixed(3)+"), "+orientation+"."
       : "Artwork aspect ratio is not available from the database; preserve the source image ratio exactly.";
 
+    // Give the model a concrete physical reference instead of relying on words like
+    // "60 × 80 cm". A typical wall is treated as 400 × 270 cm (2.7 m ceiling).
+    // This makes the requested artwork occupy a believable fraction of the wall.
+    const referenceWallWidth = 400;
+    const referenceWallHeight = 270;
+    const wallWidthShare = hasDimensions ? Math.min(0.72, Math.max(0.08, width/referenceWallWidth)) : 0.24;
+    const wallHeightShare = hasDimensions ? Math.min(0.72, Math.max(0.08, height/referenceWallHeight)) : 0.30;
+    const scaleText = hasDimensions
+      ? "Physical placement reference: use a 400 × 270 cm wall. The artwork should occupy about "+Math.round(wallWidthShare*100)+"% of the wall width and "+Math.round(wallHeightShare*100)+"% of the wall height. Preserve the artwork's "+width.toFixed(1)+" × "+height.toFixed(1)+" cm physical proportions."
+      : "Use believable physical scale relative to a 400 × 270 cm reference wall.";
+
     const styleText = STYLE_PROMPTS[style]||STYLE_PROMPTS.minimal;
     const prompt = [
       "Create a photorealistic interior-design mockup for PETIT.SOT STUDIO.",
@@ -75,7 +86,9 @@ export async function POST(request:Request){
       "Artwork title: "+(artwork.title||"Untitled")+".",
       "Physical artwork dimensions: "+size+".",
       ratioText,
-      "Use the physical dimensions as a real-world scale constraint: the artwork must have believable width and height relative to the wall, ceiling, furniture, doors and other architectural elements.",
+      scaleText,
+      "Use this physical placement reference as a hard composition constraint: size the artwork on the wall before designing the surrounding room. Do not enlarge it merely because it is the focal point.",
+      "Keep the artwork centered or naturally aligned on the wall with visible wall area around it, unless the additional studio direction explicitly asks otherwise.",
       "Do NOT make the artwork arbitrarily oversized, tiny, or square just because it is the focal point. A 60 × 80 cm artwork must look like a 60 × 80 cm artwork in the room, not like a 100 × 100 cm artwork.",
       "The artwork must remain the same physical object; generate the room, wall, perspective, lighting and surrounding furniture around its dimensions.",
       "Interior direction: "+styleText+".",
@@ -92,7 +105,10 @@ export async function POST(request:Request){
         provider:"fal-ai",
         model:"black-forest-labs/FLUX.2-klein-4B",
         inputs:new Blob([sourceBuffer],{type:mimeType}),
-        parameters:{prompt},
+        parameters:{
+          prompt,
+          target_size:{width:1024,height:768},
+        },
       });
     }catch(error:any){
       const message=error?.message||"Hugging Face image generation failed.";

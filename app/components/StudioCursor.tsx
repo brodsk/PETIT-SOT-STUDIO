@@ -7,16 +7,23 @@ export default function StudioCursor(){
   const el=document.createElement("div");
   el.className="studio-cursor";
   document.body.appendChild(el);
-  let raf=0,moved=false;
-  const move=(e:MouseEvent)=>{
-    el.style.transform=`translate3d(${e.clientX}px,${e.clientY}px,0)`;
-    el.classList.add("is-moving");
-    moved=true;
-    cancelAnimationFrame(raf);
-    raf=requestAnimationFrame(()=>{moved=false;el.classList.remove("is-moving")});
+  let raf=0;
+  let x=-100,y=-100;
+  const render=()=>{
+   raf=0;
+   el.style.transform=`translate3d(${x}px,${y}px,0)`;
   };
-  window.addEventListener("mousemove",move,{passive:true});
-  return()=>{window.removeEventListener("mousemove",move);cancelAnimationFrame(raf);el.remove()};
+  const move=(e:PointerEvent)=>{
+   x=e.clientX;
+   y=e.clientY;
+   if(!raf)raf=requestAnimationFrame(render);
+  };
+  window.addEventListener("pointermove",move,{passive:true});
+  return()=>{
+   window.removeEventListener("pointermove",move);
+   if(raf)cancelAnimationFrame(raf);
+   el.remove();
+  };
  },[]);
  return null;
 }

@@ -1368,3 +1368,16 @@ footer{background:rgba(247,246,242,.45)}
 }
 
 
+
+
+/* Put gallery thumbnails directly below the rendered artwork, without moving the artwork itself. */
+@media(min-width:701px){
+  .work-page>.artwork-viewer{position:relative!important;}
+  .work-page>.artwork-viewer .artwork-gallery-thumbs{
+    position:absolute!important;
+    left:0!important;
+    top:var(--artwork-thumbs-top,100%)!important;
+    margin-top:12px!important;
+    width:100%!important;
+  }
+}

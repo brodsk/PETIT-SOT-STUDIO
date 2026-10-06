@@ -482,7 +482,7 @@ export default function ARWallPreview({imageUrl,title,width,height,ru,artworkCho
               trackedWallGuide.visible=true;
               // Keep the entire 18 mm body in front of the detected wall plane.
               // The back face must not cross the wall when the user approaches it.
-              const wallClearance=thickness/2+.012;
+              const wallClearance=Math.max(thickness/2+.012,.045);
               trackedWallGuide.userData.candidate={position:plane.center.clone().add(plane.normal.clone().multiplyScalar(wallClearance)),quaternion:q.clone()};
               wallCandidateRef.current=trackedWallGuide!.userData.candidate;
               setCanPlace(true);

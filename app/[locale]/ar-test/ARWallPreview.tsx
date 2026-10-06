@@ -67,36 +67,33 @@ function quadToBounds(quad:ArtworkQuad):ArtworkBounds{
 }
 
 function detectWallPlane(points:any[],camera:THREE.Camera,canvasWidth:number,canvasHeight:number){
-  const usable=points
-    .filter(p=>p?.position&&Number(p?.confidence??1)>=.05)
-    .map(p=>{
-      const v=new THREE.Vector3(p.position.x,p.position.y,p.position.z);
-      const projected=v.clone().project(camera);
-      return {v,sx:(projected.x*.5+.5)*canvasWidth,sy:(-projected.y*.5+.5)*canvasHeight,depth:projected.z};
-    })
-    .filter(p=>p.depth>-1&&p.depth<1&&p.sx>canvasWidth*.14&&p.sx<canvasWidth*.86&&p.sy>canvasHeight*.12&&p.sy<canvasHeight*.88&&p.v.distanceTo(camera.position)>.45&&p.v.distanceTo(camera.position)<7);
-  if(usable.length<12)return null;
-  const sample=usable.length>45?usable.filter((_,i)=>i%Math.ceil(usable.length/45)===0).slice(0,45):usable;
-  let best:{normal:THREE.Vector3;center:THREE.Vector3;score:number}|null=null;
-  for(let i=0;i<sample.length;i++)for(let j=i+1;j<sample.length;j++)for(let k=j+1;k<sample.length;k++){
-    const a=sample[i].v,b=sample[j].v,d=sample[k].v;
-    const normal=new THREE.Vector3().crossVectors(new THREE.Vector3().subVectors(b,a),new THREE.Vector3().subVectors(d,a));
-    const area2=normal.length();
-    if(area2<.012)continue;
-    normal.normalize();
-    if(Math.abs(normal.y)>.28)continue;
-    const center=new THREE.Vector3().addVectors(a,b).add(d).multiplyScalar(1/3);
-    let inliers=0;
-    for(const q of usable){
-      if(Math.abs(normal.dot(new THREE.Vector3().subVectors(q.v,center)))<.055)inliers++;
-    }
-    const screenDist=Math.hypot(((sample[i].sx+sample[j].sx+sample[k].sx)/3)-canvasWidth*.5,((sample[i].sy+sample[j].sy+sample[k].sy)/3)-canvasHeight*.48)/(Math.min(canvasWidth,canvasHeight));
-    const score=inliers-screenDist*10;
-    if(!best||score>best.score)best={normal,center,score};
+  const projected=points.filter(p=>p?.position&&Number(p?.confidence??1)>=.08).map(p=>{
+    const v=new THREE.Vector3(p.position.x,p.position.y,p.position.z),q=v.clone().project(camera);
+    return {v,sx:(q.x*.5+.5)*canvasWidth,sy:(-q.y*.5+.5)*canvasHeight,depth:q.z};
+  }).filter(p=>p.depth>-1&&p.depth<1&&p.sx>canvasWidth*.22&&p.sx<canvasWidth*.78&&p.sy>canvasHeight*.16&&p.sy<canvasHeight*.84&&p.v.distanceTo(camera.position)>.5&&p.v.distanceTo(camera.position)<6);
+  if(projected.length<20)return null;
+  const sample=projected.length>90?projected.filter((_,i)=>i%Math.ceil(projected.length/90)===0).slice(0,90):projected;
+  const center=sample.reduce((v,p)=>v.add(p.v),new THREE.Vector3()).multiplyScalar(1/sample.length);
+  const cov=[[0,0,0],[0,0,0],[0,0,0]];
+  for(const p of sample){const d=p.v.clone().sub(center);cov[0][0]+=d.x*d.x;cov[0][1]+=d.x*d.y;cov[0][2]+=d.x*d.z;cov[1][0]+=d.y*d.x;cov[1][1]+=d.y*d.y;cov[1][2]+=d.y*d.z;cov[2][0]+=d.z*d.x;cov[2][1]+=d.z*d.y;cov[2][2]+=d.z*d.z;}
+  const m=cov.map(row=>row.slice()),v=[[1,0,0],[0,1,0],[0,0,1]];
+  for(let iter=0;iter<12;iter++){
+    let p=0,q=1,max=Math.abs(m[0][1]);
+    if(Math.abs(m[0][2])>max){p=0;q=2;max=Math.abs(m[0][2]);}
+    if(Math.abs(m[1][2])>max){p=1;q=2;max=Math.abs(m[1][2]);}
+    if(max<1e-8)break;
+    const phi=.5*Math.atan2(2*m[p][q],m[q][q]-m[p][p]),cs=Math.cos(phi),sn=Math.sin(phi);
+    for(let k=0;k<3;k++){const ap=m[k][p],aq=m[k][q];m[k][p]=cs*ap-sn*aq;m[k][q]=sn*ap+cs*aq;}
+    for(let k=0;k<3;k++){const ap=m[p][k],aq=m[q][k];m[p][k]=cs*ap-sn*aq;m[q][k]=sn*ap+cs*aq;}
+    for(let k=0;k<3;k++){const ap=v[k][p],aq=v[k][q];v[k][p]=cs*ap-sn*aq;v[k][q]=sn*ap+cs*aq;}
   }
-  if(!best||best.score<9)return null;
-  if(best.normal.dot(new THREE.Vector3().subVectors(camera.position,best.center))<0)best.normal.negate();
-  return {normal:best.normal,center:best.center};
+  let smallest=0;if(m[1][1]<m[smallest][smallest])smallest=1;if(m[2][2]<m[smallest][smallest])smallest=2;
+  const normal=new THREE.Vector3(v[0][smallest],v[1][smallest],v[2][smallest]).normalize();
+  if(Math.abs(normal.y)>.32)return null;
+  const distances=sample.map(p=>Math.abs(normal.dot(p.v.clone().sub(center)))).sort((x,y)=>x-y);
+  if((distances[Math.floor(distances.length/2)]||Infinity)>.045)return null;
+  if(normal.dot(new THREE.Vector3().subVectors(camera.position,center))<0)normal.negate();
+  return {normal,center};
 }
 
 function makeWallQuaternion(normal:THREE.Vector3){
@@ -187,6 +184,7 @@ export default function ARWallPreview({imageUrl,title,width,height,ru,artworkCho
   const dragRef=useRef({active:false,startX:0,startY:0,x:50,y:45});
   const eightWallRef=useRef<{stop:()=>void}|null>(null);
   const wallCandidateRef=useRef<{position:THREE.Vector3;quaternion:THREE.Quaternion}|null>(null);
+  const wallStableRef=useRef<{position:THREE.Vector3;normal:THREE.Vector3;frames:number}|null>(null);
 
   const cleanup=()=>{
     try{eightWallRef.current?.stop();}catch{}
@@ -208,7 +206,7 @@ export default function ARWallPreview({imageUrl,title,width,height,ru,artworkCho
     const stream=videoRef.current?.srcObject as MediaStream|null;
     stream?.getTracks().forEach(t=>t.stop());
     if(videoRef.current)videoRef.current.srcObject=null;
-    setMode("idle");setPlaced(false);setCanPlace(false);
+    setMode("idle");setPlaced(false);setCanPlace(false);wallCandidateRef.current=null;wallStableRef.current=null;
   };
 
   useEffect(()=>()=>cleanup(),[]);
@@ -460,15 +458,8 @@ export default function ARWallPreview({imageUrl,title,width,height,ru,artworkCho
           scene.add(wallGuide);
           scene.add(new THREE.HemisphereLight(0xffffff,0x333333,1.15));
           w.XR8.XrController.updateCameraProjectionMatrix({origin:camera.position,facing:camera.quaternion});
-          startedCanvas.addEventListener('touchstart',(ev:TouchEvent)=>{
-            if(ev.touches.length!==1||!camera||artwork.userData.locked)return;
-            w.XR8.XrController.recenter();
-            const direction=new THREE.Vector3(0,0,-1).applyQuaternion(camera.quaternion).normalize();
-            artwork.position.copy(camera.position).add(direction.multiplyScalar(2.2));
-            artwork.position.y=camera.position.y;
-            const face=new THREE.Vector3().subVectors(camera.position,artwork.position).normalize();
-            artwork.quaternion.setFromUnitVectors(new THREE.Vector3(0,0,1),face);
-          },{passive:true});
+          // Placement is controlled only by the Place button. Touching the camera view
+          // must never recenter or move an already placed artwork.
           setMessage(ru?'8th Wall запущен. Картина закреплена в пространстве — двигайтесь вокруг неё.':'8th Wall is running. The artwork is anchored in space — walk around it.');
         },
         onUpdate:({processCpuResult}:any)=>{
@@ -476,20 +467,36 @@ export default function ARWallPreview({imageUrl,title,width,height,ru,artworkCho
           if(reality?.trackingStatus==='NORMAL'&&Array.isArray(reality.worldPoints)){
             const plane=detectWallPlane(reality.worldPoints,trackedCamera||new THREE.PerspectiveCamera(),trackedCanvas?.clientWidth||window.innerWidth,trackedCanvas?.clientHeight||window.innerHeight);
             if(plane&&!trackedArtwork?.userData.locked&&trackedWallGuide){
-              const q=makeWallQuaternion(plane.normal);
-              trackedWallGuide.position.lerp(plane.center,.22);
-              trackedWallGuide.quaternion.slerp(q,.22);
-              trackedWallGuide.visible=true;
-              // Keep the entire 18 mm body in front of the detected wall plane.
-              // The back face must not cross the wall when the user approaches it.
-              const wallClearance=Math.max(thickness/2+.012,.045);
-              trackedWallGuide.userData.candidate={position:plane.center.clone().add(plane.normal.clone().multiplyScalar(wallClearance)),quaternion:q.clone()};
-              wallCandidateRef.current=trackedWallGuide!.userData.candidate;
-              setCanPlace(true);
-              setMessage(ru?'Стена найдена — нажмите «Разместить картину».':'Wall detected — tap Place artwork.');
+              const previous=wallStableRef.current;
+              const same=previous&&previous.position.distanceTo(plane.center)<.035&&previous.normal.angleTo(plane.normal)<(4*Math.PI/180);
+              if(same){
+                previous!.frames=Math.min(previous!.frames+1,30);
+                previous!.position.lerp(plane.center,.12);
+                previous!.normal.lerp(plane.normal,.12).normalize();
+              }else{
+                wallStableRef.current={position:plane.center.clone(),normal:plane.normal.clone(),frames:1};
+              }
+              const stable=wallStableRef.current;
+              if(stable&&stable.frames>=8){
+                const q=makeWallQuaternion(stable.normal);
+                trackedWallGuide.position.copy(stable.position);
+                trackedWallGuide.quaternion.copy(q);
+                trackedWallGuide.visible=true;
+                const wallClearance=Math.max(thickness/2+.03,.07);
+                const candidate={position:stable.position.clone().add(stable.normal.clone().multiplyScalar(wallClearance)),quaternion:q.clone()};
+                trackedWallGuide.userData.candidate=candidate;
+                wallCandidateRef.current=candidate;
+                setCanPlace(true);
+                setMessage(ru?'Стена найдена — нажмите «Разместить картину».':'Wall found — tap Place artwork.');
+              }else{
+                trackedWallGuide.visible=true;
+                wallCandidateRef.current=null;
+                setCanPlace(false);
+                setMessage(ru?'Стабилизируем стену…':'Stabilizing the wall…');
+              }
             }else if(!trackedArtwork?.userData.locked){
               if(trackedWallGuide)trackedWallGuide.visible=false;
-              wallCandidateRef.current=null;
+              wallCandidateRef.current=null;wallStableRef.current=null;
               setCanPlace(false);
               setMessage(ru?'Медленно наведите камеру на фактурную стену.':'Slowly point the camera at a textured wall.');
             }
@@ -686,11 +693,13 @@ export default function ARWallPreview({imageUrl,title,width,height,ru,artworkCho
           group.userData.locked=true;
           group.userData.anchorPosition=group.position.clone();
           group.userData.anchorQuaternion=group.quaternion.clone();
+          group.userData.locked=true;
           group.visible=true;
           const guide=xrScene.scene.children.find((o:any)=>o?.type==="Mesh"&&o?.geometry?.type==="PlaneGeometry");
           if(guide)guide.visible=false;
+          wallCandidateRef.current=null;wallStableRef.current=null;
           setPlaced(true);setCanPlace(false);
-          setMessage(ru?"Готово — картина стоит на стене. Обойдите её.":"Done — the artwork is on the wall. Walk around it.");
+          setMessage(ru?"Готово — картина закреплена в пространстве. Теперь можно подойти или отойти.":"Done — the artwork is anchored in space. You can now walk closer or farther away.");
         }
       }catch(error){console.error("8th Wall placement failed",error);}
     }

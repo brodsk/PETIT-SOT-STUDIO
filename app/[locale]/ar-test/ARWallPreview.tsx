@@ -26,7 +26,7 @@ function detectArtworkQuad(image:HTMLImageElement,targetAspect:number):ArtworkQu
   const gray=new Float32Array(cw*ch),edge=new Uint8Array(cw*ch);let maxEdge=0;
   for(let y=1;y<ch-1;y++)for(let x=1;x<cw-1;x++){const i=(y*cw+x)*4;gray[y*cw+x]=.299*data[i]+.587*data[i+1]+.114*data[i+2]}
   for(let y=1;y<ch-1;y++)for(let x=1;x<cw-1;x++){const n=y*cw+x,gx=gray[n+1]-gray[n-1],gy=gray[n+cw]-gray[n-cw],v=Math.min(255,Math.round(Math.hypot(gx,gy)));edge[n]=v;if(v>maxEdge)maxEdge=v}
-  const threshold=Math.max(22,maxEdge*.22),points:{x:number;y:number;v:number}[]=[];
+  const threshold=Math.max(18,maxEdge*.16),points:{x:number;y:number;v:number}[]=[];
   for(let y=Math.round(ch*.04);y<Math.round(ch*.96);y+=2)for(let x=Math.round(cw*.04);x<Math.round(cw*.96);x+=2){const v=edge[y*cw+x];if(v>=threshold)points.push({x,y,v})}
   if(points.length<80)return fallback;
   const angles:number[]=[];for(let a=-55;a<=55;a+=5)angles.push(a*Math.PI/180);for(let a=35;a<=145;a+=5)if(!angles.some(v=>Math.abs(v-a*Math.PI/180)<.001))angles.push(a*Math.PI/180);
@@ -52,7 +52,7 @@ function detectArtworkQuad(image:HTMLImageElement,targetAspect:number):ArtworkQu
       if(score>bestScore){bestScore=score;best={points:[{x:p1.x/cw,y:p1.y/ch},{x:p2.x/cw,y:p2.y/ch},{x:p3.x/cw,y:p3.y/ch},{x:p4.x/cw,y:p4.y/ch}],confidence:Math.min(1,Math.max(0,score/(raw+.0001)))}}
     }
   }
-  return best&&best.confidence>.42?best:fallback;
+  if(!best)return fallback;\n  const bx=best.points.reduce((s,p)=>s+p.x,0)/4,by=best.points.reduce((s,p)=>s+p.y,0)/4;\n  const centered=best.points.every(p=>p.x>0.03&&p.x<0.97&&p.y>0.03&&p.y<0.97);\n  const plausible=best.confidence>.5&&centered&&bx>.12&&bx<.88&&by>.12&&by<.88;\n  return plausible?best:fallback;
 }
 
 function quadToBounds(quad:ArtworkQuad):ArtworkBounds{
@@ -74,7 +74,7 @@ export default function ARWallPreview({imageUrl,title,width,height,ru}:Props){
   const rootRef=useRef<HTMLDivElement>(null),videoRef=useRef<HTMLVideoElement>(null);
   const stateRef=useRef<XRState|null>(null),imageQuadRef=useRef<ArtworkQuad>({points:[{x:0,y:0},{x:1,y:0},{x:1,y:1},{x:0,y:1}],confidence:0}),imageBoundsRef=useRef<ArtworkBounds>({x:0,y:0,width:1,height:1}),cutoutUrlRef=useRef<string|null>(null);
   const [mode,setMode]=useState<"idle"|"camera"|"ar">("idle"),[message,setMessage]=useState("");
-  const [analysis,setAnalysis]=useState(false),[placed,setPlaced]=useState(false),[canPlace,setCanPlace]=useState(false),[cameraScale,setCameraScale]=useState(1);
+  const [analysis,setAnalysis]=useState(false),[placed,setPlaced]=useState(false),[canPlace,setCanPlace]=useState(false),[cameraScale,setCameraScale]=useState(1),[xrAvailable,setXrAvailable]=useState<boolean|null>(null);
   const [drag,setDrag]=useState({x:50,y:45});
   const dragRef=useRef({active:false,startX:0,startY:0,x:50,y:45});
 
@@ -116,7 +116,7 @@ export default function ARWallPreview({imageUrl,title,width,height,ru}:Props){
     }finally{setAnalysis(false);}
   };
 
-  const startCamera=async()=>{
+  const checkXR=async()=>{try{const xr=(navigator as any).xr;if(!xr?.isSessionSupported){setXrAvailable(false);return false}const ok=await xr.isSessionSupported("immersive-ar");setXrAvailable(ok);return ok}catch{setXrAvailable(false);return false}};\n\n  const startCamera=async()=>{
     try{
       cleanup();
       const stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:"environment"}},audio:false});

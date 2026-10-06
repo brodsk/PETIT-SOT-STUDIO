@@ -476,7 +476,7 @@ export default function ARWallPreview({imageUrl,title,width,height,ru,artworkCho
           const q=makeWallQuaternion(stable.normal);
           lastCandidate={position:pos,quaternion:q};wallCandidateRef.current=lastCandidate;
           if(trackedGuide){trackedGuide.position.copy(pos);trackedGuide.quaternion.copy(q);trackedGuide.visible=true;}
-          trackedArtwork.position.copy(pos);trackedArtwork.quaternion.copy(q);trackedArtwork.visible=true;
+          if(trackedArtwork){trackedArtwork.position.copy(pos);trackedArtwork.quaternion.copy(q);trackedArtwork.visible=true;}
           setCanPlace(true);setMessage(ru?'Стена найдена — нажмите «Разместить картину».':'Wall found — tap Place artwork.');
         },
         onException:({error}:any)=>setMessage((ru?'Ошибка WebAR: ':'WebAR error: ')+(error?.message||error?.name||'unknown')),

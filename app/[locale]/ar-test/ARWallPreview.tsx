@@ -183,7 +183,7 @@ export default function ARWallPreview({imageUrl,title,width,height,ru}:Props){
         return;
       }
 
-      const session=await xr.requestSession("immersive-ar",{requiredFeatures:["hit-test"]});
+      const session=await xr.requestSession("immersive-ar");
 
       const renderer=new THREE.WebGLRenderer({antialias:true,alpha:true,powerPreference:"high-performance"});
       renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
@@ -219,7 +219,8 @@ export default function ARWallPreview({imageUrl,title,width,height,ru}:Props){
 
       const referenceSpace=await session.requestReferenceSpace("local");
       const viewerSpace=await session.requestReferenceSpace("viewer");
-      const hitSource=await session.requestHitTestSource({space:viewerSpace});
+      let hitSource:any=null;
+      try{hitSource=await session.requestHitTestSource({space:viewerSpace});}catch(error){console.warn("WebXR hit-test unavailable",error);}
 
       const state:XRState={
         session,referenceSpace,hitSource,renderer,scene,camera,
@@ -229,7 +230,7 @@ export default function ARWallPreview({imageUrl,title,width,height,ru}:Props){
       setMode("ar");
       setPlaced(false);
       setCanPlace(false);
-      setMessage(ru?"Наведите камеру на стену.":"Point the camera at a wall.");
+      setMessage(ru?"AR запущен. Наведите камеру на стену.":"AR started. Point the camera at a wall.");
 
       session.addEventListener("end",()=>{
         if(stateRef.current===state){
@@ -244,7 +245,7 @@ export default function ARWallPreview({imageUrl,title,width,height,ru}:Props){
 
       renderer.setAnimationLoop((_time,frame)=>{
         if(!frame||stateRef.current!==state)return;
-        const hit=frame.getHitTestResults(hitSource)[0];
+        const hit=hitSource?frame.getHitTestResults(hitSource)[0]:null;
 
         if(hit){
           const pose=hit.getPose(referenceSpace);
@@ -275,7 +276,9 @@ export default function ARWallPreview({imageUrl,title,width,height,ru}:Props){
         }else if(!state.placed){
           ring.visible=false;
           setCanPlace(false);
-          setMessage(ru?"Наведите камеру на стену и медленно двигайте телефон.":"Point at a wall and move the phone slowly.");
+          setMessage(hitSource
+            ? (ru?"Наведите камеру на стену и медленно двигайте телефон.":"Point at a wall and move the phone slowly.")
+            : (ru?"AR запущен, но hit-test недоступен на этом устройстве.":"AR started, but hit-test is unavailable on this device."));
         }
 
         renderer.render(scene,camera);

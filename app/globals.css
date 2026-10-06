@@ -1487,6 +1487,6 @@ footer{background:rgba(247,246,242,.45)}
 
 /* Real 3D WebXR artwork preview */
 .ar-preview{position:relative;overflow:hidden;isolation:isolate}
-.ar-three-canvas{position:fixed!important;inset:0!important;width:100vw!important;height:100vh!important;z-index:2!important;display:block!important}
+.ar-three-canvas{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;z-index:2!important;display:block!important}
 .ar-place{width:100%;padding:11px 14px;border:1px solid rgba(255,255,255,.55);background:#fff;color:#171717;font:inherit;font-size:8px;letter-spacing:.14em;text-transform:uppercase;cursor:pointer}
 .ar-ar-note{display:block;opacity:.65;font-size:7px;letter-spacing:.1em}

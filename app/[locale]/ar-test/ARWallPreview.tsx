@@ -538,7 +538,188 @@ export default function ARWallPreview({imageUrl,title,width,height,ru,artworkCho
       setMode('idle');
     }
   };
-  const startAR=async()=>{\n    // Adaptive AR ladder: native WebXR first, compatible camera fallback second.\n    // requestSession() is intentionally the first awaited operation after the\n    // user tap so browsers cannot lose immersive user activation.\n    const xr=(navigator as any).xr;\n\n    if(!xr?.requestSession){\n      setXrAvailable(false);\n      setMessage(ru\n        ? "Настоящий WebXR AR недоступен — переключаемся в совместимый режим камеры."\n        : "Native WebXR AR is unavailable — switching to the compatible camera mode.");\n      await startCamera();\n      return;\n    }\n\n    let session:any=null;\n\n    try{\n      session=await xr.requestSession("immersive-ar",{\n        optionalFeatures:["hit-test","anchors","local-floor"]\n      });\n      setXrAvailable(true);\n      cleanup();\n\n      const renderer=new THREE.WebGLRenderer({antialias:true,alpha:true,powerPreference:"high-performance"});\n      renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));\n      renderer.setSize(window.innerWidth,window.innerHeight);\n      renderer.xr.enabled=true;\n      renderer.xr.setReferenceSpaceType("local");\n      await renderer.xr.setSession(session);\n      renderer.domElement.className="ar-three-canvas";\n      renderer.domElement.style.position="absolute";\n      renderer.domElement.style.inset="0";\n      renderer.domElement.style.width="100%";\n      renderer.domElement.style.height="100%";\n      renderer.domElement.style.zIndex="1";\n      rootRef.current?.appendChild(renderer.domElement);\n\n      const scene=new THREE.Scene();\n      const camera=new THREE.PerspectiveCamera(70,window.innerWidth/window.innerHeight,.01,30);\n      const artW=Math.max(.01,activeWidth/100);\n      const artH=Math.max(.01,activeHeight/100);\n      const thickness=.018;\n\n      const image=new Image();\n      image.crossOrigin="anonymous";\n      image.src=selectedImage;\n      await image.decode();\n      const texture=new THREE.Texture(image);\n      texture.colorSpace=THREE.SRGBColorSpace;\n      texture.needsUpdate=true;\n      texture.anisotropy=renderer.capabilities.getMaxAnisotropy();\n\n      const front=new THREE.MeshStandardMaterial({map:texture,roughness:.82,metalness:0,side:THREE.FrontSide});\n      const side=new THREE.MeshStandardMaterial({color:0x171717,roughness:.55,metalness:0});\n      const geometry=new THREE.BoxGeometry(artW,artH,thickness);\n      const artworkMesh=new THREE.Mesh(geometry,[side,side,side,side,front,side]);\n      const group=new THREE.Group();\n      group.add(artworkMesh);\n      group.visible=false;\n      scene.add(group);\n\n      const ring=new THREE.Mesh(new THREE.RingGeometry(.045,.06,32),new THREE.MeshBasicMaterial({color:0xeeeae3,side:THREE.DoubleSide}));\n      ring.visible=false;\n      scene.add(ring);\n      scene.add(new THREE.HemisphereLight(0xffffff,0x333333,1.2));\n\n      const referenceSpace=await session.requestReferenceSpace("local");\n      const viewerSpace=await session.requestReferenceSpace("viewer");\n      let hitSource:any=null;\n      try{\n        hitSource=await session.requestHitTestSource({space:viewerSpace,entityTypes:["plane"]});\n      }catch(error){\n        console.warn("WebXR hit-test unavailable; native AR remains available",error);\n      }\n\n      const state:XRState={session,referenceSpace,hitSource,renderer,scene,camera,artwork:group,reticle:ring,placed:false};\n      stateRef.current=state;\n      setMode("ar");\n      setPlaced(false);\n      setCanPlace(false);\n      setMessage(ru\n        ? "Наведите камеру на вертикальную стену и медленно двигайте телефон."\n        : "Point the camera at a vertical wall and move the phone slowly.");\n\n      session.addEventListener("select",()=>{\n        const s=stateRef.current;\n        if(s?.lastHit&&!s.placed){\n          s.artwork.position.copy(s.lastHit.position);\n          s.artwork.quaternion.copy(s.lastHit.quaternion);\n          s.artwork.visible=true;\n          s.placed=true;\n          s.reticle.visible=false;\n          setPlaced(true);\n          setCanPlace(false);\n          setMessage(ru?"Готово. Картина закреплена в пространстве.":"Done. The artwork is fixed in space.");\n        }\n      });\n\n      session.addEventListener("end",()=>{\n        if(stateRef.current===state){\n          try{renderer.setAnimationLoop(null);}catch{}\n          try{renderer.dispose();}catch{}\n          try{texture.dispose();}catch{}\n          try{geometry.dispose();}catch{}\n          try{front.dispose();}catch{}\n          try{side.dispose();}catch{}\n          renderer.domElement.remove();\n          stateRef.current=null;\n          setMode("idle");\n          setPlaced(false);\n          setCanPlace(false);\n        }\n      },{once:true});\n\n      renderer.setAnimationLoop((_time,frame)=>{\n        if(!frame||stateRef.current!==state)return;\n        if(state.anchor){\n          const anchorPose=frame.getPose(state.anchor.anchorSpace,referenceSpace);\n          if(anchorPose){\n            group.matrix.fromArray(anchorPose.transform.matrix);\n            group.matrixAutoUpdate=false;\n            group.visible=true;\n          }\n        }\n        const hit=hitSource?frame.getHitTestResults(hitSource)[0]:null;\n        if(hit&&!state.placed){\n          const pose=hit.getPose(referenceSpace);\n          if(pose){\n            const matrix=new THREE.Matrix4().fromArray(pose.transform.matrix);\n            const position=new THREE.Vector3().setFromMatrixPosition(matrix);\n            const normal=new THREE.Vector3(matrix.elements[4],matrix.elements[5],matrix.elements[6]).normalize();\n            if(Math.abs(normal.y)<.22){\n              const wallNormal=normal.clone();\n              wallNormal.y=0;\n              wallNormal.normalize();\n              if(wallNormal.dot(new THREE.Vector3().subVectors(camera.position,position))<0)wallNormal.negate();\n              const up=new THREE.Vector3(0,1,0);\n              const tangent=new THREE.Vector3().crossVectors(up,wallNormal).normalize();\n              const upright=new THREE.Vector3().crossVectors(wallNormal,tangent).normalize();\n              const wallQuaternion=new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().makeBasis(tangent,upright,wallNormal));\n              const clearance=thickness/2+.003;\n              const candidatePosition=position.clone().add(wallNormal.clone().multiplyScalar(clearance));\n              ring.position.copy(candidatePosition);\n              ring.quaternion.copy(wallQuaternion);\n              ring.visible=true;\n              group.position.copy(candidatePosition);\n              group.quaternion.copy(wallQuaternion);\n              group.matrixAutoUpdate=true;\n              group.visible=false;\n              state.lastHit={position:candidatePosition.clone(),quaternion:wallQuaternion.clone()};\n              state.pendingHit=hit;\n              setCanPlace(true);\n              setMessage(ru?"Стена найдена — нажмите «Разместить картину».":"Wall found — tap Place artwork.");\n            }else{\n              ring.visible=false;\n              state.lastHit=undefined;\n              state.pendingHit=undefined;\n              setCanPlace(false);\n              setMessage(ru?"Наведите камеру на вертикальную поверхность.":"Point at a vertical surface.");\n            }\n          }\n        }else if(!state.placed){\n          ring.visible=false;\n          state.lastHit=undefined;\n          state.pendingHit=undefined;\n          setCanPlace(false);\n        }\n        renderer.render(scene,camera);\n      });\n    }catch(error){\n      console.error("Native WebXR AR unavailable; using fallback",error);\n      try{session?.end?.();}catch{}\n      stateRef.current=null;\n      setXrAvailable(false);\n      const details=[(error as any)?.name,(error as any)?.message].filter(Boolean).join(": ");\n      setMessage(ru\n        ? "WebXR AR недоступен"+(details?" ("+details+")":"")+". Переключаемся в совместимый режим камеры."\n        : "WebXR AR is unavailable"+(details?" ("+details+")":"")+". Switching to the compatible camera mode.");\n      await startCamera();\n    }\n  };
+  const startAR=async()=>{
+    // Adaptive AR ladder: native WebXR first, compatible camera fallback second.
+    // requestSession() is intentionally the first awaited operation after the
+    // user tap so browsers cannot lose immersive user activation.
+    const xr=(navigator as any).xr;
+
+    if(!xr?.requestSession){
+      setXrAvailable(false);
+      setMessage(ru
+        ? "Настоящий WebXR AR недоступен — переключаемся в совместимый режим камеры."
+        : "Native WebXR AR is unavailable — switching to the compatible camera mode.");
+      await startCamera();
+      return;
+    }
+
+    let session:any=null;
+
+    try{
+      session=await xr.requestSession("immersive-ar",{
+        optionalFeatures:["hit-test","anchors","local-floor"]
+      });
+      setXrAvailable(true);
+      cleanup();
+
+      const renderer=new THREE.WebGLRenderer({antialias:true,alpha:true,powerPreference:"high-performance"});
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));
+      renderer.setSize(window.innerWidth,window.innerHeight);
+      renderer.xr.enabled=true;
+      renderer.xr.setReferenceSpaceType("local");
+      await renderer.xr.setSession(session);
+      renderer.domElement.className="ar-three-canvas";
+      renderer.domElement.style.position="absolute";
+      renderer.domElement.style.inset="0";
+      renderer.domElement.style.width="100%";
+      renderer.domElement.style.height="100%";
+      renderer.domElement.style.zIndex="1";
+      rootRef.current?.appendChild(renderer.domElement);
+
+      const scene=new THREE.Scene();
+      const camera=new THREE.PerspectiveCamera(70,window.innerWidth/window.innerHeight,.01,30);
+      const artW=Math.max(.01,activeWidth/100);
+      const artH=Math.max(.01,activeHeight/100);
+      const thickness=.018;
+
+      const image=new Image();
+      image.crossOrigin="anonymous";
+      image.src=selectedImage;
+      await image.decode();
+      const texture=new THREE.Texture(image);
+      texture.colorSpace=THREE.SRGBColorSpace;
+      texture.needsUpdate=true;
+      texture.anisotropy=renderer.capabilities.getMaxAnisotropy();
+
+      const front=new THREE.MeshStandardMaterial({map:texture,roughness:.82,metalness:0,side:THREE.FrontSide});
+      const side=new THREE.MeshStandardMaterial({color:0x171717,roughness:.55,metalness:0});
+      const geometry=new THREE.BoxGeometry(artW,artH,thickness);
+      const artworkMesh=new THREE.Mesh(geometry,[side,side,side,side,front,side]);
+      const group=new THREE.Group();
+      group.add(artworkMesh);
+      group.visible=false;
+      scene.add(group);
+
+      const ring=new THREE.Mesh(new THREE.RingGeometry(.045,.06,32),new THREE.MeshBasicMaterial({color:0xeeeae3,side:THREE.DoubleSide}));
+      ring.visible=false;
+      scene.add(ring);
+      scene.add(new THREE.HemisphereLight(0xffffff,0x333333,1.2));
+
+      const referenceSpace=await session.requestReferenceSpace("local");
+      const viewerSpace=await session.requestReferenceSpace("viewer");
+      let hitSource:any=null;
+      try{
+        hitSource=await session.requestHitTestSource({space:viewerSpace,entityTypes:["plane"]});
+      }catch(error){
+        console.warn("WebXR hit-test unavailable; native AR remains available",error);
+      }
+
+      const state:XRState={session,referenceSpace,hitSource,renderer,scene,camera,artwork:group,reticle:ring,placed:false};
+      stateRef.current=state;
+      setMode("ar");
+      setPlaced(false);
+      setCanPlace(false);
+      setMessage(ru
+        ? "Наведите камеру на вертикальную стену и медленно двигайте телефон."
+        : "Point the camera at a vertical wall and move the phone slowly.");
+
+      session.addEventListener("select",()=>{
+        const s=stateRef.current;
+        if(s?.lastHit&&!s.placed){
+          s.artwork.position.copy(s.lastHit.position);
+          s.artwork.quaternion.copy(s.lastHit.quaternion);
+          s.artwork.visible=true;
+          s.placed=true;
+          s.reticle.visible=false;
+          setPlaced(true);
+          setCanPlace(false);
+          setMessage(ru?"Готово. Картина закреплена в пространстве.":"Done. The artwork is fixed in space.");
+        }
+      });
+
+      session.addEventListener("end",()=>{
+        if(stateRef.current===state){
+          try{renderer.setAnimationLoop(null);}catch{}
+          try{renderer.dispose();}catch{}
+          try{texture.dispose();}catch{}
+          try{geometry.dispose();}catch{}
+          try{front.dispose();}catch{}
+          try{side.dispose();}catch{}
+          renderer.domElement.remove();
+          stateRef.current=null;
+          setMode("idle");
+          setPlaced(false);
+          setCanPlace(false);
+        }
+      },{once:true});
+
+      renderer.setAnimationLoop((_time,frame)=>{
+        if(!frame||stateRef.current!==state)return;
+        if(state.anchor){
+          const anchorPose=frame.getPose(state.anchor.anchorSpace,referenceSpace);
+          if(anchorPose){
+            group.matrix.fromArray(anchorPose.transform.matrix);
+            group.matrixAutoUpdate=false;
+            group.visible=true;
+          }
+        }
+        const hit=hitSource?frame.getHitTestResults(hitSource)[0]:null;
+        if(hit&&!state.placed){
+          const pose=hit.getPose(referenceSpace);
+          if(pose){
+            const matrix=new THREE.Matrix4().fromArray(pose.transform.matrix);
+            const position=new THREE.Vector3().setFromMatrixPosition(matrix);
+            const normal=new THREE.Vector3(matrix.elements[4],matrix.elements[5],matrix.elements[6]).normalize();
+            if(Math.abs(normal.y)<.22){
+              const wallNormal=normal.clone();
+              wallNormal.y=0;
+              wallNormal.normalize();
+              if(wallNormal.dot(new THREE.Vector3().subVectors(camera.position,position))<0)wallNormal.negate();
+              const up=new THREE.Vector3(0,1,0);
+              const tangent=new THREE.Vector3().crossVectors(up,wallNormal).normalize();
+              const upright=new THREE.Vector3().crossVectors(wallNormal,tangent).normalize();
+              const wallQuaternion=new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().makeBasis(tangent,upright,wallNormal));
+              const clearance=thickness/2+.003;
+              const candidatePosition=position.clone().add(wallNormal.clone().multiplyScalar(clearance));
+              ring.position.copy(candidatePosition);
+              ring.quaternion.copy(wallQuaternion);
+              ring.visible=true;
+              group.position.copy(candidatePosition);
+              group.quaternion.copy(wallQuaternion);
+              group.matrixAutoUpdate=true;
+              group.visible=false;
+              state.lastHit={position:candidatePosition.clone(),quaternion:wallQuaternion.clone()};
+              state.pendingHit=hit;
+              setCanPlace(true);
+              setMessage(ru?"Стена найдена — нажмите «Разместить картину».":"Wall found — tap Place artwork.");
+            }else{
+              ring.visible=false;
+              state.lastHit=undefined;
+              state.pendingHit=undefined;
+              setCanPlace(false);
+              setMessage(ru?"Наведите камеру на вертикальную поверхность.":"Point at a vertical surface.");
+            }
+          }
+        }else if(!state.placed){
+          ring.visible=false;
+          state.lastHit=undefined;
+          state.pendingHit=undefined;
+          setCanPlace(false);
+        }
+        renderer.render(scene,camera);
+      });
+    }catch(error){
+      console.error("Native WebXR AR unavailable; using fallback",error);
+      try{session?.end?.();}catch{}
+      stateRef.current=null;
+      setXrAvailable(false);
+      const details=[(error as any)?.name,(error as any)?.message].filter(Boolean).join(": ");
+      setMessage(ru
+        ? "WebXR AR недоступен"+(details?" ("+details+")":"")+". Переключаемся в совместимый режим камеры."
+        : "WebXR AR is unavailable"+(details?" ("+details+")":"")+". Switching to the compatible camera mode.");
+      await startCamera();
+    }
+  };
   const placeArtwork=async()=>{
     const s=stateRef.current;
     if(!s?.lastHit)return;

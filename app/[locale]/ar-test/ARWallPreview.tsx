@@ -11,17 +11,19 @@ type XRState={
   lastHit?:{position:THREE.Vector3;quaternion:THREE.Quaternion};
 };
 
-function detectArtworkBounds(image:HTMLImageElement){
+type ArtworkBounds={x:number;y:number;width:number;height:number};
+
+function detectArtworkBounds(image:HTMLImageElement):ArtworkBounds{
   const w=image.naturalWidth,h=image.naturalHeight;
   if(!w||!h)return {x:0,y:0,width:1,height:1};
-  const size=160,scale=Math.min(size/w,size/h);
+  const size=320,scale=Math.min(size/w,size/h);
   const canvas=document.createElement("canvas");
   canvas.width=Math.max(1,Math.round(w*scale)); canvas.height=Math.max(1,Math.round(h*scale));
   const ctx=canvas.getContext("2d",{willReadFrequently:true});
   if(!ctx)return {x:0,y:0,width:1,height:1};
   ctx.drawImage(image,0,0,canvas.width,canvas.height);
   const data=ctx.getImageData(0,0,canvas.width,canvas.height).data;
-  const samples:number[][]=[],edge=Math.max(2,Math.round(Math.min(canvas.width,canvas.height)*.035));
+  const samples:number[][]=[],edge=Math.max(3,Math.round(Math.min(canvas.width,canvas.height)*.04));
   for(let y=0;y<canvas.height;y++)for(let x=0;x<canvas.width;x++){
     if(x<edge||y<edge||x>=canvas.width-edge||y>=canvas.height-edge){
       const i=(y*canvas.width+x)*4;samples.push([data[i],data[i+1],data[i+2]]);
@@ -43,9 +45,57 @@ function detectArtworkBounds(image:HTMLImageElement){
   return {x,y,width:bw,height:bh};
 }
 
+/* Turn the detected artwork into a real transparent cutout.
+   The border color is used as the background seed and a flood-fill removes
+   connected pixels that look like that background. */
+function createArtworkCutout(image:HTMLImageElement,bounds:ArtworkBounds){
+  const w=image.naturalWidth,h=image.naturalHeight;
+  const maxSide=1400,scale=Math.min(1,maxSide/Math.max(w,h));
+  const full=document.createElement("canvas");
+  full.width=Math.max(1,Math.round(w*scale));full.height=Math.max(1,Math.round(h*scale));
+  const ctx=full.getContext("2d",{willReadFrequently:true});
+  if(!ctx)return image.src;
+  ctx.drawImage(image,0,0,full.width,full.height);
+  const pixels=ctx.getImageData(0,0,full.width,full.height);
+  const d=pixels.data,fw=full.width,fh=full.height;
+  const edge=Math.max(2,Math.round(Math.min(fw,fh)*.025));
+  const bgSamples:number[][]=[];
+  for(let y=0;y<fh;y+=Math.max(1,Math.floor(fh/40)))for(let x=0;x<fw;x+=Math.max(1,Math.floor(fw/40))){
+    if(x<edge||y<edge||x>=fw-edge||y>=fh-edge){
+      const i=(y*fw+x)*4;bgSamples.push([d[i],d[i+1],d[i+2]]);
+    }
+  }
+  const bg=bgSamples.reduce((a,p)=>[a[0]+p[0],a[1]+p[1],a[2]+p[2]],[0,0,0]).map(v=>v/Math.max(1,bgSamples.length));
+  const seen=new Uint8Array(fw*fh),queue:number[]=[];
+  const push=(x:number,y:number)=>{const n=y*fw+x;if(seen[n])return;seen[n]=1;queue.push(n)};
+  for(let x=0;x<fw;x++){push(x,0);push(x,fh-1)}
+  for(let y=0;y<fh;y++){push(0,y);push(fw-1,y)}
+  const threshold=58;
+  let head=0;
+  while(head<queue.length){
+    const n=queue[head++],x=n%fw,y=Math.floor(n/fw),i=n*4;
+    const dist=Math.abs(d[i]-bg[0])+Math.abs(d[i+1]-bg[1])+Math.abs(d[i+2]-bg[2]);
+    if(dist>threshold)continue;
+    d[i+3]=0;
+    if(x>0&&!seen[n-1])push(x-1,y);
+    if(x<fw-1&&!seen[n+1])push(x+1,y);
+    if(y>0&&!seen[n-fw])push(x,y-1);
+    if(y<fh-1&&!seen[n+fw])push(x,y+1);
+  }
+  ctx.putImageData(pixels,0,0);
+  const sx=Math.max(0,Math.floor(bounds.x*fw)),sy=Math.max(0,Math.floor(bounds.y*fh));
+  const sw=Math.max(1,Math.min(fw-sx,Math.ceil(bounds.width*fw)));
+  const sh=Math.max(1,Math.min(fh-sy,Math.ceil(bounds.height*fh)));
+  const crop=document.createElement("canvas");crop.width=sw;crop.height=sh;
+  const cropCtx=crop.getContext("2d");
+  if(!cropCtx)return full.toDataURL("image/png");
+  cropCtx.drawImage(full,sx,sy,sw,sh,0,0,sw,sh);
+  return crop.toDataURL("image/png");
+}
+
 export default function ARWallPreview({imageUrl,title,width,height,ru}:Props){
   const rootRef=useRef<HTMLDivElement>(null),videoRef=useRef<HTMLVideoElement>(null);
-  const stateRef=useRef<XRState|null>(null),imageBoundsRef=useRef({x:0,y:0,width:1,height:1});
+  const stateRef=useRef<XRState|null>(null),imageBoundsRef=useRef<ArtworkBounds>({x:0,y:0,width:1,height:1}),cutoutUrlRef=useRef<string|null>(null);
   const [mode,setMode]=useState<"idle"|"camera"|"ar">("idle"),[message,setMessage]=useState("");
   const [analysis,setAnalysis]=useState(false),[placed,setPlaced]=useState(false),[canPlace,setCanPlace]=useState(false),[cameraScale,setCameraScale]=useState(1);
   const [drag,setDrag]=useState({x:50,y:45});
@@ -80,7 +130,8 @@ export default function ARWallPreview({imageUrl,title,width,height,ru}:Props){
     try{
       const img=new Image();img.crossOrigin="anonymous";img.src=imageUrl;await img.decode();
       imageBoundsRef.current=detectArtworkBounds(img);
-      setMessage(ru?"Границы картины определены.":"Artwork edges detected.");
+      cutoutUrlRef.current=createArtworkCutout(img,imageBoundsRef.current);
+      setMessage(ru?"Картина вырезана из фона.":"Artwork cut out from its background.");
     }catch{
       imageBoundsRef.current={x:0,y:0,width:1,height:1};
       setMessage(ru?"Использован исходный кадр.":"Using the original image bounds.");
@@ -113,7 +164,7 @@ export default function ARWallPreview({imageUrl,title,width,height,ru}:Props){
       renderer.domElement.className="ar-three-canvas";rootRef.current?.appendChild(renderer.domElement);
 
       const scene=new THREE.Scene(),camera=new THREE.PerspectiveCamera(70,window.innerWidth/window.innerHeight,.01,30);
-      const texture=new THREE.TextureLoader().load(imageUrl!);texture.colorSpace=THREE.SRGBColorSpace;texture.anisotropy=4;texture.wrapS=THREE.ClampToEdgeWrapping;texture.wrapT=THREE.ClampToEdgeWrapping;const bounds=imageBoundsRef.current;texture.repeat.set(1/bounds.width,1/bounds.height);texture.offset.set(-bounds.x/bounds.width,-bounds.y/bounds.height);
+      const texture=new THREE.TextureLoader().load(cutoutUrlRef.current||imageUrl!);texture.colorSpace=THREE.SRGBColorSpace;texture.anisotropy=4;texture.wrapS=THREE.ClampToEdgeWrapping;texture.wrapT=THREE.ClampToEdgeWrapping;const bounds=imageBoundsRef.current;texture.repeat.set(1,1);texture.offset.set(0,0);
       const artW=Math.max(.01,width/100),artH=Math.max(.01,height/100),thickness=.018;
       const group=new THREE.Group();group.visible=false;
       const front=new THREE.MeshStandardMaterial({map:texture,roughness:.72,metalness:0});
@@ -190,7 +241,7 @@ export default function ARWallPreview({imageUrl,title,width,height,ru}:Props){
       <button type="button" onClick={startAR}>{ru?"Открыть AR":"Open AR"}</button>
       <button type="button" className="ar-secondary" onClick={startCamera}>{ru?"Режим камеры":"Camera mode"}</button>
     </div>}
-    {mode==="camera"&&<div className="ar-artwork" style={{left:drag.x+"%",top:drag.y+"%",width:(22*cameraScale)+"%",aspectRatio:String(aspect),transform:"translate(-50%,-50%)"}} onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={onPointerUp}><img src={imageUrl} alt={title}/></div>}
+    {mode==="camera"&&<div className="ar-artwork" style={{left:drag.x+"%",top:drag.y+"%",width:(22*cameraScale)+"%",aspectRatio:String(aspect),transform:"translate(-50%,-50%)"}} onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={onPointerUp}><img src={cutoutUrlRef.current||imageUrl} alt={title}/></div>}
     {mode==="camera"&&<div className="ar-controls"><span>{analysis?(ru?"Определяем границы картины…":"Detecting artwork edges…"):message||(ru?"Перемещайте картину пальцем":"Drag the artwork with your finger")}</span><input aria-label={ru?"Размер":"Size"} type="range" min=".5" max="1.8" step=".01" value={cameraScale} onChange={e=>setCameraScale(Number(e.target.value))}/></div>}
     {mode==="ar"&&<div className="ar-controls"><span>{message}</span>{canPlace&&!placed&&<button type="button" className="ar-place" onClick={placeArtwork}>{ru?"Разместить картину":"Place artwork"}</button>}{placed&&<span className="ar-ar-note">{width+" × "+height+" "+(ru?"см · толщина 1,8 см":"cm · 1.8 cm thick")}</span>}</div>}
   </div>;

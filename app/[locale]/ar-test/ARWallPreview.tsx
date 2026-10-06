@@ -445,7 +445,7 @@ export default function ARWallPreview({imageUrl,title,width,height,ru,artworkCho
           const material=new THREE.MeshBasicMaterial({map:texture,transparent:true,side:THREE.FrontSide});
           const sideMaterial=new THREE.MeshStandardMaterial({color:0x171717,roughness:.62});
           // BoxGeometry material order: right, left, top, bottom, front, back.
-          const geometry=new THREE.BoxGeometry(artW,artH,thickness);
+          const geometry=new THREE.BoxGeometry(artW,artH,thickness);\n          // Physical dimensions are authoritative: width/height come from the artwork metadata.\n          geometry.scale(1,1,1);
           // Keep the artwork's physical aspect ratio independent of the source photo.
           geometry.computeBoundingBox();
           const mesh=new THREE.Mesh(geometry,[sideMaterial,sideMaterial,sideMaterial,sideMaterial,material,sideMaterial]);
@@ -469,6 +469,14 @@ export default function ARWallPreview({imageUrl,title,width,height,ru,artworkCho
         },
         onUpdate:({processCpuResult}:any)=>{
           const reality=processCpuResult?.reality;
+          if(reality?.intrinsics&&trackedCamera){
+            // Keep Three.js projection identical to 8th Wall's camera intrinsics.
+            // This is important inside our non-fullscreen AR viewport: otherwise a
+            // physically 12×24 cm artwork can appear with the wrong screen aspect.
+            const projection=Array.from(reality.intrinsics) as number[];
+            trackedCamera.projectionMatrix.fromArray(projection);
+            trackedCamera.projectionMatrixInverse.copy(trackedCamera.projectionMatrix).invert();
+          }
           if(reality?.trackingStatus==='NORMAL'&&Array.isArray(reality.worldPoints)){
             const plane=detectWallPlane(reality.worldPoints,trackedCamera||new THREE.PerspectiveCamera(),trackedCanvas?.clientWidth||window.innerWidth,trackedCanvas?.clientHeight||window.innerHeight);
             if(plane&&!trackedArtwork?.userData.locked&&trackedWallGuide){
@@ -487,7 +495,7 @@ export default function ARWallPreview({imageUrl,title,width,height,ru,artworkCho
                 trackedWallGuide.position.copy(stable.position);
                 trackedWallGuide.quaternion.copy(q);
                 trackedWallGuide.visible=true;
-                const wallClearance=Math.max(thickness/2+.03,.07);
+                const wallClearance=Math.max(thickness/2+.012,.095);
                 // Aim at the centre of the screen, intersecting the fitted wall plane there.
                 // This prevents the artwork from appearing at the arbitrary centroid of the point cloud.
                 const ray=new THREE.Raycaster();

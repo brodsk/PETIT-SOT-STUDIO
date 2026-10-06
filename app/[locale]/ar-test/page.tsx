@@ -15,12 +15,12 @@ export default async function ARTest({params}:{params:Promise<{locale:string}>})
   const works=await getWorks();
   const work=works.find(w=>w.imageUrl);
   const {width,height}=getDimensions(work?.size||"");
-  const artworkChoices=works.filter(w=>w.imageUrl).map(w=>{
+  const artworkChoices=works.filter(w=>w.imageUrl).map((w,index)=>{
     const dimensions=getDimensions(w.size||"");
     return {
-      id:w.id,
+      id:w.id ?? `artwork-${index}`,
       title:ru?w.titleRu:w.titleEn,
-      image:w.imageUrl,
+      image:w.imageUrl!,
       width:dimensions.width,
       height:dimensions.height
     };

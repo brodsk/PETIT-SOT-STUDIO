@@ -201,7 +201,12 @@ export default function ARWallPreview({imageUrl,title,width,height,ru,artworkCho
     }
   };
 
-  useEffect(()=>{setSceneViewerAvailable(isAndroidDevice())},[]);
+  useEffect(()=>{
+    setSceneViewerAvailable(isAndroidDevice());
+    const onResize=()=>fitCameraVideo();
+    window.addEventListener("resize",onResize);
+    return()=>window.removeEventListener("resize",onResize);
+  },[]);
   useEffect(()=>{setSelectedImage(imageUrl||"");setSelectedDimensions({width,height});setSelectedTitle(title)},[imageUrl,width,height,title]);
 
   const openSceneViewer=async()=>{
@@ -209,8 +214,8 @@ export default function ARWallPreview({imageUrl,title,width,height,ru,artworkCho
     try{
       const modelUrl=new URL("/api/ar-model",window.location.origin);
       modelUrl.searchParams.set("image",selectedImage);
-      modelUrl.searchParams.set("width",String(width));
-      modelUrl.searchParams.set("height",String(height));
+      modelUrl.searchParams.set("width",String(activeWidth));
+      modelUrl.searchParams.set("height",String(activeHeight));
       const fallback=new URL(window.location.href);
       fallback.hash="ar-camera";
       window.location.href=buildSceneViewerIntent(modelUrl.toString(),fallback.toString());
@@ -220,12 +225,28 @@ export default function ARWallPreview({imageUrl,title,width,height,ru,artworkCho
     }
   };
 
+  const fitCameraVideo=()=>{
+    const video=videoRef.current,root=rootRef.current;
+    if(!video||!root||!video.videoWidth||!video.videoHeight)return;
+    const rootW=root.clientWidth,rootH=root.clientHeight;
+    const scale=Math.min(rootW/video.videoWidth,rootH/video.videoHeight);
+    video.style.width=Math.round(video.videoWidth*scale)+"px";
+    video.style.height=Math.round(video.videoHeight*scale)+"px";
+    video.style.left="50%";video.style.top="50%";video.style.right="auto";video.style.bottom="auto";
+    video.style.transform="translate(-50%,-50%)";
+  };
+
   const startCamera=async()=>{
     try{
       cleanup();
       const stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:"environment"}},audio:false});
       if(!videoRef.current)return;
-      videoRef.current.srcObject=stream;await videoRef.current.play();await analyzeSource();setMode("camera");
+      videoRef.current.srcObject=stream;
+      await videoRef.current.play();
+      fitCameraVideo();
+      await analyzeSource();
+      setMode("camera");
+      requestAnimationFrame(fitCameraVideo);
     }catch{setMessage(ru?"Нет доступа к камере.":"Camera access was denied.");}
   };
 
@@ -287,6 +308,7 @@ export default function ARWallPreview({imageUrl,title,width,height,ru,artworkCho
 
   const start8thWall=async()=>{
     if(!selectedImage)return;
+    setMessage(ru?"Запускаем AR…":"Starting AR…");
     try{
       cleanup();
       setMessage(ru?'Загружаем 8th Wall WebAR…':'Loading 8th Wall WebAR…');
@@ -594,8 +616,8 @@ export default function ARWallPreview({imageUrl,title,width,height,ru,artworkCho
   const activeWidth=selectedDimensions.width||width,activeHeight=selectedDimensions.height||height;
   const aspect=activeWidth>0&&activeHeight>0?activeWidth/activeHeight:1;
 
-  return <div ref={rootRef} className="ar-preview">
-    <video ref={videoRef} className="ar-camera" playsInline muted style={{background:"#000",display:"block"}}/>
+  return <div ref={rootRef} className="ar-preview" style={{width:"100%",height:"100%",maxWidth:"100%",minHeight:0}}>
+    <video ref={videoRef} className="ar-camera" playsInline muted style={{background:"#000",display:"block",position:"absolute",left:"50%",top:"50%",width:"auto",height:"auto",minWidth:0,minHeight:0,maxWidth:"none",maxHeight:"none",transform:"translate(-50%,-50%)"}}/>
     <div className="ar-topbar"><span>{ru?"ПОСМОТРЕТЬ НА СТЕНЕ":"VIEW ON YOUR WALL"}</span><button type="button" onClick={cleanup}>×</button></div>
     {mode==="idle"&&<div className="ar-start">
       {artworkChoices.length>0&&<div className="ar-artwork-picker" style={{position:"relative",zIndex:20,width:"100%",maxWidth:720,padding:"10px 12px",boxSizing:"border-box",pointerEvents:"auto"}}><span style={{display:"block",fontSize:12,letterSpacing:".08em",textTransform:"uppercase",marginBottom:8}}>{ru?"Выберите картину":"Choose artwork"}</span><div className="ar-artwork-options" style={{display:"flex",gap:8,overflowX:"auto",overflowY:"hidden",width:"100%",paddingBottom:4,pointerEvents:"auto",WebkitOverflowScrolling:"touch"}}>{artworkChoices.map(a=><button key={a.id} type="button" className={selectedImage===a.image?"selected":""} style={{flex:"0 0 72px",width:72,minWidth:72,height:92,padding:4,margin:0,boxSizing:"border-box",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"space-between",overflow:"hidden",cursor:"pointer",pointerEvents:"auto",touchAction:"manipulation",border:"1px solid rgba(255,255,255,.28)",background:"rgba(0,0,0,.45)",color:"inherit"}} onClick={()=>{setSelectedImage(a.image);setSelectedDimensions({width:a.width||width,height:a.height||height});setSelectedTitle(a.title);setMessage(ru?"Картина выбрана.":"Artwork selected.");}}><img src={a.image} alt={a.title} style={{display:"block",width:"100%",height:66,maxWidth:"100%",objectFit:"contain",flex:"0 0 66px"}}/><small style={{display:"block",width:"100%",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",fontSize:9,lineHeight:"12px"}}>{a.title}</small></button>)}</div></div>}

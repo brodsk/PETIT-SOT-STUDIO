@@ -121,7 +121,20 @@ export default function ARWallPreview({imageUrl,title,width,height,ru}:Props){
     }finally{setAnalysis(false);}
   };
 
-  const checkXR=async()=>{try{const xr=(navigator as any).xr;if(!xr?.isSessionSupported){setXrAvailable(false);return false}const ok=await xr.isSessionSupported("immersive-ar");setXrAvailable(ok);return ok}catch{setXrAvailable(false);return false}};\n\n  const startCamera=async()=>{
+  const checkXR=async()=>{
+    try{
+      const xr=(navigator as any).xr;
+      if(!xr?.isSessionSupported){setXrAvailable(false);return false}
+      const ok=await xr.isSessionSupported("immersive-ar");
+      setXrAvailable(ok);
+      return ok;
+    }catch{
+      setXrAvailable(false);
+      return false;
+    }
+  };
+
+  const startCamera=async()=>{
     try{
       cleanup();
       const stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:"environment"}},audio:false});

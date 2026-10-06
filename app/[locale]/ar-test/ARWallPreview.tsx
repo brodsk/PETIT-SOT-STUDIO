@@ -484,9 +484,9 @@ export default function ARWallPreview({imageUrl,title,width,height,ru,artworkCho
                   const fq=makeWallQuaternion(fallbackNormal);
                   const fallbackCandidate={position:fallbackPosition,quaternion:fq};
                   wallCandidateRef.current=fallbackCandidate;
-                  trackedArtwork.position.copy(fallbackCandidate.position);
-                  trackedArtwork.quaternion.copy(fallbackCandidate.quaternion);
-                  trackedArtwork.visible=true;
+                  trackedArtwork?.position.copy(fallbackCandidate.position);
+                  trackedArtwork?.quaternion.copy(fallbackCandidate.quaternion);
+                  if(trackedArtwork)trackedArtwork.visible=true;
                 }
               }
             }

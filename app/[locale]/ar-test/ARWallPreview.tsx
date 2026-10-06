@@ -356,7 +356,32 @@ export default function ARWallPreview({imageUrl,title,width,height,ru,artworkCho
       const canvas=document.createElement('canvas');
       canvas.className='ar-three-canvas';
       canvas.style.position='absolute';canvas.style.inset='0';canvas.style.width='100%';canvas.style.height='100%';canvas.style.zIndex='2';
+      canvas.style.objectFit='contain';
       rootRef.current?.appendChild(canvas);
+
+      // Keep the WebAR drawing buffer in the exact aspect ratio of the preview.
+      // Otherwise the camera texture can be stretched when the preview is not 16:9.
+      const syncEightWallViewport=()=>{
+        const root=rootRef.current;
+        if(!root)return;
+        const rect=root.getBoundingClientRect();
+        const dpr=Math.min(window.devicePixelRatio||1,2);
+        const width=Math.max(1,Math.round(rect.width));
+        const height=Math.max(1,Math.round(rect.height));
+        canvas.width=Math.max(1,Math.round(width*dpr));
+        canvas.height=Math.max(1,Math.round(height*dpr));
+        canvas.style.width=width+'px';
+        canvas.style.height=height+'px';
+        const xrScene=w.XR8?.Threejs?.xrScene?.();
+        const renderer=xrScene?.renderer as THREE.WebGLRenderer|undefined;
+        if(renderer){
+          renderer.setPixelRatio(dpr);
+          renderer.setSize(width,height,false);
+        }
+      };
+      syncEightWallViewport();
+      const resizeObserver=new ResizeObserver(syncEightWallViewport);
+      if(rootRef.current)resizeObserver.observe(rootRef.current);
       const image=new Image();image.crossOrigin='anonymous';image.src=cutoutUrlRef.current||selectedImage;await image.decode();
       const texture=new THREE.Texture(image);texture.needsUpdate=true;texture.colorSpace=THREE.SRGBColorSpace;
       const artW=Math.max(.01,activeWidth/100),artH=Math.max(.01,activeHeight/100),thickness=.018;
@@ -429,7 +454,7 @@ export default function ARWallPreview({imageUrl,title,width,height,ru,artworkCho
       w.XR8.addCameraPipelineModules([w.XR8.GlTextureRenderer.pipelineModule(),w.XR8.Threejs.pipelineModule(),w.XR8.XrController.pipelineModule(),initModule]);
       w.XR8.run({canvas,allowedDevices:w.XR8.XrConfig.device().MOBILE});
       setMode('ar');setPlaced(false);setCanPlace(false);
-      eightWallRef.current={stop:()=>{try{w.XR8.stop?.();}catch{}try{texture.dispose();}catch{}try{canvas.remove();}catch{}wallCandidateRef.current=null;trackedCamera=null;trackedCanvas=null;trackedArtwork=null;trackedWallGuide=null;}};
+      eightWallRef.current={stop:()=>{try{resizeObserver.disconnect();}catch{}try{w.XR8.stop?.();}catch{}try{texture.dispose();}catch{}try{canvas.remove();}catch{}wallCandidateRef.current=null;trackedCamera=null;trackedCanvas=null;trackedArtwork=null;trackedWallGuide=null;}};
     }catch(error){
       console.error('8th Wall start failed',error);
       setMessage(ru?'8th Wall не запустился: '+(error instanceof Error?error.message:'неизвестная ошибка'):'8th Wall failed to start: '+(error instanceof Error?error.message:'unknown error'));

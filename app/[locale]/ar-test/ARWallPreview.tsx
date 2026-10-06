@@ -3,7 +3,8 @@
 import {useEffect,useRef,useState} from "react";
 import * as THREE from "three";
 
-type Props={imageUrl?:string;title:string;width:number;height:number;ru:boolean};
+type ArtworkChoice={id:string|number;title:string;image:string;width:number;height:number};
+type Props={imageUrl?:string;title:string;width:number;height:number;ru:boolean;artworkChoices?:ArtworkChoice[]};
 type XRState={
   session:any; referenceSpace:any; hitSource:any; renderer:THREE.WebGLRenderer;
   scene:THREE.Scene; camera:THREE.PerspectiveCamera; artwork:THREE.Group;
@@ -124,14 +125,14 @@ function createArtworkCutout(image:HTMLImageElement,quad:ArtworkQuad){
   ctx.putImageData(pixels,0,0);return full.toDataURL("image/png");
 }
 
-export default function ARWallPreview({imageUrl,title,width,height,ru}:Props){
+export default function ARWallPreview({imageUrl,title,width,height,ru,artworkChoices=[]}:Props){
   const rootRef=useRef<HTMLDivElement>(null),videoRef=useRef<HTMLVideoElement>(null);
   const stateRef=useRef<XRState|null>(null),imageQuadRef=useRef<ArtworkQuad>({points:[{x:0,y:0},{x:1,y:0},{x:1,y:1},{x:0,y:1}],confidence:0}),imageBoundsRef=useRef<ArtworkBounds>({x:0,y:0,width:1,height:1}),cutoutUrlRef=useRef<string|null>(null);
   const [mode,setMode]=useState<"idle"|"camera"|"ar">("idle"),[message,setMessage]=useState("");
   const [analysis,setAnalysis]=useState(false),[placed,setPlaced]=useState(false),[canPlace,setCanPlace]=useState(false),[cameraScale,setCameraScale]=useState(1),[xrAvailable,setXrAvailable]=useState<boolean|null>(null),[sceneViewerAvailable,setSceneViewerAvailable]=useState(false);
   const [selectedImage,setSelectedImage]=useState(imageUrl||"");
   const [selectedDimensions,setSelectedDimensions]=useState({width,height});
-  const [artworkChoices,setArtworkChoices]=useState<Array<{id:string;title:string;image:string;width:number;height:number}>>([]);
+  const [selectedTitle,setSelectedTitle]=useState(title);
   const [drag,setDrag]=useState({x:50,y:45});
   const dragRef=useRef({active:false,startX:0,startY:0,x:50,y:45});
   const eightWallRef=useRef<{stop:()=>void}|null>(null);
@@ -191,26 +192,7 @@ export default function ARWallPreview({imageUrl,title,width,height,ru}:Props){
   };
 
   useEffect(()=>{setSceneViewerAvailable(isAndroidDevice())},[]);
-  useEffect(()=>{setSelectedImage(imageUrl||"");setSelectedDimensions({width,height})},[imageUrl,width,height]);
-  useEffect(()=>{
-    const loadChoices=async()=>{
-      try{
-        const res=await fetch("/api/artworks");
-        if(!res.ok)return;
-        const data=await res.json();
-        const rows=Array.isArray(data)?data:(Array.isArray(data?.artworks)?data.artworks:[]);
-        const choices=rows.map((a:any)=>({
-          id:String(a.id??a.slug??a.title??Math.random()),
-          title:String(a.title??a.name??"Artwork"),
-          image:String(a.imageUrl??a.image_url??a.image??a.cover_image??""),
-          width:Number(a.width??a.dimensions?.width??0),
-          height:Number(a.height??a.dimensions?.height??0)
-        })).filter((a:any)=>a.image);
-        if(choices.length)setArtworkChoices(choices);
-      }catch{}
-    };
-    void loadChoices();
-  },[]);
+  useEffect(()=>{setSelectedImage(imageUrl||"");setSelectedDimensions({width,height});setSelectedTitle(title)},[imageUrl,width,height,title]);
 
   const openSceneViewer=async()=>{
     if(!selectedImage||!isAndroidDevice())return;
@@ -603,10 +585,10 @@ export default function ARWallPreview({imageUrl,title,width,height,ru}:Props){
   const aspect=activeWidth>0&&activeHeight>0?activeWidth/activeHeight:1;
 
   return <div ref={rootRef} className="ar-preview">
-    <video ref={videoRef} className="ar-camera" playsInline muted style={{objectFit:"cover",width:"100%",height:"100%",background:"#000"}}/>
+    <video ref={videoRef} className="ar-camera" playsInline muted style={{objectFit:"contain",width:"100%",height:"100%",background:"#000",display:"block"}}/>
     <div className="ar-topbar"><span>{ru?"ПОСМОТРЕТЬ НА СТЕНЕ":"VIEW ON YOUR WALL"}</span><button type="button" onClick={cleanup}>×</button></div>
     {mode==="idle"&&<div className="ar-start">
-      {artworkChoices.length>0&&<div className="ar-artwork-picker"><span>{ru?"Выберите картину":"Choose artwork"}</span><div className="ar-artwork-options">{artworkChoices.map(a=><button key={a.id} type="button" className={selectedImage===a.image?"selected":""} onClick={()=>{setSelectedImage(a.image);setSelectedDimensions({width:a.width||width,height:a.height||height});setMessage(ru?"Картина выбрана.":"Artwork selected.");}}><img src={a.image} alt={a.title}/><small>{a.title}</small></button>)}</div></div>}
+      {artworkChoices.length>0&&<div className="ar-artwork-picker"><span>{ru?"Выберите картину":"Choose artwork"}</span><div className="ar-artwork-options">{artworkChoices.map(a=><button key={a.id} type="button" className={selectedImage===a.image?"selected":""} onClick={()=>{setSelectedImage(a.image);setSelectedDimensions({width:a.width||width,height:a.height||height});setSelectedTitle(a.title);setMessage(ru?"Картина выбрана.":"Artwork selected.");}}><img src={a.image} alt={a.title}/><small>{a.title}</small></button>)}</div></div>}
       <p>{message|| (ru?"8th Wall: WebAR-трекинг без ARCore и WebXR, с картиной в реальном размере.":"8th Wall: WebAR tracking without ARCore or WebXR, with the artwork at its real size.")}</p>
       <button type="button" onClick={start8thWall}>{ru?"Открыть 8th Wall AR":"Open 8th Wall AR"}</button>
       <button type="button" className="ar-secondary" onClick={startAR}>{ru?"WebXR AR":"WebXR AR"}</button>
@@ -614,7 +596,7 @@ export default function ARWallPreview({imageUrl,title,width,height,ru}:Props){
       <button type="button" className="ar-secondary" onClick={runXRDiagnostic}>{ru?"Проверить WebXR":"Check WebXR"}</button>
       <button type="button" className="ar-secondary" onClick={startCamera}>{ru?"Режим камеры":"Camera mode"}</button>
     </div>}
-    {mode==="camera"&&<div className="ar-artwork" style={{left:drag.x+"%",top:drag.y+"%",width:(22*cameraScale)+"%",aspectRatio:String(aspect),transform:"translate(-50%,-50%)"}} onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={onPointerUp}><img src={cutoutUrlRef.current||imageUrl} alt={title}/></div>}
+    {mode==="camera"&&<div className="ar-artwork" style={{left:drag.x+"%",top:drag.y+"%",width:(22*cameraScale)+"%",aspectRatio:String(aspect),transform:"translate(-50%,-50%)"}} onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={onPointerUp}><img src={cutoutUrlRef.current||selectedImage} alt={selectedTitle}/></div>}
     {mode==="camera"&&<div className="ar-controls"><span>{analysis?(ru?"Определяем границы картины…":"Detecting artwork edges…"):message||(ru?"Перемещайте картину пальцем":"Drag the artwork with your finger")}</span><input aria-label={ru?"Размер":"Size"} type="range" min=".5" max="1.8" step=".01" value={cameraScale} onChange={e=>setCameraScale(Number(e.target.value))}/></div>}
     {mode==="ar"&&<div className="ar-controls"><span>{message}</span>{canPlace&&!placed&&<button type="button" className="ar-place" onClick={placeArtwork}>{ru?"Разместить картину":"Place artwork"}</button>}{placed&&<span className="ar-ar-note">{activeWidth+" × "+activeHeight+" "+(ru?"см · толщина 1,8 см":"cm · 1.8 cm thick")}</span>}</div>}
   </div>;

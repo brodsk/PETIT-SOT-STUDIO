@@ -434,7 +434,10 @@ export default function ARWallPreview({imageUrl,title,width,height,ru,artworkCho
           const material=new THREE.MeshBasicMaterial({map:texture,transparent:true,side:THREE.FrontSide});
           const sideMaterial=new THREE.MeshStandardMaterial({color:0x171717,roughness:.62});
           // BoxGeometry material order: right, left, top, bottom, front, back.
-          const mesh=new THREE.Mesh(new THREE.BoxGeometry(artW,artH,thickness),[sideMaterial,sideMaterial,sideMaterial,sideMaterial,material,sideMaterial]);
+          const geometry=new THREE.BoxGeometry(artW,artH,thickness);
+          // Keep the artwork's physical aspect ratio independent of the source photo.
+          geometry.computeBoundingBox();
+          const mesh=new THREE.Mesh(geometry,[sideMaterial,sideMaterial,sideMaterial,sideMaterial,material,sideMaterial]);
           const artwork=new THREE.Group();artwork.add(mesh);
           trackedArtwork=artwork;
           artwork.position.set(0,1.45,-2.2);
@@ -468,7 +471,10 @@ export default function ARWallPreview({imageUrl,title,width,height,ru,artworkCho
               trackedWallGuide.position.lerp(plane.center,.22);
               trackedWallGuide.quaternion.slerp(q,.22);
               trackedWallGuide.visible=true;
-              trackedWallGuide.userData.candidate={position:plane.center.clone().add(plane.normal.clone().multiplyScalar(.012)),quaternion:q.clone()};
+              // Keep the entire 18 mm body in front of the detected wall plane.
+              // The back face must not cross the wall when the user approaches it.
+              const wallClearance=thickness/2+.012;
+              trackedWallGuide.userData.candidate={position:plane.center.clone().add(plane.normal.clone().multiplyScalar(wallClearance)),quaternion:q.clone()};
               wallCandidateRef.current=trackedWallGuide!.userData.candidate;
               setCanPlace(true);
               setMessage(ru?'Стена найдена — нажмите «Разместить картину».':'Wall detected — tap Place artwork.');

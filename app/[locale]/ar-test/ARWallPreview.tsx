@@ -185,8 +185,7 @@ export default function ARWallPreview({imageUrl,title,width,height,ru}:Props){
 
       const session=await xr.requestSession("immersive-ar",{
         requiredFeatures:["hit-test"],
-        optionalFeatures:["dom-overlay","local-floor","anchors"],
-        domOverlay:{root:rootRef.current}
+        optionalFeatures:["local-floor","anchors"]
       });
 
       const renderer=new THREE.WebGLRenderer({antialias:true,alpha:true,powerPreference:"high-performance"});

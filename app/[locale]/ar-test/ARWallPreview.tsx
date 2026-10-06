@@ -454,7 +454,8 @@ export default function ARWallPreview({imageUrl,title,width,height,ru,artworkCho
           const artwork=new THREE.Group();artwork.add(mesh);
           trackedArtwork=artwork;
           eightWallArtworkRef.current=artwork;
-          artwork.position.set(0,1.45,-2.2);
+          artwork.visible=false;
+          artwork.userData.locked=false;
           scene.add(artwork);
           const wallGuide=new THREE.Mesh(
             new THREE.PlaneGeometry(artW,artH),
@@ -508,6 +509,8 @@ export default function ARWallPreview({imageUrl,title,width,height,ru,artworkCho
                 const target=hit?hitPoint:stable.position.clone();
                 const candidate={position:target.add(stable.normal.clone().multiplyScalar(wallClearance)),quaternion:q.clone()};
                 trackedWallGuide.userData.candidate=candidate;
+                trackedWallGuide.position.copy(candidate.position);
+                trackedWallGuide.quaternion.copy(candidate.quaternion);
                 wallCandidateRef.current=candidate;
                 setCanPlace(true);
                 setMessage(ru?'Стена найдена — нажмите «Разместить картину».':'Wall found — tap Place artwork.');
@@ -539,17 +542,22 @@ export default function ARWallPreview({imageUrl,title,width,height,ru,artworkCho
     }
   };
   const startAR=async()=>{
-    // Adaptive AR ladder: native WebXR first, compatible camera fallback second.
-    // requestSession() is intentionally the first awaited operation after the
-    // user tap so browsers cannot lose immersive user activation.
+    // 8th Wall is the primary browser AR engine for this experience.
+    // It provides its own SLAM/world tracking and does not depend on WebXR/ARCore.
+    // WebXR and Google Scene Viewer are intentionally not used as the primary path:
+    // the goal is one consistent browser experience on Android and iOS.
+    await start8thWall();
+    return;
+
+    /* Native WebXR fallback is kept below for reference during development. */
     const xr=(navigator as any).xr;
 
     if(!xr?.requestSession){
       setXrAvailable(false);
       setMessage(ru
-        ? "Настоящий WebXR AR недоступен — переключаемся в совместимый режим камеры."
-        : "Native WebXR AR is unavailable — switching to the compatible camera mode.");
-      await startCamera();
+        ? "Настоящий WebXR AR недоступен — переключаемся в 8th Wall."
+        : "Native WebXR AR is unavailable — using 8th Wall.");
+      await start8thWall();
       return;
     }
 
@@ -738,9 +746,30 @@ export default function ARWallPreview({imageUrl,title,width,height,ru,artworkCho
     }
   };
   const placeArtwork=async()=>{
+    // 8th Wall path: the artwork is placed from the tracked wall candidate,
+    // then remains in the XR world coordinate system while SLAM updates the camera.
+    const eightArtwork=eightWallArtworkRef.current;
+    const eightCandidate=wallCandidateRef.current;
+    if(mode==="ar"&&eightArtwork&&eightCandidate){
+      eightArtwork.position.copy(eightCandidate.position);
+      eightArtwork.quaternion.copy(eightCandidate.quaternion);
+      eightArtwork.matrixAutoUpdate=true;
+      eightArtwork.visible=true;
+      eightArtwork.userData.locked=true;
+      if(eightWallCanvasRef.current){
+        eightWallCanvasRef.current.style.zIndex="2";
+      }
+      if(eightWallArtworkRef.current) eightWallArtworkRef.current.userData.locked=true;
+      setPlaced(true);
+      setCanPlace(false);
+      setMessage(ru
+        ?"Готово. Картина закреплена в пространстве — подойдите, отойдите и обойдите её."
+        :"Done. The artwork is fixed in space — walk closer, farther away, and around it.");
+      return;
+    }
+
     const s=stateRef.current;
     if(!s?.lastHit)return;
-
     const candidate=s.lastHit;
     s.artwork.position.copy(candidate.position);
     s.artwork.quaternion.copy(candidate.quaternion);
@@ -751,8 +780,6 @@ export default function ARWallPreview({imageUrl,title,width,height,ru,artworkCho
     setPlaced(true);
     setCanPlace(false);
 
-    // If the browser exposes WebXR Anchors, bind the painting to the exact
-    // hit-test result. Otherwise the frozen pose remains in the local XR world.
     const hit=s.pendingHit;
     if(hit&&s.session.enabledFeatures?.includes?.("anchors")){
       try{

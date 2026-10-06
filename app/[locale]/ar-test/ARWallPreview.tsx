@@ -306,9 +306,11 @@ export default function ARWallPreview({imageUrl,title,width,height,ru}:Props){
       const texture=new THREE.Texture(image);texture.needsUpdate=true;texture.colorSpace=THREE.SRGBColorSpace;
       const artW=Math.max(.01,width/100),artH=Math.max(.01,height/100),thickness=.018;
       let trackedCamera:THREE.Camera|null=null;
+      let trackedCanvas:HTMLCanvasElement|null=null;
       const initModule={
         name:'petitsot-eightwall-scene',
         onStart:({canvas:startedCanvas}:any)=>{
+          trackedCanvas=startedCanvas;
           const xrScene=w.XR8.Threejs.xrScene();
           const scene=xrScene.scene as THREE.Scene;
           const camera=xrScene.camera as THREE.Camera;
@@ -344,7 +346,7 @@ export default function ARWallPreview({imageUrl,title,width,height,ru}:Props){
         onUpdate:({processCpuResult}:any)=>{
           const reality=processCpuResult?.reality;
           if(reality?.trackingStatus==='NORMAL'&&Array.isArray(reality.worldPoints)){
-            const plane=detectWallPlane(reality.worldPoints,trackedCamera||new THREE.PerspectiveCamera(),startedCanvas.clientWidth||window.innerWidth,startedCanvas.clientHeight||window.innerHeight);
+            const plane=detectWallPlane(reality.worldPoints,trackedCamera||new THREE.PerspectiveCamera(),trackedCanvas?.clientWidth||window.innerWidth,trackedCanvas?.clientHeight||window.innerHeight);
             if(plane&&!artwork.userData.locked){
               const q=makeWallQuaternion(plane.normal);
               wallGuide.position.lerp(plane.center,.22);
@@ -368,7 +370,7 @@ export default function ARWallPreview({imageUrl,title,width,height,ru}:Props){
       w.XR8.addCameraPipelineModules([w.XR8.GlTextureRenderer.pipelineModule(),w.XR8.Threejs.pipelineModule(),w.XR8.XrController.pipelineModule(),initModule]);
       w.XR8.run({canvas,allowedDevices:w.XR8.XrConfig.device().MOBILE});
       setMode('ar');setPlaced(true);setCanPlace(false);
-      eightWallRef.current={stop:()=>{try{w.XR8.stop?.();}catch{}try{texture.dispose();}catch{}try{canvas.remove();}catch{}wallCandidateRef.current=null;}};
+      eightWallRef.current={stop:()=>{try{w.XR8.stop?.();}catch{}try{texture.dispose();}catch{}try{canvas.remove();}catch{}wallCandidateRef.current=null;trackedCamera=null;trackedCanvas=null;}};
     }catch(error){
       console.error('8th Wall start failed',error);
       setMessage(ru?'8th Wall не запустился: '+(error instanceof Error?error.message:'неизвестная ошибка'):'8th Wall failed to start: '+(error instanceof Error?error.message:'unknown error'));

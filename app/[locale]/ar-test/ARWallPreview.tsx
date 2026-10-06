@@ -555,15 +555,29 @@ export default function ARWallPreview({imageUrl,title,width,height,ru,artworkCho
 
       cleanup();
 
-      // Real AR path: native hit-test against physical planes. We require hit-test
-      // because a wall must be a real tracked surface, not a 2D camera overlay.
-      // Keep the first session request deliberately minimal. Some Android
-      // WebXR implementations reject otherwise valid AR configurations when
-      // optional modules are requested at session creation.
-      const session=await xr.requestSession("immersive-ar",{
-        requiredFeatures:["hit-test"],
-        optionalFeatures:["anchors"]
-      });
+      // Do NOT require hit-test at session creation. Some Android WebXR
+      // implementations support immersive-ar but reject any session that
+      // declares hit-test as required. Start the AR session first, then ask
+      // for hit-test and degrade gracefully if it is unavailable.
+      let session:any=null;
+      let lastError:any=null;
+      const sessionConfigs:any[]=[
+        {},
+        {optionalFeatures:["hit-test"]},
+        {optionalFeatures:["local-floor"]},
+        {optionalFeatures:["hit-test","local-floor"]}
+      ];
+      for(const config of sessionConfigs){
+        try{
+          session=await xr.requestSession("immersive-ar",config);
+          break;
+        }catch(error){
+          lastError=error;
+        }
+      }
+      if(!session){
+        throw lastError||new DOMException("immersive-ar session could not be created","NotSupportedError");
+      }
 
       const renderer=new THREE.WebGLRenderer({
         antialias:true,
@@ -632,9 +646,12 @@ export default function ARWallPreview({imageUrl,title,width,height,ru,artworkCho
       const referenceSpace=await session.requestReferenceSpace("local");
       const viewerSpace=await session.requestReferenceSpace("viewer");
 
-      const hitSource=await session.requestHitTestSource({
-        space:viewerSpace
-      });
+      let hitSource:any=null;
+      try{
+        hitSource=await session.requestHitTestSource({space:viewerSpace});
+      }catch(error){
+        console.warn("WebXR hit-test unavailable; immersive AR remains active",error);
+      }
 
       const state:XRState={
         session,
@@ -656,6 +673,24 @@ export default function ARWallPreview({imageUrl,title,width,height,ru,artworkCho
         ?"Наведите камеру на стену и медленно двигайте телефон."
         :"Point the camera at a wall and move the phone slowly.");
 
+      // On devices with XR hit-test, a screen tap is the most reliable
+      // placement control inside immersive AR. Keep the DOM button as well.
+      session.addEventListener("select",()=>{
+        const s=stateRef.current;
+        if(s?.lastHit&&!s.placed){
+          s.artwork.position.copy(s.lastHit.position);
+          s.artwork.quaternion.copy(s.lastHit.quaternion);
+          s.artwork.visible=true;
+          s.placed=true;
+          s.reticle.visible=false;
+          setPlaced(true);
+          setCanPlace(false);
+          setMessage(ru
+            ?"Готово. Картина закреплена в пространстве."
+            :"Done. The artwork is fixed in space.");
+        }
+      });
+      
       session.addEventListener("end",()=>{
         if(stateRef.current===state){
           try{renderer.setAnimationLoop(null);}catch{}

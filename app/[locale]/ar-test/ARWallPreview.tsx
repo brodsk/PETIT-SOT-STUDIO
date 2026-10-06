@@ -146,24 +146,33 @@ function makeArtworkTextureCanvas(image:HTMLImageElement,targetAspect:number){
   return canvas;
 }
 
-function createArtworkCutout(image:HTMLImageElement,quad:ArtworkQuad){
-  const w=image.naturalWidth,h=image.naturalHeight,maxSide=1800,scale=Math.min(1,maxSide/Math.max(w,h)),full=document.createElement("canvas");
-  full.width=Math.max(1,Math.round(w*scale));full.height=Math.max(1,Math.round(h*scale));const ctx=full.getContext("2d",{willReadFrequently:true});if(!ctx)return image.src;ctx.drawImage(image,0,0,full.width,full.height);
-  const pts=quad.points.map(p=>({x:p.x*full.width,y:p.y*full.height})),pixels=ctx.getImageData(0,0,full.width,full.height),d=pixels.data;
-  const sign=(a:{x:number;y:number},b:{x:number;y:number},p:{x:number;y:number})=>(b.x-a.x)*(p.y-a.y)-(b.y-a.y)*(p.x-a.x),orient=sign(pts[0],pts[1],pts[2])>=0?1:-1,feather=Math.max(2,Math.round(Math.min(full.width,full.height)*.004));
-  const minX=Math.max(0,Math.floor(Math.min(...pts.map(p=>p.x))-feather)),maxX=Math.min(full.width-1,Math.ceil(Math.max(...pts.map(p=>p.x))+feather)),minY=Math.max(0,Math.floor(Math.min(...pts.map(p=>p.y))-feather)),maxY=Math.min(full.height-1,Math.ceil(Math.max(...pts.map(p=>p.y))+feather));
-  for(let y=minY;y<=maxY;y++)for(let x=minX;x<=maxX;x++){const p={x,y},inside=pts.every((a,i)=>orient*sign(a,pts[(i+1)%4],p)>=-1);if(!inside){d[(y*full.width+x)*4+3]=0;continue}const ds=pts.map((a,i)=>Math.abs(sign(a,pts[(i+1)%4],p))/Math.max(1,Math.hypot(pts[(i+1)%4].x-a.x,pts[(i+1)%4].y-a.y))),edge=Math.min(...ds);d[(y*full.width+x)*4+3]=Math.min(255,Math.round(255*Math.min(1,edge/feather)))}
-  ctx.putImageData(pixels,0,0);
-  const cropX=Math.max(0,Math.floor(Math.min(...pts.map(p=>p.x))));
-  const cropY=Math.max(0,Math.floor(Math.min(...pts.map(p=>p.y))));
-  const cropR=Math.min(full.width,Math.ceil(Math.max(...pts.map(p=>p.x))));
-  const cropB=Math.min(full.height,Math.ceil(Math.max(...pts.map(p=>p.y))));
-  const crop=document.createElement("canvas");
-  crop.width=Math.max(1,cropR-cropX);crop.height=Math.max(1,cropB-cropY);
-  const cropCtx=crop.getContext("2d");
-  if(!cropCtx)return full.toDataURL("image/png");
-  cropCtx.drawImage(full,cropX,cropY,crop.width,crop.height,0,0,crop.width,crop.height);
-  return crop.toDataURL("image/png");
+function solve8(a:number[][],b:number[]){
+  for(let i=0;i<8;i++){
+    let pivot=i;for(let r=i+1;r<8;r++)if(Math.abs(a[r][i])>Math.abs(a[pivot][i]))pivot=r;
+    if(Math.abs(a[pivot][i])<1e-9)return null;
+    [a[i],a[pivot]]=[a[pivot],a[i]];[b[i],b[pivot]]=[b[pivot],b[i]];
+    const d=a[i][i];for(let j=i;j<8;j++)a[i][j]/=d;b[i]/=d;
+    for(let r=0;r<8;r++)if(r!==i){const f=a[r][i];if(!f)continue;for(let j=i;j<8;j++)a[r][j]-=f*a[i][j];b[r]-=f*b[i];}
+  }return b;
+}
+
+function createArtworkCutout(image:HTMLImageElement,quad:ArtworkQuad,targetAspect:number){
+  const w=image.naturalWidth,h=image.naturalHeight,maxSide=1600,scale=Math.min(1,maxSide/Math.max(w,h)),srcW=Math.max(1,Math.round(w*scale)),srcH=Math.max(1,Math.round(h*scale));
+  const source=document.createElement("canvas");source.width=srcW;source.height=srcH;const sctx=source.getContext("2d");if(!sctx)return image.src;sctx.drawImage(image,0,0,srcW,srcH);
+  const p=quad.points.map(q=>({x:q.x*srcW,y:q.y*srcH})),aspect=Math.max(.2,Math.min(5,targetAspect||srcW/srcH));
+  let outW=1200,outH=Math.max(1,Math.round(outW/aspect));if(outH>1200){outH=1200;outW=Math.max(1,Math.round(outH*aspect));}
+  const dst=[{x:0,y:0},{x:outW,y:0},{x:outW,y:outH},{x:0,y:outH}],rows:number[][]=[],rhs:number[]=[];
+  for(let i=0;i<4;i++){const s=p[i],d=dst[i],x=s.x,y=s.y,u=d.x,v=d.y;rows.push([x,y,1,0,0,0,-u*x,-u*y]);rhs.push(u);rows.push([0,0,0,x,y,1,-v*x,-v*y]);rhs.push(v);}
+  const solution=solve8(rows,rhs);if(!solution){const fallback=document.createElement("canvas");fallback.width=outW;fallback.height=outH;const f=fallback.getContext("2d");if(!f)return image.src;f.drawImage(source,0,0,srcW,srcH,0,0,outW,outH);return fallback.toDataURL("image/png");}
+  const [a,b,c,d,e,f,g,hh]=solution,out=document.createElement("canvas");out.width=outW;out.height=outH;const ctx=out.getContext("2d");if(!ctx)return image.src;
+  const src=sctx.getImageData(0,0,srcW,srcH).data,pix=ctx.createImageData(outW,outH),data=pix.data;
+  for(let y=0;y<outH;y++)for(let x=0;x<outW;x++){
+    const den=g*x+hh*y+1,sx=(a*x+b*y+c)/den,sy=(d*x+e*y+f)/den,oi=(y*outW+x)*4;
+    if(sx<0||sy<0||sx>=srcW-1||sy>=srcH-1){data[oi+3]=0;continue;}
+    const x0=Math.floor(sx),y0=Math.floor(sy),fx=sx-x0,fy=sy-y0,i00=(y0*srcW+x0)*4,i10=i00+4,i01=i00+srcW*4,i11=i01+4;
+    for(let ch=0;ch<4;ch++)data[oi+ch]=Math.round(src[i00+ch]*(1-fx)*(1-fy)+src[i10+ch]*fx*(1-fy)+src[i01+ch]*(1-fx)*fy+src[i11+ch]*fx*fy);
+  }
+  ctx.putImageData(pix,0,0);return out.toDataURL("image/png");
 }
 
 export default function ARWallPreview({imageUrl,title,width,height,ru,artworkChoices=[]}:Props){
@@ -211,7 +220,7 @@ export default function ARWallPreview({imageUrl,title,width,height,ru,artworkCho
       const img=new Image();img.crossOrigin="anonymous";img.src=selectedImage;await img.decode();
       imageQuadRef.current=detectArtworkQuad(img,aspect);
       imageBoundsRef.current=quadToBounds(imageQuadRef.current);
-      cutoutUrlRef.current=createArtworkCutout(img,imageQuadRef.current);
+      cutoutUrlRef.current=createArtworkCutout(img,imageQuadRef.current,aspect);
       setMessage(ru?"Картина вырезана из фона.":"Artwork cut out from its background.");
     }catch{
       imageBoundsRef.current={x:0,y:0,width:1,height:1};

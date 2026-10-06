@@ -129,6 +129,9 @@ export default function ARWallPreview({imageUrl,title,width,height,ru}:Props){
   const stateRef=useRef<XRState|null>(null),imageQuadRef=useRef<ArtworkQuad>({points:[{x:0,y:0},{x:1,y:0},{x:1,y:1},{x:0,y:1}],confidence:0}),imageBoundsRef=useRef<ArtworkBounds>({x:0,y:0,width:1,height:1}),cutoutUrlRef=useRef<string|null>(null);
   const [mode,setMode]=useState<"idle"|"camera"|"ar">("idle"),[message,setMessage]=useState("");
   const [analysis,setAnalysis]=useState(false),[placed,setPlaced]=useState(false),[canPlace,setCanPlace]=useState(false),[cameraScale,setCameraScale]=useState(1),[xrAvailable,setXrAvailable]=useState<boolean|null>(null),[sceneViewerAvailable,setSceneViewerAvailable]=useState(false);
+  const [selectedImage,setSelectedImage]=useState(imageUrl||"");
+  const [selectedDimensions,setSelectedDimensions]=useState({width,height});
+  const [artworkChoices,setArtworkChoices]=useState<Array<{id:string;title:string;image:string;width:number;height:number}>>([]);
   const [drag,setDrag]=useState({x:50,y:45});
   const dragRef=useRef({active:false,startX:0,startY:0,x:50,y:45});
   const eightWallRef=useRef<{stop:()=>void}|null>(null);
@@ -160,10 +163,10 @@ export default function ARWallPreview({imageUrl,title,width,height,ru}:Props){
   useEffect(()=>()=>cleanup(),[]);
 
   const analyzeSource=async()=>{
-    if(!imageUrl)return;
+    if(!selectedImage)return;
     setAnalysis(true);
     try{
-      const img=new Image();img.crossOrigin="anonymous";img.src=imageUrl;await img.decode();
+      const img=new Image();img.crossOrigin="anonymous";img.src=selectedImage;await img.decode();
       imageQuadRef.current=detectArtworkQuad(img,aspect);
       imageBoundsRef.current=quadToBounds(imageQuadRef.current);
       cutoutUrlRef.current=createArtworkCutout(img,imageQuadRef.current);
@@ -188,12 +191,32 @@ export default function ARWallPreview({imageUrl,title,width,height,ru}:Props){
   };
 
   useEffect(()=>{setSceneViewerAvailable(isAndroidDevice())},[]);
+  useEffect(()=>{setSelectedImage(imageUrl||"");setSelectedDimensions({width,height})},[imageUrl,width,height]);
+  useEffect(()=>{
+    const loadChoices=async()=>{
+      try{
+        const res=await fetch("/api/artworks");
+        if(!res.ok)return;
+        const data=await res.json();
+        const rows=Array.isArray(data)?data:(Array.isArray(data?.artworks)?data.artworks:[]);
+        const choices=rows.map((a:any)=>({
+          id:String(a.id??a.slug??a.title??Math.random()),
+          title:String(a.title??a.name??"Artwork"),
+          image:String(a.imageUrl??a.image_url??a.image??a.cover_image??""),
+          width:Number(a.width??a.dimensions?.width??0),
+          height:Number(a.height??a.dimensions?.height??0)
+        })).filter((a:any)=>a.image);
+        if(choices.length)setArtworkChoices(choices);
+      }catch{}
+    };
+    void loadChoices();
+  },[]);
 
   const openSceneViewer=async()=>{
-    if(!imageUrl||!isAndroidDevice())return;
+    if(!selectedImage||!isAndroidDevice())return;
     try{
       const modelUrl=new URL("/api/ar-model",window.location.origin);
-      modelUrl.searchParams.set("image",imageUrl);
+      modelUrl.searchParams.set("image",selectedImage);
       modelUrl.searchParams.set("width",String(width));
       modelUrl.searchParams.set("height",String(height));
       const fallback=new URL(window.location.href);
@@ -271,7 +294,7 @@ export default function ARWallPreview({imageUrl,title,width,height,ru}:Props){
   };
 
   const start8thWall=async()=>{
-    if(!imageUrl)return;
+    if(!selectedImage)return;
     try{
       cleanup();
       setMessage(ru?'Загружаем 8th Wall WebAR…':'Loading 8th Wall WebAR…');
@@ -302,9 +325,9 @@ export default function ARWallPreview({imageUrl,title,width,height,ru}:Props){
       canvas.className='ar-three-canvas';
       canvas.style.position='fixed';canvas.style.inset='0';canvas.style.width='100vw';canvas.style.height='100vh';canvas.style.zIndex='2';
       rootRef.current?.appendChild(canvas);
-      const image=new Image();image.crossOrigin='anonymous';image.src=cutoutUrlRef.current||imageUrl;await image.decode();
+      const image=new Image();image.crossOrigin='anonymous';image.src=cutoutUrlRef.current||selectedImage;await image.decode();
       const texture=new THREE.Texture(image);texture.needsUpdate=true;texture.colorSpace=THREE.SRGBColorSpace;
-      const artW=Math.max(.01,width/100),artH=Math.max(.01,height/100),thickness=.018;
+      const artW=Math.max(.01,activeWidth/100),artH=Math.max(.01,activeHeight/100),thickness=.018;
       let trackedCamera:THREE.Camera|null=null;
       let trackedCanvas:HTMLCanvasElement|null=null;
       let trackedArtwork:THREE.Group|null=null;
@@ -325,17 +348,15 @@ export default function ARWallPreview({imageUrl,title,width,height,ru}:Props){
           const mesh=new THREE.Mesh(new THREE.BoxGeometry(artW,artH,thickness),[sideMaterial,sideMaterial,sideMaterial,sideMaterial,material,sideMaterial]);
           const artwork=new THREE.Group();artwork.add(mesh);
           trackedArtwork=artwork;
-          trackedArtwork=artwork;
           artwork.position.set(0,1.45,-2.2);
           scene.add(artwork);
           const wallGuide=new THREE.Mesh(
             new THREE.PlaneGeometry(artW,artH),
             new THREE.MeshBasicMaterial({map:texture,transparent:true,opacity:.28,side:THREE.DoubleSide,depthWrite:false})
           );
-          if(trackedWallGuide)trackedWallGuide.visible=false;
+          wallGuide.visible=false;
           trackedWallGuide=wallGuide;
           scene.add(wallGuide);
-          trackedWallGuide=wallGuide;
           scene.add(new THREE.HemisphereLight(0xffffff,0x333333,1.15));
           w.XR8.XrController.updateCameraProjectionMatrix({origin:camera.position,facing:camera.quaternion});
           startedCanvas.addEventListener('touchstart',(ev:TouchEvent)=>{
@@ -432,7 +453,7 @@ export default function ARWallPreview({imageUrl,title,width,height,ru}:Props){
 
       // Temporary diagnostic object: a plain 3D panel.
       // Artwork analysis is deliberately excluded until hit-test placement is confirmed.
-      const artW=Math.max(.01,width/100),artH=Math.max(.01,height/100),thickness=.018;
+      const artW=Math.max(.01,activeWidth/100),artH=Math.max(.01,activeHeight/100),thickness=.018;
       const geometry=new THREE.BoxGeometry(artW,artH,thickness);
       const front=new THREE.MeshStandardMaterial({color:0xf0ece4,roughness:.8});
       const side=new THREE.MeshStandardMaterial({color:0x171717,roughness:.5});
@@ -578,12 +599,14 @@ export default function ARWallPreview({imageUrl,title,width,height,ru}:Props){
   const onPointerUp=()=>{dragRef.current.active=false};
 
   if(!imageUrl)return <p className="ar-empty">{ru?"У этой работы нет изображения.":"This work has no image."}</p>;
-  const aspect=width>0&&height>0?width/height:1;
+  const activeWidth=selectedDimensions.width||width,activeHeight=selectedDimensions.height||height;
+  const aspect=activeWidth>0&&activeHeight>0?activeWidth/activeHeight:1;
 
   return <div ref={rootRef} className="ar-preview">
-    <video ref={videoRef} className="ar-camera" playsInline muted/>
+    <video ref={videoRef} className="ar-camera" playsInline muted style={{objectFit:"cover",width:"100%",height:"100%",background:"#000"}}/>
     <div className="ar-topbar"><span>{ru?"ПОСМОТРЕТЬ НА СТЕНЕ":"VIEW ON YOUR WALL"}</span><button type="button" onClick={cleanup}>×</button></div>
     {mode==="idle"&&<div className="ar-start">
+      {artworkChoices.length>0&&<div className="ar-artwork-picker"><span>{ru?"Выберите картину":"Choose artwork"}</span><div className="ar-artwork-options">{artworkChoices.map(a=><button key={a.id} type="button" className={selectedImage===a.image?"selected":""} onClick={()=>{setSelectedImage(a.image);setSelectedDimensions({width:a.width||width,height:a.height||height});setMessage(ru?"Картина выбрана.":"Artwork selected.");}}><img src={a.image} alt={a.title}/><small>{a.title}</small></button>)}</div></div>}
       <p>{message|| (ru?"8th Wall: WebAR-трекинг без ARCore и WebXR, с картиной в реальном размере.":"8th Wall: WebAR tracking without ARCore or WebXR, with the artwork at its real size.")}</p>
       <button type="button" onClick={start8thWall}>{ru?"Открыть 8th Wall AR":"Open 8th Wall AR"}</button>
       <button type="button" className="ar-secondary" onClick={startAR}>{ru?"WebXR AR":"WebXR AR"}</button>
@@ -593,6 +616,6 @@ export default function ARWallPreview({imageUrl,title,width,height,ru}:Props){
     </div>}
     {mode==="camera"&&<div className="ar-artwork" style={{left:drag.x+"%",top:drag.y+"%",width:(22*cameraScale)+"%",aspectRatio:String(aspect),transform:"translate(-50%,-50%)"}} onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={onPointerUp}><img src={cutoutUrlRef.current||imageUrl} alt={title}/></div>}
     {mode==="camera"&&<div className="ar-controls"><span>{analysis?(ru?"Определяем границы картины…":"Detecting artwork edges…"):message||(ru?"Перемещайте картину пальцем":"Drag the artwork with your finger")}</span><input aria-label={ru?"Размер":"Size"} type="range" min=".5" max="1.8" step=".01" value={cameraScale} onChange={e=>setCameraScale(Number(e.target.value))}/></div>}
-    {mode==="ar"&&<div className="ar-controls"><span>{message}</span>{canPlace&&!placed&&<button type="button" className="ar-place" onClick={placeArtwork}>{ru?"Разместить картину":"Place artwork"}</button>}{placed&&<span className="ar-ar-note">{width+" × "+height+" "+(ru?"см · толщина 1,8 см":"cm · 1.8 cm thick")}</span>}</div>}
+    {mode==="ar"&&<div className="ar-controls"><span>{message}</span>{canPlace&&!placed&&<button type="button" className="ar-place" onClick={placeArtwork}>{ru?"Разместить картину":"Place artwork"}</button>}{placed&&<span className="ar-ar-note">{activeWidth+" × "+activeHeight+" "+(ru?"см · толщина 1,8 см":"cm · 1.8 cm thick")}</span>}</div>}
   </div>;
 }

@@ -717,6 +717,23 @@ export default function ARWallPreview({imageUrl,title,width,height,ru,artworkCho
       setMessage(ru
         ? "WebXR AR недоступен"+(details?" ("+details+")":"")+". Переключаемся в совместимый режим камеры."
         : "WebXR AR is unavailable"+(details?" ("+details+")":"")+". Switching to the compatible camera mode.");
+      // Android fallback: use Google's native Scene Viewer instead of
+      // pretending that a 2D camera overlay is AR. Scene Viewer performs
+      // world tracking, surface placement and perspective in native ARCore.
+      if(isAndroidDevice()){
+        try{
+          const modelUrl=new URL("/api/ar-model",window.location.origin);
+          modelUrl.searchParams.set("image",selectedImage);
+          modelUrl.searchParams.set("width",String(activeWidth));
+          modelUrl.searchParams.set("height",String(activeHeight));
+          const fallback=new URL(window.location.href);
+          fallback.hash="ar-camera";
+          window.location.href=buildSceneViewerIntent(modelUrl.toString(),fallback.toString());
+          return;
+        }catch(sceneError){
+          console.warn("Scene Viewer fallback failed; using camera fallback",sceneError);
+        }
+      }
       await startCamera();
     }
   };

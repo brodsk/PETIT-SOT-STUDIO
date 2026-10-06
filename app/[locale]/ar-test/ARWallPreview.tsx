@@ -65,6 +65,47 @@ function quadToBounds(quad:ArtworkQuad):ArtworkBounds{
   return{x,y,width:Math.max(.01,r-x),height:Math.max(.01,b-y)};
 }
 
+function detectWallPlane(points:any[],camera:THREE.Camera,canvasWidth:number,canvasHeight:number){
+  const usable=points
+    .filter(p=>p?.position&&Number(p?.confidence??1)>=.05)
+    .map(p=>{
+      const v=new THREE.Vector3(p.position.x,p.position.y,p.position.z);
+      const projected=v.clone().project(camera);
+      return {v,sx:(projected.x*.5+.5)*canvasWidth,sy:(-projected.y*.5+.5)*canvasHeight,depth:projected.z};
+    })
+    .filter(p=>p.depth>-1&&p.depth<1&&p.sx>canvasWidth*.14&&p.sx<canvasWidth*.86&&p.sy>canvasHeight*.12&&p.sy<canvasHeight*.88&&p.v.distanceTo(camera.position)>.45&&p.v.distanceTo(camera.position)<7);
+  if(usable.length<12)return null;
+  const sample=usable.length>45?usable.filter((_,i)=>i%Math.ceil(usable.length/45)===0).slice(0,45):usable;
+  let best:{normal:THREE.Vector3;center:THREE.Vector3;score:number}|null=null;
+  for(let i=0;i<sample.length;i++)for(let j=i+1;j<sample.length;j++)for(let k=j+1;k<sample.length;k++){
+    const a=sample[i].v,b=sample[j].v,d=sample[k].v;
+    const normal=new THREE.Vector3().crossVectors(new THREE.Vector3().subVectors(b,a),new THREE.Vector3().subVectors(d,a));
+    const area2=normal.length();
+    if(area2<.012)continue;
+    normal.normalize();
+    if(Math.abs(normal.y)>.28)continue;
+    const center=new THREE.Vector3().addVectors(a,b).add(d).multiplyScalar(1/3);
+    let inliers=0;
+    for(const q of usable){
+      if(Math.abs(normal.dot(new THREE.Vector3().subVectors(q.v,center)))<.055)inliers++;
+    }
+    const screenDist=Math.hypot(((sample[i].sx+sample[j].sx+sample[k].sx)/3)-canvasWidth*.5,((sample[i].sy+sample[j].sy+sample[k].sy)/3)-canvasHeight*.48)/(Math.min(canvasWidth,canvasHeight));
+    const score=inliers-screenDist*10;
+    if(!best||score>best.score)best={normal,center,score};
+  }
+  if(!best||best.score<9)return null;
+  if(best.normal.dot(new THREE.Vector3().subVectors(camera.position,best.center))<0)best.normal.negate();
+  return {normal:best.normal,center:best.center};
+}
+
+function makeWallQuaternion(normal:THREE.Vector3){
+  const y=new THREE.Vector3(0,1,0);
+  const z=normal.clone().normalize();
+  const x=new THREE.Vector3().crossVectors(y,z).normalize();
+  y.copy(new THREE.Vector3().crossVectors(z,x).normalize());
+  return new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().makeBasis(x,y,z));
+}
+
 function isAndroidDevice(){
   return /Android/i.test(navigator.userAgent);
 }
@@ -91,6 +132,7 @@ export default function ARWallPreview({imageUrl,title,width,height,ru}:Props){
   const [drag,setDrag]=useState({x:50,y:45});
   const dragRef=useRef({active:false,startX:0,startY:0,x:50,y:45});
   const eightWallRef=useRef<{stop:()=>void}|null>(null);
+  const wallCandidateRef=useRef<{position:THREE.Vector3;quaternion:THREE.Quaternion}|null>(null);
 
   const cleanup=()=>{
     try{eightWallRef.current?.stop();}catch{}
@@ -273,10 +315,17 @@ export default function ARWallPreview({imageUrl,title,width,height,ru}:Props){
           renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));
           const material=new THREE.MeshBasicMaterial({map:texture,transparent:true,side:THREE.FrontSide});
           const sideMaterial=new THREE.MeshStandardMaterial({color:0x171717,roughness:.62});
-          const mesh=new THREE.Mesh(new THREE.BoxGeometry(artW,artH,thickness),[sideMaterial,sideMaterial,material,sideMaterial,sideMaterial,sideMaterial]);
+          // BoxGeometry material order: right, left, top, bottom, front, back.
+          const mesh=new THREE.Mesh(new THREE.BoxGeometry(artW,artH,thickness),[sideMaterial,sideMaterial,sideMaterial,sideMaterial,material,sideMaterial]);
           const artwork=new THREE.Group();artwork.add(mesh);
           artwork.position.set(0,1.45,-2.2);
           scene.add(artwork);
+          const wallGuide=new THREE.Mesh(
+            new THREE.PlaneGeometry(artW,artH),
+            new THREE.MeshBasicMaterial({map:texture,transparent:true,opacity:.28,side:THREE.DoubleSide,depthWrite:false})
+          );
+          wallGuide.visible=false;
+          scene.add(wallGuide);
           scene.add(new THREE.HemisphereLight(0xffffff,0x333333,1.15));
           w.XR8.XrController.updateCameraProjectionMatrix({origin:camera.position,facing:camera.quaternion});
           startedCanvas.addEventListener('touchstart',(ev:TouchEvent)=>{
@@ -292,15 +341,32 @@ export default function ARWallPreview({imageUrl,title,width,height,ru}:Props){
         },
         onUpdate:({processCpuResult}:any)=>{
           const reality=processCpuResult?.reality;
-          if(reality?.trackingStatus==='NORMAL')setMessage(ru?'Трекинг стабилен · двигайтесь вокруг картины':'Tracking stable · walk around the artwork');
+          if(reality?.trackingStatus==='NORMAL'&&Array.isArray(reality.worldPoints)){
+            const plane=detectWallPlane(reality.worldPoints,camera,startedCanvas.clientWidth||window.innerWidth,startedCanvas.clientHeight||window.innerHeight);
+            if(plane&&!artwork.userData.locked){
+              const q=makeWallQuaternion(plane.normal);
+              wallGuide.position.lerp(plane.center,.22);
+              wallGuide.quaternion.slerp(q,.22);
+              wallGuide.visible=true;
+              wallGuide.userData.candidate={position:plane.center.clone().add(plane.normal.clone().multiplyScalar(.012)),quaternion:q.clone()};
+              wallCandidateRef.current=wallGuide.userData.candidate;
+              setCanPlace(true);
+              setMessage(ru?'Стена найдена — нажмите «Разместить картину».':'Wall detected — tap Place artwork.');
+            }else if(!artwork.userData.locked){
+              wallGuide.visible=false;
+              wallCandidateRef.current=null;
+              setCanPlace(false);
+              setMessage(ru?'Медленно наведите камеру на фактурную стену.':'Slowly point the camera at a textured wall.');
+            }
+          }
         },
         onException:({error}:any)=>console.error('8th Wall exception',error),
       };
-      w.XR8.XrController.configure({disableWorldTracking:false,enableLighting:true,scale:'absolute'});
+      w.XR8.XrController.configure({disableWorldTracking:false,enableLighting:true,enableWorldPoints:true,scale:'absolute'});
       w.XR8.addCameraPipelineModules([w.XR8.GlTextureRenderer.pipelineModule(),w.XR8.Threejs.pipelineModule(),w.XR8.XrController.pipelineModule(),initModule]);
       w.XR8.run({canvas,allowedDevices:w.XR8.XrConfig.device().MOBILE});
       setMode('ar');setPlaced(true);setCanPlace(false);
-      eightWallRef.current={stop:()=>{try{w.XR8.stop?.();}catch{}try{texture.dispose();}catch{}try{canvas.remove();}catch{}}};
+      eightWallRef.current={stop:()=>{try{w.XR8.stop?.();}catch{}try{texture.dispose();}catch{}try{canvas.remove();}catch{}wallCandidateRef.current=null;}};
     }catch(error){
       console.error('8th Wall start failed',error);
       setMessage(ru?'8th Wall не запустился: '+(error instanceof Error?error.message:'неизвестная ошибка'):'8th Wall failed to start: '+(error instanceof Error?error.message:'unknown error'));
@@ -458,10 +524,35 @@ export default function ARWallPreview({imageUrl,title,width,height,ru}:Props){
   };
 
   const placeArtwork=()=>{
-    const s=stateRef.current;if(!s?.lastHit)return;
-    s.artwork.position.copy(s.lastHit.position);s.artwork.quaternion.copy(s.lastHit.quaternion);
-    s.artwork.visible=true;s.placed=true;s.reticle.visible=false;setPlaced(true);setCanPlace(false);
-    setMessage(ru?"Готово — теперь обойдите картину.":"Placed — now walk around the artwork.");
+    const eight=wallCandidateRef.current;
+    if(eight&&mode==="ar"){
+      const root=window.document.querySelector('.ar-three-canvas')?.parentElement;
+      void root;
+      // 8th Wall keeps the artwork in its Three.js world; the candidate is applied by
+      // the dedicated placement event below.
+    }
+    const s=stateRef.current;
+    if(s?.lastHit){
+      s.artwork.position.copy(s.lastHit.position);s.artwork.quaternion.copy(s.lastHit.quaternion);
+      s.artwork.visible=true;s.placed=true;s.reticle.visible=false;setPlaced(true);setCanPlace(false);
+      setMessage(ru?"Готово — теперь обойдите картину.":"Placed — now walk around the artwork.");
+      return;
+    }
+    const canvas=rootRef.current?.querySelector('.ar-three-canvas') as HTMLCanvasElement|null;
+    if(eight&&canvas){
+      const w=window as any;
+      try{
+        const xrScene=w.XR8?.Threejs?.xrScene?.();
+        const group=xrScene?.scene?.children?.find((o:any)=>o?.type==="Group"&&o?.children?.some((m:any)=>m?.geometry?.type==="BoxGeometry"));
+        if(group){
+          group.position.copy(eight.position);group.quaternion.copy(eight.quaternion);group.userData.locked=true;group.visible=true;
+          const guide=xrScene.scene.children.find((o:any)=>o?.type==="Mesh"&&o?.geometry?.type==="PlaneGeometry");
+          if(guide)guide.visible=false;
+          setPlaced(true);setCanPlace(false);
+          setMessage(ru?"Готово — картина стоит на стене. Обойдите её.":"Done — the artwork is on the wall. Walk around it.");
+        }
+      }catch(error){console.error("8th Wall placement failed",error);}
+    }
   };
 
   const onPointerDown=(e:React.PointerEvent)=>{

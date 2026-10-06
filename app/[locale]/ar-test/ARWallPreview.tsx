@@ -158,9 +158,40 @@ export default function ARWallPreview({imageUrl,title,width,height,ru}:Props){
       }
       const supported=await xr.isSessionSupported("immersive-ar");
       setXrAvailable(supported);
-      setMessage(supported
-        ? (ru?"✓ immersive-ar поддерживается этим браузером и устройством.":"✓ immersive-ar is supported by this browser and device.")
-        : (ru?"✕ immersive-ar НЕ поддерживается этим браузером/устройством.":"✕ immersive-ar is NOT supported by this browser/device."));
+
+      const ua=navigator.userAgent;
+      const browser=/Chrome\//.test(ua)?"Chrome":/Edg\//.test(ua)?"Edge":/Firefox\//.test(ua)?"Firefox":/SamsungBrowser\//.test(ua)?"Samsung Browser":/MiuiBrowser\//.test(ua)?"Mi Browser":"other";
+      const attempts:Record<string,string>={};
+      const configs:Record<string,XRSessionInit>={
+        "plain":{},
+        "hit-test":{optionalFeatures:["hit-test"]},
+        "local-floor":{optionalFeatures:["local-floor"]},
+        "hit-test + local-floor":{optionalFeatures:["hit-test","local-floor"]}
+      };
+      for(const [label,config] of Object.entries(configs)){
+        try{
+          const testSession=await xr.requestSession("immersive-ar",config);
+          attempts[label]="OK";
+          await testSession.end();
+          break;
+        }catch(error){
+          const e=error as any;
+          attempts[label]=[e?.name,e?.message].filter(Boolean).join(": ")||"failed";
+        }
+      }
+      const firstSuccess=Object.entries(attempts).find(([,value])=>value==="OK");
+      if(firstSuccess){
+        setXrAvailable(true);
+        setMessage(ru
+          ? `✓ WebXR AR реально запускается через «${firstSuccess[0]}». Браузер: ${browser}.`
+          : `✓ WebXR AR actually starts with “${firstSuccess[0]}”. Browser: ${browser}.`);
+      }else{
+        setXrAvailable(false);
+        const summary=Object.entries(attempts).map(([k,v])=>`${k}: ${v}`).join(" · ");
+        setMessage(ru
+          ? `WebXR заявлен как поддерживаемый, но ни одна AR-сессия не запускается. Браузер: ${browser}. ${summary}`
+          : `WebXR reports support, but no AR session can start. Browser: ${browser}. ${summary}`);
+      }
     }catch(error){
       console.error("WebXR diagnostic failed",error);
       setXrAvailable(false);
@@ -183,7 +214,25 @@ export default function ARWallPreview({imageUrl,title,width,height,ru}:Props){
         return;
       }
 
-      const session=await xr.requestSession("immersive-ar");
+      let session:any=null;
+      let lastError:any=null;
+      const sessionConfigs:XRSessionInit[]=[
+        {},
+        {optionalFeatures:["hit-test"]},
+        {optionalFeatures:["local-floor"]},
+        {optionalFeatures:["hit-test","local-floor"]}
+      ];
+      for(const config of sessionConfigs){
+        try{
+          session=await xr.requestSession("immersive-ar",config);
+          break;
+        }catch(error){
+          lastError=error;
+        }
+      }
+      if(!session){
+        throw lastError||new DOMException("immersive-ar session could not be created","NotSupportedError");
+      }
 
       const renderer=new THREE.WebGLRenderer({antialias:true,alpha:true,powerPreference:"high-performance"});
       renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));

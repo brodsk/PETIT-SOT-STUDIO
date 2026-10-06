@@ -457,7 +457,7 @@ export default function ARWallPreview({imageUrl,title,width,height,ru,artworkCho
           const side=new THREE.MeshStandardMaterial({color:0x171717,roughness:.65});
           const backing=new THREE.Mesh(new THREE.BoxGeometry(artW,artH,thickness),side);
           front.position.z=thickness/2+.003;
-          backing.position.z=-thickness/2-.003;
+          backing.position.z=0;
           const artwork=new THREE.Group();artwork.add(backing);artwork.add(front);artwork.visible=false;
           artwork.userData.locked=false;scene.add(artwork);
           trackedArtwork=artwork;eightWallArtworkRef.current=artwork;
@@ -476,17 +476,11 @@ export default function ARWallPreview({imageUrl,title,width,height,ru,artworkCho
           // Always put the artwork into the tracked 3D world immediately. Wall detection
           // refines this pose later; this prevents a blank camera while SLAM is warming up.
           if(trackedArtwork&&!wallCandidateRef.current){
-            const cp=trackedCamera.position.clone();
-            const forward=new THREE.Vector3(0,0,-1).applyQuaternion(trackedCamera.quaternion).normalize();
-            const fallbackNormal=forward.clone().negate();
-            fallbackNormal.y=0;
-            if(fallbackNormal.lengthSq()>.01){
-              fallbackNormal.normalize();
-              const fallbackPos=cp.clone().add(forward.multiplyScalar(1.35));
-              const fallbackQ=makeWallQuaternion(fallbackNormal);
-              trackedArtwork.position.copy(fallbackPos);
-              trackedArtwork.quaternion.copy(fallbackQ);
-              trackedArtwork.visible=true;
+      // Do not float the artwork in front of the camera. Until a real vertical wall
+      // is detected, keep the artwork hidden. The only valid placement is the
+      // intersection of the camera ray with the tracked wall plane.
+      trackedArtwork.visible=false;
+
             }
           }
           const reality=processCpuResult?.reality;
@@ -500,12 +494,12 @@ export default function ARWallPreview({imageUrl,title,width,height,ru,artworkCho
           const wallPlane=new THREE.Plane().setFromNormalAndCoplanarPoint(stable.normal,stable.center);
           const ray=new THREE.Raycaster();ray.setFromCamera(new THREE.Vector2(0,0),trackedCamera);
           const hit=new THREE.Vector3();const hitOk=ray.ray.intersectPlane(wallPlane,hit);
-          const pos=(hitOk?hit:stable.center.clone()).add(stable.normal.clone().multiplyScalar(thickness/2+.006));
+          if(!hitOk)return;\n          // Put the rear face a few millimetres in front of the physical wall.\n          // The artwork's local +Z points toward the viewer.\n          const pos=hit.clone().add(stable.normal.clone().multiplyScalar(thickness/2+.003));
           const q=makeWallQuaternion(stable.normal);
           lastCandidate={position:pos,quaternion:q};wallCandidateRef.current=lastCandidate;
           if(trackedGuide){trackedGuide.position.copy(pos);trackedGuide.quaternion.copy(q);trackedGuide.visible=true;}
           if(trackedArtwork){trackedArtwork.position.copy(pos);trackedArtwork.quaternion.copy(q);trackedArtwork.visible=true;}
-          setCanPlace(true);setMessage(ru?'Стена найдена — нажмите «Разместить картину».':'Wall found — tap Place artwork.');
+          setCanPlace(true);setMessage(ru?'Стена найдена — картина уже прилеплена к стене. Нажмите «Разместить» для фиксации.':'Wall found — the artwork is already flush with the wall. Tap Place to lock it.');
         },
         onException:({error}:any)=>setMessage((ru?'Ошибка WebAR: ':'WebAR error: ')+(error?.message||error?.name||'unknown')),
       };

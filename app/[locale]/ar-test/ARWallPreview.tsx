@@ -397,8 +397,7 @@ export default function ARWallPreview({imageUrl,title,width,height,ru,artworkCho
       eightWallCanvasRef.current=canvas;
       canvas.className='ar-three-canvas';
       canvas.style.position='absolute';canvas.style.inset='0';canvas.style.width='100%';canvas.style.height='100%';canvas.style.zIndex='2';
-      canvas.style.objectFit='cover';
-      rootRef.current?.appendChild(canvas);
+            rootRef.current?.appendChild(canvas);
 
       // Let 8th Wall own the camera canvas and Three.js viewport. Its Threejs
       // pipeline supplies the real camera intrinsics and render size on start.
@@ -431,7 +430,6 @@ export default function ARWallPreview({imageUrl,title,width,height,ru,artworkCho
           trackedCamera=camera;
           const renderer=xrScene.renderer as THREE.WebGLRenderer;
           renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));
-          renderer.setSize(canvasWidth,canvasHeight,false);
           const material=new THREE.MeshBasicMaterial({map:texture,transparent:true,side:THREE.FrontSide});
           const sideMaterial=new THREE.MeshStandardMaterial({color:0x171717,roughness:.62});
           // BoxGeometry material order: right, left, top, bottom, front, back.

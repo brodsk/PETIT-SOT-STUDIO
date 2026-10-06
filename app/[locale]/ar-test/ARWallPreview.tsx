@@ -443,13 +443,21 @@ export default function ARWallPreview({imageUrl,title,width,height,ru,artworkCho
         },
         onStart:({canvas:startedCanvas}:any)=>{
           const xr=w.XR8.Threejs.xrScene();
+          const rootRect=rootRef.current?.getBoundingClientRect();
+          const canvasWidth=Math.max(1,Math.round(rootRect?.width||startedCanvas.clientWidth||window.innerWidth));
+          const canvasHeight=Math.max(1,Math.round(rootRect?.height||startedCanvas.clientHeight||window.innerHeight));
+          startedCanvas.style.width=`${canvasWidth}px`;
+          startedCanvas.style.height=`${canvasHeight}px`;
+          const xrRenderer=xr.renderer as THREE.WebGLRenderer;
+          xrRenderer.setSize(canvasWidth,canvasHeight,false);
           trackedCamera=xr.camera as THREE.Camera;
           const scene=xr.scene as THREE.Scene;
           const material=new THREE.MeshBasicMaterial({map:texture,side:THREE.DoubleSide,transparent:false});
           const front=new THREE.Mesh(new THREE.PlaneGeometry(artW,artH),material);
           const side=new THREE.MeshStandardMaterial({color:0x171717,roughness:.65});
           const backing=new THREE.Mesh(new THREE.BoxGeometry(artW,artH,thickness),side);
-          front.position.z=thickness/2;
+          front.position.z=thickness/2+.003;
+          backing.position.z=-thickness/2-.003;
           const artwork=new THREE.Group();artwork.add(backing);artwork.add(front);artwork.visible=false;
           artwork.userData.locked=false;scene.add(artwork);
           trackedArtwork=artwork;eightWallArtworkRef.current=artwork;
@@ -458,6 +466,10 @@ export default function ARWallPreview({imageUrl,title,width,height,ru,artworkCho
           scene.add(new THREE.HemisphereLight(0xffffff,0x333333,1.15));
           eightWallCanvasRef.current=startedCanvas;
           setMessage(ru?'Наведите камеру на стену и медленно двигайте телефон.':'Point at a wall and move the phone slowly.');
+        },
+        onCanvasSizeChange:({canvasWidth,canvasHeight}:any)=>{
+          const xr=w.XR8.Threejs.xrScene();
+          try{(xr.renderer as THREE.WebGLRenderer).setSize(canvasWidth,canvasHeight,false);}catch{}
         },
         onUpdate:({processCpuResult}:any)=>{
           if(!trackedCamera||trackedArtwork?.userData.locked)return;

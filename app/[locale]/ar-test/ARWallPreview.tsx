@@ -143,6 +143,31 @@ export default function ARWallPreview({imageUrl,title,width,height,ru}:Props){
     }catch{setMessage(ru?"Нет доступа к камере.":"Camera access was denied.");}
   };
 
+  const runXRDiagnostic=async()=>{
+    try{
+      const xr=(navigator as any).xr;
+      if(!xr){
+        setXrAvailable(false);
+        setMessage(ru?"WebXR API не найден.":"WebXR API not found.");
+        return;
+      }
+      if(!xr.isSessionSupported){
+        setXrAvailable(false);
+        setMessage(ru?"WebXR есть, но проверка immersive-ar недоступна.":"WebXR exists, but immersive-ar support check is unavailable.");
+        return;
+      }
+      const supported=await xr.isSessionSupported("immersive-ar");
+      setXrAvailable(supported);
+      setMessage(supported
+        ? (ru?"✓ immersive-ar поддерживается этим браузером и устройством.":"✓ immersive-ar is supported by this browser and device.")
+        : (ru?"✕ immersive-ar НЕ поддерживается этим браузером/устройством.":"✕ immersive-ar is NOT supported by this browser/device."));
+    }catch(error){
+      console.error("WebXR diagnostic failed",error);
+      setXrAvailable(false);
+      setMessage(ru?"Ошибка проверки WebXR. Откройте консоль браузера для деталей.":"WebXR diagnostic failed. Check the browser console for details.");
+    }
+  };
+
   const startAR=async()=>{
     const xr=(navigator as any).xr;
     if(!xr?.isSessionSupported){await startCamera();return;}

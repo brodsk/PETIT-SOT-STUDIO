@@ -71,8 +71,8 @@ function detectWallPlane(points:any[],camera:THREE.Camera,canvasWidth:number,can
     const v=new THREE.Vector3(p.position.x,p.position.y,p.position.z),q=v.clone().project(camera);
     return {v,sx:(q.x*.5+.5)*canvasWidth,sy:(-q.y*.5+.5)*canvasHeight,depth:q.z};
   }).filter(p=>p.depth>-1&&p.depth<1&&p.sx>canvasWidth*.22&&p.sx<canvasWidth*.78&&p.sy>canvasHeight*.16&&p.sy<canvasHeight*.84&&p.v.distanceTo(camera.position)>.5&&p.v.distanceTo(camera.position)<6);
-  if(projected.length<20)return null;
-  const sample=projected.length>90?projected.filter((_,i)=>i%Math.ceil(projected.length/90)===0).slice(0,90):projected;
+  if(projected.length<8)return null;
+  const sample=projected.length>140?projected.filter((_,i)=>i%Math.ceil(projected.length/140)===0).slice(0,140):projected;
   const center=sample.reduce((v,p)=>v.add(p.v),new THREE.Vector3()).multiplyScalar(1/sample.length);
   const cov=[[0,0,0],[0,0,0],[0,0,0]];
   for(const p of sample){const d=p.v.clone().sub(center);cov[0][0]+=d.x*d.x;cov[0][1]+=d.x*d.y;cov[0][2]+=d.x*d.z;cov[1][0]+=d.y*d.x;cov[1][1]+=d.y*d.y;cov[1][2]+=d.y*d.z;cov[2][0]+=d.z*d.x;cov[2][1]+=d.z*d.y;cov[2][2]+=d.z*d.z;}
@@ -91,7 +91,7 @@ function detectWallPlane(points:any[],camera:THREE.Camera,canvasWidth:number,can
   const normal=new THREE.Vector3(v[0][smallest],v[1][smallest],v[2][smallest]).normalize();
   if(Math.abs(normal.y)>.32)return null;
   const distances=sample.map(p=>Math.abs(normal.dot(p.v.clone().sub(center)))).sort((x,y)=>x-y);
-  if((distances[Math.floor(distances.length/2)]||Infinity)>.045)return null;
+  if((distances[Math.floor(distances.length/2)]||Infinity)>.11)return null;
   if(normal.dot(new THREE.Vector3().subVectors(camera.position,center))<0)normal.negate();
   return {normal,center};
 }
@@ -434,6 +434,13 @@ export default function ARWallPreview({imageUrl,title,width,height,ru,artworkCho
       let trackedWallGuide:THREE.Mesh|null=null;
       const initModule={
         name:'petitsot-eightwall-scene',
+        onCameraStatusChange:({status}:any)=>{
+          console.log('[PETIT.SOT 8th Wall camera]',status);
+          if(status==='requesting')setMessage(ru?'Запрашиваем доступ к камере…':'Requesting camera access…');
+          else if(status==='hasStream')setMessage(ru?'Камера подключена. Запускаем SLAM…':'Camera connected. Starting SLAM…');
+          else if(status==='hasVideo')setMessage(ru?'SLAM запущен. Медленно наведите телефон на стену.':'SLAM is running. Slowly point the phone at a wall.');
+          else if(status==='failed')setMessage(ru?'8th Wall не получил видеопоток камеры. Проверьте разрешение камеры в браузере.':'8th Wall could not get the camera stream. Check camera permission in the browser.');
+        },
         onStart:({canvas:startedCanvas}:any)=>{
           trackedCanvas=startedCanvas;
           const xrScene=w.XR8.Threejs.xrScene();
@@ -481,6 +488,25 @@ export default function ARWallPreview({imageUrl,title,width,height,ru,artworkCho
             trackedCamera.projectionMatrixInverse.copy(trackedCamera.projectionMatrix).invert();
           }
           if(reality?.trackingStatus==='NORMAL'&&Array.isArray(reality.worldPoints)){
+            if(!trackedArtwork?.userData.locked){
+              const cameraPos=reality.position;
+              if(cameraPos&&Number.isFinite(cameraPos.x)&&Number.isFinite(cameraPos.y)&&Number.isFinite(cameraPos.z)){
+                const cp=new THREE.Vector3(cameraPos.x,cameraPos.y,cameraPos.z);
+                const forward=new THREE.Vector3(0,0,-1).applyQuaternion(
+                  new THREE.Quaternion(reality.rotation.x,reality.rotation.y,reality.rotation.z,reality.rotation.w)
+                ).normalize();
+                if(Math.abs(forward.y)<.9){
+                  const fallbackPosition=cp.clone().add(forward.clone().multiplyScalar(1.35));
+                  fallbackPosition.y=Math.max(.3,cp.y);
+                  const fallbackNormal=forward.clone();fallbackNormal.y=0;
+                  if(fallbackNormal.lengthSq()>.01){
+                    fallbackNormal.normalize().negate();
+                    const fq=makeWallQuaternion(fallbackNormal);
+                    wallCandidateRef.current={position:fallbackPosition,quaternion:fq};
+                  }
+                }
+              }
+            }
             const plane=detectWallPlane(reality.worldPoints,trackedCamera||new THREE.PerspectiveCamera(),trackedCanvas?.clientWidth||window.innerWidth,trackedCanvas?.clientHeight||window.innerHeight);
             if(plane&&!trackedArtwork?.userData.locked&&trackedWallGuide){
               const previous=wallStableRef.current;
@@ -513,7 +539,7 @@ export default function ARWallPreview({imageUrl,title,width,height,ru,artworkCho
                 trackedWallGuide.quaternion.copy(candidate.quaternion);
                 wallCandidateRef.current=candidate;
                 setCanPlace(true);
-                setMessage(ru?'Стена найдена — нажмите «Разместить картину».':'Wall found — tap Place artwork.');
+                setMessage(ru?'Стена отслеживается — нажмите «Разместить картину».':'Wall is tracked — tap Place artwork.');
               }else{
                 trackedWallGuide.visible=true;
                 wallCandidateRef.current=null;
@@ -528,7 +554,11 @@ export default function ARWallPreview({imageUrl,title,width,height,ru,artworkCho
             }
           }
         },
-        onException:({error}:any)=>console.error('8th Wall exception',error),
+        onException:({error}:any)=>{
+          console.error('8th Wall exception',error);
+          const details=error?.message||error?.name||String(error||'unknown error');
+          setMessage(ru?'Ошибка 8th Wall: '+details:'8th Wall error: '+details);
+        },
       };
       w.XR8.XrController.configure({disableWorldTracking:false,enableLighting:true,enableWorldPoints:true,scale:'absolute'});
       w.XR8.addCameraPipelineModules([w.XR8.GlTextureRenderer.pipelineModule(),w.XR8.Threejs.pipelineModule(),w.XR8.XrController.pipelineModule(),initModule]);

@@ -457,14 +457,30 @@ export default function ARWallPreview({imageUrl,title,width,height,ru,artworkCho
           guide.visible=false;scene.add(guide);trackedGuide=guide;
           scene.add(new THREE.HemisphereLight(0xffffff,0x333333,1.15));
           eightWallCanvasRef.current=startedCanvas;
-          setMessage(ru?'Наведите камеру на фактурную стену и медленно двигайте телефон.':'Point at a textured wall and move the phone slowly.');
+          setMessage(ru?'Наведите камеру на стену и медленно двигайте телефон.':'Point at a wall and move the phone slowly.');
         },
         onUpdate:({processCpuResult}:any)=>{
           if(!trackedCamera||trackedArtwork?.userData.locked)return;
+          // Always put the artwork into the tracked 3D world immediately. Wall detection
+          // refines this pose later; this prevents a blank camera while SLAM is warming up.
+          if(trackedArtwork&&!wallCandidateRef.current){
+            const cp=trackedCamera.position.clone();
+            const forward=new THREE.Vector3(0,0,-1).applyQuaternion(trackedCamera.quaternion).normalize();
+            const fallbackNormal=forward.clone().negate();
+            fallbackNormal.y=0;
+            if(fallbackNormal.lengthSq()>.01){
+              fallbackNormal.normalize();
+              const fallbackPos=cp.clone().add(forward.multiplyScalar(1.35));
+              const fallbackQ=makeWallQuaternion(fallbackNormal);
+              trackedArtwork.position.copy(fallbackPos);
+              trackedArtwork.quaternion.copy(fallbackQ);
+              trackedArtwork.visible=true;
+            }
+          }
           const reality=processCpuResult?.reality;
           if(reality?.trackingStatus!=='NORMAL'||!Array.isArray(reality.worldPoints))return;
           const plane=fitWorldPlane(reality.worldPoints,trackedCamera);
-          if(!plane){stable=null;lastCandidate=null;if(trackedGuide)trackedGuide.visible=false;setCanPlace(false);return;}
+          if(!plane){stable=null;if(trackedGuide)trackedGuide.visible=false;setCanPlace(false);return;}
           if(stable&&stable.center.distanceTo(plane.center)<.06&&stable.normal.angleTo(plane.normal)<8*Math.PI/180){
             stable.frames=Math.min(30,stable.frames+1);stable.center.lerp(plane.center,.18);stable.normal.lerp(plane.normal,.18).normalize();
           }else stable={center:plane.center.clone(),normal:plane.normal.clone(),frames:1};
@@ -484,7 +500,7 @@ export default function ARWallPreview({imageUrl,title,width,height,ru,artworkCho
 
       w.XR8.stop?.();w.XR8.clearCameraPipelineModules?.();
       w.XR8.XrController.configure({disableWorldTracking:false,enableLighting:true,enableWorldPoints:true,scale:'absolute'});
-      const modules=[w.XR8.GlTextureRenderer.pipelineModule(),w.XR8.Threejs.pipelineModule(),w.XR8.XrController.pipelineModule(),w.XRExtras.FullWindowCanvas.pipelineModule(),initModule];
+      const modules=[w.XR8.GlTextureRenderer.pipelineModule(),w.XR8.Threejs.pipelineModule(),w.XR8.XrController.pipelineModule(),initModule];
       w.XR8.addCameraPipelineModules(modules);
       w.XR8.run({canvas,allowedDevices:w.XR8.XrConfig.device().MOBILE,cameraConfig:{direction:w.XR8.XrConfig.camera().BACK},glContextConfig:{antialias:true,alpha:true}});
       setMode('ar');setPlaced(false);setCanPlace(false);

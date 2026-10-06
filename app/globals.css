@@ -1463,11 +1463,11 @@ footer{background:rgba(247,246,242,.45)}
 .ar-page-head h1{margin:18px 0 12px;font-size:clamp(42px,6vw,82px);line-height:.9;font-weight:400;letter-spacing:-.04em}
 .ar-page-head p{max-width:520px;margin:0 auto;font-size:12px;line-height:1.6;opacity:.58}
 .ar-preview{position:relative;width:min(1100px,100%);height:min(72vh,760px);min-height:520px;margin:0 auto;overflow:hidden;background:#171717;border-radius:2px;isolation:isolate}
-.ar-camera{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;z-index:0;background:#171717;display:block}
+.ar-camera{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center center;z-index:0;background:#171717;display:block}
 .ar-dim{position:absolute;inset:0;background:rgba(0,0,0,.08);z-index:1;pointer-events:none}
 .ar-artwork{position:absolute;z-index:3;box-shadow:0 10px 28px rgba(0,0,0,.3);touch-action:none;cursor:grab;overflow:hidden;background:#eeeae3}
 .ar-artwork:active{cursor:grabbing}
-.ar-artwork img{display:block;width:100%;height:100%;object-fit:contain}
+.ar-artwork img{display:block;width:100%;height:100%;object-fit:fill}
 .ar-topbar{position:absolute;z-index:6;left:20px;right:20px;top:18px;display:flex;align-items:center;justify-content:space-between;color:#fff;font-size:8px;letter-spacing:.15em;text-transform:uppercase;text-shadow:0 1px 8px rgba(0,0,0,.45)}
 .ar-topbar button{width:34px;height:34px;border:1px solid rgba(255,255,255,.45);border-radius:50%;background:rgba(0,0,0,.2);color:#fff;font:300 22px/1 Arial,sans-serif;cursor:pointer}
 .ar-start{position:absolute;z-index:5;left:50%;top:50%;transform:translate(-50%,-50%);width:min(420px,80%);text-align:center;color:#fff}

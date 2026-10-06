@@ -183,10 +183,7 @@ export default function ARWallPreview({imageUrl,title,width,height,ru}:Props){
         return;
       }
 
-      const session=await xr.requestSession("immersive-ar",{
-        requiredFeatures:["hit-test"],
-        optionalFeatures:["local-floor","anchors"]
-      });
+      const session=await xr.requestSession("immersive-ar",{requiredFeatures:["hit-test"]});
 
       const renderer=new THREE.WebGLRenderer({antialias:true,alpha:true,powerPreference:"high-performance"});
       renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
@@ -286,11 +283,11 @@ export default function ARWallPreview({imageUrl,title,width,height,ru}:Props){
     }catch(error){
       console.error("WebXR AR start failed",error);
       setXrAvailable(false);
-      setMessage(
-        ru
-          ? "WebXR запустился с ошибкой. Обычная камера НЕ включалась — ошибка записана в консоль."
-          : "WebXR started with an error. Camera fallback was NOT used — check the console."
-      );
+      const e=error as any;
+      const details=[e?.name,e?.message].filter(Boolean).join(": ");
+      setMessage(ru
+        ? `WebXR ошибка${details?": "+details:""}.`
+        : `WebXR error${details?": "+details:""}.`);
     }
   };
 

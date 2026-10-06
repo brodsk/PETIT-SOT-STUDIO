@@ -468,27 +468,25 @@ export default function ARWallPreview({imageUrl,title,width,height,ru,artworkCho
           const reality=processCpuResult?.reality;
           if(reality?.trackingStatus==='NORMAL'&&Array.isArray(reality.worldPoints)){
             if(!trackedArtwork?.userData.locked){
-              const cameraPos=reality.position;
-              if(cameraPos&&Number.isFinite(cameraPos.x)&&Number.isFinite(cameraPos.y)&&Number.isFinite(cameraPos.z)){
-                const cp=new THREE.Vector3(cameraPos.x,cameraPos.y,cameraPos.z);
-                const forward=new THREE.Vector3(0,0,-1).applyQuaternion(
-                  new THREE.Quaternion(reality.rotation.x,reality.rotation.y,reality.rotation.z,reality.rotation.w)
-                ).normalize();
-                if(Math.abs(forward.y)<.9){
-                  const fallbackPosition=cp.clone().add(forward.clone().multiplyScalar(1.35));
-                  fallbackPosition.y=Math.max(.3,cp.y);
-                  const fallbackNormal=forward.clone();fallbackNormal.y=0;
-                  if(fallbackNormal.lengthSq()>.01){
-                    fallbackNormal.normalize().negate();
-                    const fq=makeWallQuaternion(fallbackNormal);
-                    const fallbackCandidate={position:fallbackPosition,quaternion:fq};
-                    wallCandidateRef.current=fallbackCandidate;
-                    if(trackedArtwork&&!trackedArtwork.userData.locked){
-                      trackedArtwork.position.copy(fallbackCandidate.position);
-                      trackedArtwork.quaternion.copy(fallbackCandidate.quaternion);
-                      trackedArtwork.visible=true;
-                    }
-                  }
+              // Use the Three.js camera transform maintained by the 8th Wall
+              // Threejs pipeline. reality.position/reality.rotation can use a
+              // different representation, which can put the preview outside
+              // the rendered world.
+              if(trackedCamera){
+                const cp=trackedCamera.position.clone();
+                const forward=new THREE.Vector3(0,0,-1)
+                  .applyQuaternion(trackedCamera.quaternion).normalize();
+                const fallbackPosition=cp.clone().add(forward.multiplyScalar(1.35));
+                const fallbackNormal=forward.clone().negate();
+                fallbackNormal.y=0;
+                if(fallbackNormal.lengthSq()>.01){
+                  fallbackNormal.normalize();
+                  const fq=makeWallQuaternion(fallbackNormal);
+                  const fallbackCandidate={position:fallbackPosition,quaternion:fq};
+                  wallCandidateRef.current=fallbackCandidate;
+                  trackedArtwork.position.copy(fallbackCandidate.position);
+                  trackedArtwork.quaternion.copy(fallbackCandidate.quaternion);
+                  trackedArtwork.visible=true;
                 }
               }
             }
@@ -877,7 +875,6 @@ export default function ARWallPreview({imageUrl,title,width,height,ru,artworkCho
       {artworkChoices.length>0&&<div className="ar-artwork-picker" style={{position:"relative",zIndex:20,width:"100%",maxWidth:720,padding:"10px 12px",boxSizing:"border-box",pointerEvents:"auto"}}><span style={{display:"block",fontSize:12,letterSpacing:".08em",textTransform:"uppercase",marginBottom:8}}>{ru?"Выберите картину":"Choose artwork"}</span><div className="ar-artwork-options" style={{display:"flex",gap:8,overflowX:"auto",overflowY:"hidden",width:"100%",paddingBottom:4,pointerEvents:"auto",WebkitOverflowScrolling:"touch"}}>{artworkChoices.map(a=><button key={a.id} type="button" className={selectedImage===a.image?"selected":""} style={{flex:"0 0 72px",width:72,minWidth:72,height:92,padding:4,margin:0,boxSizing:"border-box",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"space-between",overflow:"hidden",cursor:"pointer",pointerEvents:"auto",touchAction:"manipulation",border:"1px solid rgba(255,255,255,.28)",background:"rgba(0,0,0,.45)",color:"inherit"}} onClick={()=>{setSelectedImage(a.image);setSelectedDimensions({width:a.width||width,height:a.height||height});setSelectedTitle(a.title);setMessage(ru?"Картина выбрана.":"Artwork selected.");}}><img src={a.image} alt={a.title} style={{display:"block",width:"100%",height:66,maxWidth:"100%",objectFit:"contain",flex:"0 0 66px"}}/><small style={{display:"block",width:"100%",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",fontSize:9,lineHeight:"12px"}}>{a.title}</small></button>)}</div></div>}
       <p>{message|| (ru?"Наведите камеру на стену — картина будет размещена в реальном пространстве и останется на месте при движении телефона.":"Point the camera at a wall — the artwork will be placed in real space and stay fixed as you move.")}</p>
       <button type="button" onClick={startAR}>{ru?"Открыть Wall AR":"Open Wall AR"}</button>
-      <button type="button" className="ar-secondary" onClick={runXRDiagnostic}>{ru?"Диагностика устройства":"Device diagnostics"}</button>
     </div>}
     {mode==="camera"&&<div className="ar-artwork" style={{left:drag.x+"%",top:drag.y+"%",width:(22*cameraScale)+"%",aspectRatio:String(aspect),transform:"translate(-50%,-50%)"}} onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={onPointerUp}><img src={cutoutUrlRef.current||selectedImage} alt={selectedTitle}/></div>}
     {mode==="camera"&&<div className="ar-controls"><span>{analysis?(ru?"Определяем границы картины…":"Detecting artwork edges…"):message||(ru?"Перемещайте картину пальцем":"Drag the artwork with your finger")}</span><input aria-label={ru?"Размер":"Size"} type="range" min=".5" max="1.8" step=".01" value={cameraScale} onChange={e=>setCameraScale(Number(e.target.value))}/></div>}

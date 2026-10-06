@@ -260,6 +260,7 @@ export default function ARWallPreview({imageUrl,title,width,height,ru}:Props){
     {mode==="idle"&&<div className="ar-start">
       <p>{ru?"Настоящий AR: камера, определение стены и 3D-картина с реальным размером.":"True AR: camera, wall detection and a 3D artwork at its real size."}</p>
       <button type="button" onClick={startAR}>{ru?"Открыть AR":"Open AR"}</button>
+      <button type="button" className="ar-secondary" onClick={runXRDiagnostic}>{ru?"Проверить WebXR":"Check WebXR"}</button>
       <button type="button" className="ar-secondary" onClick={startCamera}>{ru?"Режим камеры":"Camera mode"}</button>
     </div>}
     {mode==="camera"&&<div className="ar-artwork" style={{left:drag.x+"%",top:drag.y+"%",width:(22*cameraScale)+"%",aspectRatio:String(aspect),transform:"translate(-50%,-50%)"}} onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={onPointerUp}><img src={cutoutUrlRef.current||imageUrl} alt={title}/></div>}

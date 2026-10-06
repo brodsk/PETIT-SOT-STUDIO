@@ -488,7 +488,7 @@ export default function ARWallPreview({imageUrl,title,width,height,ru,artworkCho
           const ray=new THREE.Raycaster();ray.setFromCamera(new THREE.Vector2(0,0),trackedCamera);
           const hit=new THREE.Vector3();const hitOk=ray.ray.intersectPlane(wallPlane,hit);
           if(!hitOk)return;
-          // Put the rear face a few millimetres in front of the physical wall.\n          // The artwork's local +Z points toward the viewer.\n          const pos=hit.clone().add(stable.normal.clone().multiplyScalar(thickness/2+.003));
+          // Put the artwork a few millimetres in front of the physical wall.\n          // The artwork's local +Z points toward the viewer.\n          const pos=hit.clone().add(stable.normal.clone().multiplyScalar(thickness/2+.003));
           const q=makeWallQuaternion(stable.normal);
           lastCandidate={position:pos,quaternion:q};wallCandidateRef.current=lastCandidate;
           if(trackedGuide){trackedGuide.position.copy(pos);trackedGuide.quaternion.copy(q);trackedGuide.visible=true;}

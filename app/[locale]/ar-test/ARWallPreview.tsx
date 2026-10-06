@@ -445,7 +445,9 @@ export default function ARWallPreview({imageUrl,title,width,height,ru,artworkCho
           const material=new THREE.MeshBasicMaterial({map:texture,transparent:true,side:THREE.FrontSide});
           const sideMaterial=new THREE.MeshStandardMaterial({color:0x171717,roughness:.62});
           // BoxGeometry material order: right, left, top, bottom, front, back.
-          const geometry=new THREE.BoxGeometry(artW,artH,thickness);\n          // Physical dimensions are authoritative: width/height come from the artwork metadata.\n          geometry.scale(1,1,1);
+          const geometry=new THREE.BoxGeometry(artW,artH,thickness);
+          // Physical dimensions are authoritative: width/height come from the artwork metadata.
+          geometry.scale(1,1,1);
           // Keep the artwork's physical aspect ratio independent of the source photo.
           geometry.computeBoundingBox();
           const mesh=new THREE.Mesh(geometry,[sideMaterial,sideMaterial,sideMaterial,sideMaterial,material,sideMaterial]);

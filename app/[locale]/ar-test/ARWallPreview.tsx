@@ -255,15 +255,16 @@ export default function ARWallPreview({imageUrl,title,width,height,ru,artworkCho
   },[imageUrl,width,height,title]);
 
   const preload8thWall=()=>{
-    if(typeof window==="undefined")return;
+    if(typeof window==='undefined')return;
     const w=window as any;
     if(w.XR8||document.querySelector('script[data-preload-petit-sot-8th-wall]'))return;
-    const script=document.createElement("script");
-    script.src="https://cdn.jsdelivr.net/npm/@8thwall/engine-binary@1/dist/xr.js";
-    script.async=true;script.crossOrigin="anonymous";
-    script.dataset.preloadPetitSot8thWall="true";
-    script.setAttribute("data-preload-chunks","slam");
+    const script=document.createElement('script');
+    script.src='https://cdn.jsdelivr.net/npm/@8thwall/engine-binary@1/dist/xr.js';script.async=true;script.crossOrigin='anonymous';
+    script.dataset.preloadPetitSot8thWall='true';script.setAttribute('data-preload-chunks','slam');
     document.head.appendChild(script);
+    const extras=document.createElement('script');
+    extras.src='https://cdn.jsdelivr.net/npm/@8thwall/xrextras@1/dist/xrextras.js';extras.async=false;extras.crossOrigin='anonymous';
+    document.head.appendChild(extras);
   };
 
   const openSceneViewer=async()=>{
@@ -366,217 +367,131 @@ export default function ARWallPreview({imageUrl,title,width,height,ru,artworkCho
 
   const start8thWall=async()=>{
     if(!selectedImage)return;
-    setMessage(ru?"Запускаем AR…":"Starting AR…");
+    setMessage(ru?"Запускаем WebAR…":"Starting WebAR…");
     try{
       cleanup();
-      setMessage(ru?'Загружаем 8th Wall WebAR…':'Loading 8th Wall WebAR…');
       const w=window as any;
       w.THREE=THREE;
-      if(!w.XR8){
-        await new Promise<void>((resolve,reject)=>{
-          const existing=document.querySelector('script[data-petit-sot-8th-wall],script[data-preload-petit-sot-8th-wall]') as HTMLScriptElement|null;
-          if(existing){
-            if(w.XR8)resolve(); else window.addEventListener('xrloaded',()=>resolve(),{once:true});
-            setTimeout(()=>w.XR8?resolve():reject(new Error('8th Wall engine timeout')),12000);
-            return;
-          }
-          const script=document.createElement('script');
-          script.src='https://cdn.jsdelivr.net/npm/@8thwall/engine-binary@1/dist/xr.js';
-          script.async=true;
-          script.crossOrigin='anonymous';
-          script.dataset.petitSot8thWall='true';
-          script.setAttribute('data-preload-chunks','slam');
-          script.onload=()=>w.XR8?resolve():reject(new Error('8th Wall engine did not initialize'));
-          script.onerror=()=>reject(new Error('Could not load 8th Wall engine'));
-          document.head.appendChild(script);
-          window.addEventListener('xrloaded',()=>resolve(),{once:true});
-        });
-      }
-      if(!w.XR8)throw new Error('XR8 unavailable');
-      const canvas=document.createElement('canvas');
-      eightWallCanvasRef.current=canvas;
-      canvas.className='ar-three-canvas';
-      canvas.style.position='absolute';canvas.style.inset='0';canvas.style.width='100%';canvas.style.height='100%';canvas.style.zIndex='2';canvas.style.display='block';
-            rootRef.current?.appendChild(canvas);
 
-      // 8th Wall's FullWindowCanvas owns the camera canvas sizing. Do not resize
-      // the canvas or Three.js renderer ourselves: that can desynchronise the
-      // camera image from the SLAM projection on mobile browsers.
-      const resizeObserver={disconnect:()=>{}};
+      const loadScript=(src:string,ready:()=>boolean)=>new Promise<void>((resolve,reject)=>{
+        if(ready()){resolve();return;}
+        const existing=document.querySelector('script[src="'+src+'"]') as HTMLScriptElement|null;
+        const finish=()=>ready()?resolve():reject(new Error('Script loaded but API is unavailable: '+src));
+        if(existing){existing.addEventListener('load',finish,{once:true});setTimeout(finish,12000);return;}
+        const script=document.createElement('script');
+        script.src=src;script.async=true;script.crossOrigin='anonymous';
+        script.onload=finish;script.onerror=()=>reject(new Error('Could not load '+src));
+        document.head.appendChild(script);
+      });
+
+      await loadScript('https://cdn.jsdelivr.net/npm/@8thwall/engine-binary@1/dist/xr.js',()=>!!w.XR8);
+      await loadScript('https://cdn.jsdelivr.net/npm/@8thwall/xrextras@1/dist/xrextras.js',()=>!!w.XRExtras);
+      if(!w.XR8)throw new Error('8th Wall engine unavailable');
+
+      const canvas=document.createElement('canvas');
+      canvas.className='ar-three-canvas';
+      canvas.style.position='absolute';canvas.style.inset='0';canvas.style.width='100%';canvas.style.height='100%';
+      canvas.style.display='block';canvas.style.zIndex='2';canvas.style.touchAction='none';
+      eightWallCanvasRef.current=canvas;
+      rootRef.current?.appendChild(canvas);
+
       const image=new Image();image.crossOrigin='anonymous';image.src=selectedImage;await image.decode();
-      // AR receives the artwork exactly as supplied. The selected test images are already
-      // front-facing and contain only the artwork, so no edge detection, crop or homography is needed.
       const texture=new THREE.Texture(image);texture.needsUpdate=true;texture.colorSpace=THREE.SRGBColorSpace;
       const artW=Math.max(.01,activeWidth/100),artH=Math.max(.01,activeHeight/100),thickness=.018;
       let trackedCamera:THREE.Camera|null=null;
-      let trackedCanvas:HTMLCanvasElement|null=null;
       let trackedArtwork:THREE.Group|null=null;
-      let trackedWallGuide:THREE.Mesh|null=null;
+      let trackedGuide:THREE.Mesh|null=null;
+      let lastCandidate:{position:THREE.Vector3;quaternion:THREE.Quaternion}|null=null;
+      let stable:{center:THREE.Vector3;normal:THREE.Vector3;frames:number}|null=null;
+
+      const fitWorldPlane=(points:any[],camera:THREE.Camera)=>{
+        const valid=points.filter(p=>p?.position&&Number(p?.confidence??1)>=.05)
+          .map(p=>new THREE.Vector3(Number(p.position.x),Number(p.position.y),Number(p.position.z)))
+          .filter(p=>p.distanceTo(camera.position)>.35&&p.distanceTo(camera.position)<8);
+        if(valid.length<12)return null;
+        const sample=valid.length>180?valid.filter((_,i)=>i%Math.ceil(valid.length/180)===0).slice(0,180):valid;
+        const center=sample.reduce((v,p)=>v.add(p),new THREE.Vector3()).multiplyScalar(1/sample.length);
+        const cov=[[0,0,0],[0,0,0],[0,0,0]];
+        for(const p of sample){const d=p.clone().sub(center);cov[0][0]+=d.x*d.x;cov[0][1]+=d.x*d.y;cov[0][2]+=d.x*d.z;cov[1][0]+=d.y*d.x;cov[1][1]+=d.y*d.y;cov[1][2]+=d.y*d.z;cov[2][0]+=d.z*d.x;cov[2][1]+=d.z*d.y;cov[2][2]+=d.z*d.z;}
+        const m=cov.map(r=>r.slice()),v=[[1,0,0],[0,1,0],[0,0,1]];
+        for(let iter=0;iter<16;iter++){
+          let p=0,q=1,max=Math.abs(m[0][1]);
+          if(Math.abs(m[0][2])>max){p=0;q=2;max=Math.abs(m[0][2]);}
+          if(Math.abs(m[1][2])>max){p=1;q=2;max=Math.abs(m[1][2]);}
+          if(max<1e-9)break;
+          const phi=.5*Math.atan2(2*m[p][q],m[q][q]-m[p][p]),c=Math.cos(phi),ss=Math.sin(phi);
+          for(let k=0;k<3;k++){const ap=m[k][p],aq=m[k][q];m[k][p]=c*ap-ss*aq;m[k][q]=ss*ap+c*aq;}
+          for(let k=0;k<3;k++){const ap=m[p][k],aq=m[q][k];m[p][k]=c*ap-ss*aq;m[q][k]=ss*ap+c*aq;}
+          for(let k=0;k<3;k++){const ap=v[k][p],aq=v[k][q];v[k][p]=c*ap-ss*aq;v[k][q]=ss*ap+c*aq;}
+        }
+        let si=0;if(m[1][1]<m[si][si])si=1;if(m[2][2]<m[si][si])si=2;
+        const normal=new THREE.Vector3(v[0][si],v[1][si],v[2][si]).normalize();
+        if(Math.abs(normal.y)>.34)return null;
+        const residual=sample.map(p=>Math.abs(normal.dot(p.clone().sub(center)))).sort((a,b)=>a-b);
+        if((residual[Math.floor(residual.length*.5)]||1)>.13)return null;
+        if(normal.dot(new THREE.Vector3().subVectors(camera.position,center))<0)normal.negate();
+        return {center,normal};
+      };
+
       const initModule={
-        name:'petitsot-eightwall-scene',
+        name:'petitsot-wall-ar',
         onCameraStatusChange:({status}:any)=>{
-          console.log('[PETIT.SOT 8th Wall camera]',status);
-          if(status==='requesting')setMessage(ru?'Запрашиваем доступ к камере…':'Requesting camera access…');
-          else if(status==='hasStream')setMessage(ru?'Камера подключена. Запускаем SLAM…':'Camera connected. Starting SLAM…');
-          else if(status==='hasVideo')setMessage(ru?'SLAM запущен. Медленно наведите телефон на стену.':'SLAM is running. Slowly point the phone at a wall.');
-          else if(status==='failed')setMessage(ru?'8th Wall не получил видеопоток камеры. Проверьте разрешение камеры в браузере.':'8th Wall could not get the camera stream. Check camera permission in the browser.');
+          if(status==='requesting')setMessage(ru?'Запрашиваем камеру…':'Requesting camera…');
+          else if(status==='hasStream')setMessage(ru?'Камера подключена…':'Camera connected…');
+          else if(status==='hasVideo')setMessage(ru?'Медленно наведите телефон на стену…':'Slowly point the phone at a wall…');
+          else if(status==='failed')setMessage(ru?'Не удалось получить камеру.':'Could not access the camera.');
         },
-        onStart:({canvas:startedCanvas,canvasWidth,canvasHeight}:any)=>{
-          trackedCanvas=startedCanvas;
-          const xrScene=w.XR8.Threejs.xrScene();
-          const scene=xrScene.scene as THREE.Scene;
-          const camera=xrScene.camera as THREE.Camera;
-          trackedCamera=camera;
-          const renderer=xrScene.renderer as THREE.WebGLRenderer;
-          renderer.setSize(canvasWidth,canvasHeight,false);
-          // The artwork itself is a double-sided plane. This removes the
-          // front/back ambiguity of BoxGeometry while preserving exact physical
-          // width/height from the artwork metadata.
-          const material=new THREE.MeshBasicMaterial({map:texture,transparent:true,side:THREE.DoubleSide,depthWrite:true});
-          const planeGeometry=new THREE.PlaneGeometry(artW,artH);
-          const artworkPlane=new THREE.Mesh(planeGeometry,material);
-          artworkPlane.position.z=thickness/2;
-          const sideMaterial=new THREE.MeshStandardMaterial({color:0x171717,roughness:.62});
-          const backingGeometry=new THREE.BoxGeometry(artW,artH,thickness);
-          const backing=new THREE.Mesh(backingGeometry,[
-            sideMaterial,sideMaterial,sideMaterial,sideMaterial,sideMaterial,sideMaterial
-          ]);
-          const artwork=new THREE.Group();
-          artwork.add(backing);
-          artwork.add(artworkPlane);
-          trackedArtwork=artwork;
-          eightWallArtworkRef.current=artwork;
-          artwork.visible=true;
-          artwork.userData.locked=false;
-          scene.add(artwork);
-          const wallGuide=new THREE.Mesh(
-            new THREE.PlaneGeometry(artW,artH),
-            new THREE.MeshBasicMaterial({map:texture,transparent:true,opacity:.28,side:THREE.DoubleSide,depthWrite:false})
-          );
-          wallGuide.visible=false;
-          trackedWallGuide=wallGuide;
-          scene.add(wallGuide);
+        onStart:({canvas:startedCanvas}:any)=>{
+          const xr=w.XR8.Threejs.xrScene();
+          trackedCamera=xr.camera as THREE.Camera;
+          const scene=xr.scene as THREE.Scene;
+          const material=new THREE.MeshBasicMaterial({map:texture,side:THREE.DoubleSide,transparent:false});
+          const front=new THREE.Mesh(new THREE.PlaneGeometry(artW,artH),material);
+          const side=new THREE.MeshStandardMaterial({color:0x171717,roughness:.65});
+          const backing=new THREE.Mesh(new THREE.BoxGeometry(artW,artH,thickness),side);
+          front.position.z=thickness/2;
+          const artwork=new THREE.Group();artwork.add(backing);artwork.add(front);artwork.visible=false;
+          artwork.userData.locked=false;scene.add(artwork);
+          trackedArtwork=artwork;eightWallArtworkRef.current=artwork;
+          const guide=new THREE.Mesh(new THREE.PlaneGeometry(artW,artH),new THREE.MeshBasicMaterial({map:texture,transparent:true,opacity:.25,side:THREE.DoubleSide,depthWrite:false}));
+          guide.visible=false;scene.add(guide);trackedGuide=guide;
           scene.add(new THREE.HemisphereLight(0xffffff,0x333333,1.15));
-          // This is the canonical 8th Wall + Three.js camera sync. Do it once
-          // after the XR scene is created; the Threejs pipeline keeps it updated.
-          w.XR8.XrController.updateCameraProjectionMatrix({origin:camera.position,facing:camera.quaternion});
-          // Placement is controlled only by the Place button. Touching the camera view
-          // must never recenter or move an already placed artwork.
-          setMessage(ru?'8th Wall запущен. Медленно наведите камеру на стену.':'8th Wall is running. Slowly point the camera at a wall.');
+          eightWallCanvasRef.current=startedCanvas;
+          setMessage(ru?'Наведите камеру на фактурную стену и медленно двигайте телефон.':'Point at a textured wall and move the phone slowly.');
         },
         onUpdate:({processCpuResult}:any)=>{
+          if(!trackedCamera||trackedArtwork?.userData.locked)return;
           const reality=processCpuResult?.reality;
-          if(reality?.trackingStatus==='NORMAL'&&Array.isArray(reality.worldPoints)){
-            if(!trackedArtwork?.userData.locked){
-              // Use the Three.js camera transform maintained by the 8th Wall
-              // Threejs pipeline. reality.position/reality.rotation can use a
-              // different representation, which can put the preview outside
-              // the rendered world.
-              if(trackedCamera){
-                const cp=trackedCamera.position.clone();
-                const forward=new THREE.Vector3(0,0,-1)
-                  .applyQuaternion(trackedCamera.quaternion).normalize();
-                const fallbackPosition=cp.clone().add(forward.multiplyScalar(1.35));
-                const fallbackNormal=forward.clone().negate();
-                fallbackNormal.y=0;
-                if(fallbackNormal.lengthSq()>.01){
-                  fallbackNormal.normalize();
-                  const fq=makeWallQuaternion(fallbackNormal);
-                  const fallbackCandidate={position:fallbackPosition,quaternion:fq};
-                  wallCandidateRef.current=fallbackCandidate;
-                  trackedArtwork?.position.copy(fallbackCandidate.position);
-                  trackedArtwork?.quaternion.copy(fallbackCandidate.quaternion);
-                  if(trackedArtwork)trackedArtwork.visible=true;
-                }
-              }
-            }
-            const plane=detectWallPlane(reality.worldPoints,trackedCamera||new THREE.PerspectiveCamera(),trackedCanvas?.clientWidth||window.innerWidth,trackedCanvas?.clientHeight||window.innerHeight);
-            if(plane&&!trackedArtwork?.userData.locked&&trackedWallGuide){
-              const previous=wallStableRef.current;
-              const same=previous&&previous.position.distanceTo(plane.center)<.035&&previous.normal.angleTo(plane.normal)<(4*Math.PI/180);
-              if(same){
-                previous!.frames=Math.min(previous!.frames+1,30);
-                previous!.position.lerp(plane.center,.12);
-                previous!.normal.lerp(plane.normal,.12).normalize();
-              }else{
-                wallStableRef.current={position:plane.center.clone(),normal:plane.normal.clone(),frames:1};
-              }
-              const stable=wallStableRef.current;
-              if(stable&&stable.frames>=8){
-                const q=makeWallQuaternion(stable.normal);
-                trackedWallGuide.position.copy(stable.position);
-                trackedWallGuide.quaternion.copy(q);
-                trackedWallGuide.visible=true;
-                const wallClearance=Math.max(thickness/2+.012,.095);
-                // Aim at the centre of the screen, intersecting the fitted wall plane there.
-                // This prevents the artwork from appearing at the arbitrary centroid of the point cloud.
-                const ray=new THREE.Raycaster();
-                ray.setFromCamera(new THREE.Vector2(0,0),trackedCamera||new THREE.PerspectiveCamera());
-                const plane3=new THREE.Plane().setFromNormalAndCoplanarPoint(stable.normal,stable.position);
-                const hitPoint=new THREE.Vector3();
-                const hit=ray.ray.intersectPlane(plane3,hitPoint);
-                const target=hit?hitPoint:stable.position.clone();
-                const candidate={position:target.add(stable.normal.clone().multiplyScalar(wallClearance)),quaternion:q.clone()};
-                trackedWallGuide.userData.candidate=candidate;
-                trackedWallGuide.position.copy(candidate.position);
-                trackedWallGuide.quaternion.copy(candidate.quaternion);
-                wallCandidateRef.current=candidate;
-                if(trackedArtwork&&!trackedArtwork.userData.locked){
-                  trackedArtwork.position.copy(candidate.position);
-                  trackedArtwork.quaternion.copy(candidate.quaternion);
-                  trackedArtwork.visible=true;
-                }
-                setCanPlace(true);
-                setMessage(ru?'Стена отслеживается — нажмите «Разместить картину».':'Wall is tracked — tap Place artwork.');
-              }else{
-                trackedWallGuide.visible=true;
-                wallCandidateRef.current=null;
-                setCanPlace(false);
-                setMessage(ru?'Стабилизируем стену…':'Stabilizing the wall…');
-              }
-            }else if(!trackedArtwork?.userData.locked){
-              if(trackedWallGuide)trackedWallGuide.visible=false;
-              wallCandidateRef.current=null;wallStableRef.current=null;
-              setCanPlace(false);
-              setMessage(ru?'Медленно наведите камеру на фактурную стену.':'Slowly point the camera at a textured wall.');
-            }
-          }
+          if(reality?.trackingStatus!=='NORMAL'||!Array.isArray(reality.worldPoints))return;
+          const plane=fitWorldPlane(reality.worldPoints,trackedCamera);
+          if(!plane){stable=null;lastCandidate=null;if(trackedGuide)trackedGuide.visible=false;setCanPlace(false);return;}
+          if(stable&&stable.center.distanceTo(plane.center)<.06&&stable.normal.angleTo(plane.normal)<8*Math.PI/180){
+            stable.frames=Math.min(30,stable.frames+1);stable.center.lerp(plane.center,.18);stable.normal.lerp(plane.normal,.18).normalize();
+          }else stable={center:plane.center.clone(),normal:plane.normal.clone(),frames:1};
+          if(stable.frames<5){setCanPlace(false);setMessage(ru?'Стабилизируем стену…':'Stabilizing the wall…');return;}
+          const wallPlane=new THREE.Plane().setFromNormalAndCoplanarPoint(stable.normal,stable.center);
+          const ray=new THREE.Raycaster();ray.setFromCamera(new THREE.Vector2(0,0),trackedCamera);
+          const hit=new THREE.Vector3();const hitOk=ray.ray.intersectPlane(wallPlane,hit);
+          const pos=(hitOk?hit:stable.center.clone()).add(stable.normal.clone().multiplyScalar(thickness/2+.006));
+          const q=makeWallQuaternion(stable.normal);
+          lastCandidate={position:pos,quaternion:q};wallCandidateRef.current=lastCandidate;
+          if(trackedGuide){trackedGuide.position.copy(pos);trackedGuide.quaternion.copy(q);trackedGuide.visible=true;}
+          trackedArtwork.position.copy(pos);trackedArtwork.quaternion.copy(q);trackedArtwork.visible=true;
+          setCanPlace(true);setMessage(ru?'Стена найдена — нажмите «Разместить картину».':'Wall found — tap Place artwork.');
         },
-        onException:({error}:any)=>{
-          console.error('8th Wall exception',error);
-          const details=error?.message||error?.name||String(error||'unknown error');
-          setMessage(ru?'Ошибка 8th Wall: '+details:'8th Wall error: '+details);
-        },
+        onException:({error}:any)=>setMessage((ru?'Ошибка WebAR: ':'WebAR error: ')+(error?.message||error?.name||'unknown')),
       };
-      // World Tracking/SLAM is explicitly restricted to the mobile device class
-      // in 8th Wall. Using ANY here can open a camera but disables the very
-      // world-tracking path we need for a fixed wall placement.
-      w.XR8.XrController.configure({disableWorldTracking:false,enableLighting:true,enableWorldPoints:true,scale:'absolute'});
-      w.XR8.stop?.();
-      w.XR8.clearCameraPipelineModules?.();
 
-      // Use the same FullWindowCanvas pipeline as 8th Wall's own Three.js
-      // examples. It keeps the camera feed and the Three.js viewport aligned
-      // across mobile orientation/aspect-ratio changes.
-      const pipelineModules=[
-        w.XR8.GlTextureRenderer.pipelineModule(),
-        w.XR8.Threejs.pipelineModule(),
-        w.XR8.XrController.pipelineModule(),
-        ...(w.XRExtras?.FullWindowCanvas?.pipelineModule ? [w.XRExtras.FullWindowCanvas.pipelineModule()] : []),
-        initModule
-      ];
-      w.XR8.addCameraPipelineModules(pipelineModules);
-      w.XR8.run({
-        canvas,
-        cameraConfig:{direction:w.XR8.XrConfig.camera().BACK},
-        allowedDevices:w.XR8.XrConfig.device().MOBILE,
-        glContextConfig:{antialias:true,alpha:true}
-      });
+      w.XR8.stop?.();w.XR8.clearCameraPipelineModules?.();
+      w.XR8.XrController.configure({disableWorldTracking:false,enableLighting:true,enableWorldPoints:true,scale:'absolute'});
+      const modules=[w.XR8.GlTextureRenderer.pipelineModule(),w.XR8.Threejs.pipelineModule(),w.XR8.XrController.pipelineModule(),w.XRExtras.FullWindowCanvas.pipelineModule(),initModule];
+      w.XR8.addCameraPipelineModules(modules);
+      w.XR8.run({canvas,allowedDevices:w.XR8.XrConfig.device().MOBILE,cameraConfig:{direction:w.XR8.XrConfig.camera().BACK},glContextConfig:{antialias:true,alpha:true}});
       setMode('ar');setPlaced(false);setCanPlace(false);
-      eightWallRef.current={stop:()=>{try{resizeObserver.disconnect();}catch{}try{w.XR8.stop?.();}catch{}try{w.XR8.clearCameraPipelineModules?.();}catch{}try{texture.dispose();}catch{}try{canvas.remove();}catch{}wallCandidateRef.current=null;trackedCamera=null;trackedCanvas=null;trackedArtwork=null;trackedWallGuide=null;eightWallArtworkRef.current=null;eightWallCanvasRef.current=null;}};
+      eightWallRef.current={stop:()=>{try{w.XR8.stop?.()}catch{}try{w.XR8.clearCameraPipelineModules?.()}catch{}try{texture.dispose()}catch{}try{canvas.remove()}catch{}eightWallArtworkRef.current=null;eightWallCanvasRef.current=null;wallCandidateRef.current=null;}};
     }catch(error){
       console.error('8th Wall start failed',error);
-      setMessage(ru?'8th Wall не запустился: '+(error instanceof Error?error.message:'неизвестная ошибка'):'8th Wall failed to start: '+(error instanceof Error?error.message:'unknown error'));
+      setMessage(ru?'WebAR не запустился: '+(error instanceof Error?error.message:'неизвестная ошибка'):'WebAR failed: '+(error instanceof Error?error.message:'unknown error'));
       setMode('idle');
     }
   };

@@ -289,8 +289,14 @@ export default function ARWallPreview({imageUrl,title,width,height,ru}:Props){
       const e=error as any;
       const details=[e?.name,e?.message].filter(Boolean).join(": ");
       setMessage(ru
-        ? `WebXR ошибка${details?": "+details:""}.`
-        : `WebXR error${details?": "+details:""}.`);
+        ? `AR недоступен на этом устройстве${details?": "+details:""} — включаем режим камеры.`
+        : `AR is unavailable on this device${details?": "+details:""} — switching to camera mode.`);
+      try{
+        await startCamera();
+        if(videoRef.current?.srcObject){
+          setMessage(ru?"AR недоступен — используется режим камеры.":"AR unavailable — camera mode is active.");
+        }
+      }catch{}
     }
   };
 

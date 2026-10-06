@@ -207,7 +207,24 @@ export default function ARWallPreview({imageUrl,title,width,height,ru,artworkCho
     window.addEventListener("resize",onResize);
     return()=>window.removeEventListener("resize",onResize);
   },[]);
-  useEffect(()=>{setSelectedImage(imageUrl||"");setSelectedDimensions({width,height});setSelectedTitle(title)},[imageUrl,width,height,title]);
+  useEffect(()=>{
+    setSelectedImage(imageUrl||"");
+    setSelectedDimensions({width,height});
+    setSelectedTitle(title);
+    preload8thWall();
+  },[imageUrl,width,height,title]);
+
+  const preload8thWall=()=>{
+    if(typeof window==="undefined")return;
+    const w=window as any;
+    if(w.XR8||document.querySelector('script[data-preload-petit-sot-8th-wall]'))return;
+    const script=document.createElement("script");
+    script.src="https://cdn.jsdelivr.net/npm/@8thwall/engine-binary@1/dist/xr.js";
+    script.async=true;script.crossOrigin="anonymous";
+    script.dataset.preloadPetitSot8thWall="true";
+    script.setAttribute("data-preload-chunks","slam");
+    document.head.appendChild(script);
+  };
 
   const openSceneViewer=async()=>{
     if(!selectedImage||!isAndroidDevice())return;
@@ -316,7 +333,7 @@ export default function ARWallPreview({imageUrl,title,width,height,ru,artworkCho
       w.THREE=THREE;
       if(!w.XR8){
         await new Promise<void>((resolve,reject)=>{
-          const existing=document.querySelector('script[data-petit-sot-8th-wall]') as HTMLScriptElement|null;
+          const existing=document.querySelector('script[data-petit-sot-8th-wall],script[data-preload-petit-sot-8th-wall]') as HTMLScriptElement|null;
           if(existing){
             if(w.XR8)resolve(); else window.addEventListener('xrloaded',()=>resolve(),{once:true});
             setTimeout(()=>w.XR8?resolve():reject(new Error('8th Wall engine timeout')),12000);

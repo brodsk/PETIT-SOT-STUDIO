@@ -65,6 +65,14 @@ function quadToBounds(quad:ArtworkQuad):ArtworkBounds{
   return{x,y,width:Math.max(.01,r-x),height:Math.max(.01,b-y)};
 }
 
+function isAndroidDevice(){
+  return /Android/i.test(navigator.userAgent);
+}
+
+function buildSceneViewerIntent(modelUrl:string,fallbackUrl:string){
+  const params = new URLSearchParams({file:modelUrl,mode:"ar_preferred"});
+  return "intent://arvr.google.com/scene-viewer/1.0?"+params.toString()+"#Intent;scheme=https;package=com.google.android.googlequicksearchbox;action=android.intent.action.VIEW;S.browser_fallback_url="+encodeURIComponent(fallbackUrl)+";end;";
+}
 function createArtworkCutout(image:HTMLImageElement,quad:ArtworkQuad){
   const w=image.naturalWidth,h=image.naturalHeight,maxSide=1800,scale=Math.min(1,maxSide/Math.max(w,h)),full=document.createElement("canvas");
   full.width=Math.max(1,Math.round(w*scale));full.height=Math.max(1,Math.round(h*scale));const ctx=full.getContext("2d",{willReadFrequently:true});if(!ctx)return image.src;ctx.drawImage(image,0,0,full.width,full.height);
@@ -79,7 +87,7 @@ export default function ARWallPreview({imageUrl,title,width,height,ru}:Props){
   const rootRef=useRef<HTMLDivElement>(null),videoRef=useRef<HTMLVideoElement>(null);
   const stateRef=useRef<XRState|null>(null),imageQuadRef=useRef<ArtworkQuad>({points:[{x:0,y:0},{x:1,y:0},{x:1,y:1},{x:0,y:1}],confidence:0}),imageBoundsRef=useRef<ArtworkBounds>({x:0,y:0,width:1,height:1}),cutoutUrlRef=useRef<string|null>(null);
   const [mode,setMode]=useState<"idle"|"camera"|"ar">("idle"),[message,setMessage]=useState("");
-  const [analysis,setAnalysis]=useState(false),[placed,setPlaced]=useState(false),[canPlace,setCanPlace]=useState(false),[cameraScale,setCameraScale]=useState(1),[xrAvailable,setXrAvailable]=useState<boolean|null>(null);
+  const [analysis,setAnalysis]=useState(false),[placed,setPlaced]=useState(false),[canPlace,setCanPlace]=useState(false),[cameraScale,setCameraScale]=useState(1),[xrAvailable,setXrAvailable]=useState<boolean|null>(null),[sceneViewerAvailable,setSceneViewerAvailable]=useState(false);
   const [drag,setDrag]=useState({x:50,y:45});
   const dragRef=useRef({active:false,startX:0,startY:0,x:50,y:45});
 
@@ -131,6 +139,24 @@ export default function ARWallPreview({imageUrl,title,width,height,ru}:Props){
     }catch{
       setXrAvailable(false);
       return false;
+    }
+  };
+
+  useEffect(()=>{setSceneViewerAvailable(isAndroidDevice())},[]);
+
+  const openSceneViewer=async()=>{
+    if(!imageUrl||!isAndroidDevice())return;
+    try{
+      const modelUrl=new URL("/api/ar-model",window.location.origin);
+      modelUrl.searchParams.set("image",imageUrl);
+      modelUrl.searchParams.set("width",String(width));
+      modelUrl.searchParams.set("height",String(height));
+      const fallback=new URL(window.location.href);
+      fallback.hash="ar-camera";
+      window.location.href=buildSceneViewerIntent(modelUrl.toString(),fallback.toString());
+    }catch(error){
+      console.error("Scene Viewer launch failed",error);
+      setMessage(ru?"Не удалось открыть Android AR.":"Could not open Android AR.");
     }
   };
 
@@ -338,8 +364,8 @@ export default function ARWallPreview({imageUrl,title,width,height,ru}:Props){
       const e=error as any;
       const details=[e?.name,e?.message].filter(Boolean).join(": ");
       setMessage(ru
-        ? `AR недоступен на этом устройстве${details?": "+details:""} — включаем режим камеры.`
-        : `AR is unavailable on this device${details?": "+details:""} — switching to camera mode.`);
+        ? `AR недоступен на этом устройстве${details?": "+details:""}.`
+        : `AR is unavailable on this device${details?": "+details:""}.`);
       try{
         await startCamera();
         if(videoRef.current?.srcObject){
@@ -377,6 +403,7 @@ export default function ARWallPreview({imageUrl,title,width,height,ru}:Props){
     {mode==="idle"&&<div className="ar-start">
       <p>{message|| (ru?"Настоящий AR: камера, определение стены и 3D-картина с реальным размером.":"True AR: camera, wall detection and a 3D artwork at its real size.")}</p>
       <button type="button" onClick={startAR}>{ru?"Открыть AR":"Open AR"}</button>
+      {sceneViewerAvailable&&<button type="button" className="ar-secondary" onClick={openSceneViewer}>{ru?"Android AR / Google":"Android AR / Google"}</button>}
       <button type="button" className="ar-secondary" onClick={runXRDiagnostic}>{ru?"Проверить WebXR":"Check WebXR"}</button>
       <button type="button" className="ar-secondary" onClick={startCamera}>{ru?"Режим камеры":"Camera mode"}</button>
     </div>}

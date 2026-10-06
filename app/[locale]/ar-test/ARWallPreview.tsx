@@ -47,7 +47,7 @@ export default function ARWallPreview({imageUrl,title,width,height,ru}:Props){
   const rootRef=useRef<HTMLDivElement>(null),videoRef=useRef<HTMLVideoElement>(null);
   const stateRef=useRef<XRState|null>(null),imageBoundsRef=useRef({x:0,y:0,width:1,height:1});
   const [mode,setMode]=useState<"idle"|"camera"|"ar">("idle"),[message,setMessage]=useState("");
-  const [analysis,setAnalysis]=useState(false),[placed,setPlaced]=useState(false),[cameraScale,setCameraScale]=useState(1);
+  const [analysis,setAnalysis]=useState(false),[placed,setPlaced]=useState(false),[canPlace,setCanPlace]=useState(false),[cameraScale,setCameraScale]=useState(1);
   const [drag,setDrag]=useState({x:50,y:45});
   const dragRef=useRef({active:false,startX:0,startY:0,x:50,y:45});
 
@@ -69,7 +69,7 @@ export default function ARWallPreview({imageUrl,title,width,height,ru}:Props){
     const stream=videoRef.current?.srcObject as MediaStream|null;
     stream?.getTracks().forEach(t=>t.stop());
     if(videoRef.current)videoRef.current.srcObject=null;
-    setMode("idle");setPlaced(false);
+    setMode("idle");setPlaced(false);setCanPlace(false);
   };
 
   useEffect(()=>()=>cleanup(),[]);
@@ -109,11 +109,11 @@ export default function ARWallPreview({imageUrl,title,width,height,ru}:Props){
       const renderer=new THREE.WebGLRenderer({antialias:true,alpha:true,powerPreference:"high-performance"});
       renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
       renderer.setSize(window.innerWidth,window.innerHeight);
-      renderer.xr.enabled=true;renderer.xr.setReferenceSpaceType("local");
+      renderer.xr.enabled=true;renderer.xr.setReferenceSpaceType("local");await renderer.xr.setSession(session);
       renderer.domElement.className="ar-three-canvas";rootRef.current?.appendChild(renderer.domElement);
 
       const scene=new THREE.Scene(),camera=new THREE.PerspectiveCamera(70,window.innerWidth/window.innerHeight,.01,30);
-      const texture=new THREE.TextureLoader().load(imageUrl!);texture.colorSpace=THREE.SRGBColorSpace;texture.anisotropy=4;
+      const texture=new THREE.TextureLoader().load(imageUrl!);texture.colorSpace=THREE.SRGBColorSpace;texture.anisotropy=4;texture.wrapS=THREE.ClampToEdgeWrapping;texture.wrapT=THREE.ClampToEdgeWrapping;const bounds=imageBoundsRef.current;texture.repeat.set(1/bounds.width,1/bounds.height);texture.offset.set(-bounds.x/bounds.width,-bounds.y/bounds.height);
       const artW=Math.max(.01,width/100),artH=Math.max(.01,height/100),thickness=.018;
       const group=new THREE.Group();group.visible=false;
       const front=new THREE.MeshStandardMaterial({map:texture,roughness:.72,metalness:0});
@@ -150,10 +150,10 @@ export default function ARWallPreview({imageUrl,title,width,height,ru}:Props){
             ring.position.copy(position);ring.quaternion.setFromUnitVectors(new THREE.Vector3(0,0,1),normal);ring.visible=!state.placed;
             if(!state.placed){group.position.copy(position);group.quaternion.copy(quaternion);group.visible=false;}
             state.lastHit={position,quaternion};
-            if(!state.placed)setMessage(ru?"Стена найдена — нажмите «Разместить».":"Wall found — tap Place artwork.");
+            if(!state.placed){setCanPlace(true);setMessage(ru?"Стена найдена — нажмите «Разместить».":"Wall found — tap Place artwork.");}
           }
         }else if(!state.placed){
-          ring.visible=false;setMessage(ru?"Медленно наведите камеру на стену.":"Move the camera slowly over the wall.");
+          ring.visible=false;setCanPlace(false);setMessage(ru?"Медленно наведите камеру на стену.":"Move the camera slowly over the wall.");
         }
         renderer.render(scene,camera);
       });
@@ -163,7 +163,7 @@ export default function ARWallPreview({imageUrl,title,width,height,ru}:Props){
   const placeArtwork=()=>{
     const s=stateRef.current;if(!s?.lastHit)return;
     s.artwork.position.copy(s.lastHit.position);s.artwork.quaternion.copy(s.lastHit.quaternion);
-    s.artwork.visible=true;s.placed=true;s.reticle.visible=false;setPlaced(true);
+    s.artwork.visible=true;s.placed=true;s.reticle.visible=false;setPlaced(true);setCanPlace(false);
     setMessage(ru?"Готово — теперь обойдите картину.":"Placed — now walk around the artwork.");
   };
 
@@ -192,6 +192,6 @@ export default function ARWallPreview({imageUrl,title,width,height,ru}:Props){
     </div>}
     {mode==="camera"&&<div className="ar-artwork" style={{left:drag.x+"%",top:drag.y+"%",width:(22*cameraScale)+"%",aspectRatio:String(aspect),transform:"translate(-50%,-50%)"}} onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={onPointerUp}><img src={imageUrl} alt={title}/></div>}
     {mode==="camera"&&<div className="ar-controls"><span>{analysis?(ru?"Определяем границы картины…":"Detecting artwork edges…"):message||(ru?"Перемещайте картину пальцем":"Drag the artwork with your finger")}</span><input aria-label={ru?"Размер":"Size"} type="range" min=".5" max="1.8" step=".01" value={cameraScale} onChange={e=>setCameraScale(Number(e.target.value))}/></div>}
-    {mode==="ar"&&<div className="ar-controls"><span>{message}</span>{stateRef.current?.lastHit&&!placed&&<button type="button" className="ar-place" onClick={placeArtwork}>{ru?"Разместить картину":"Place artwork"}</button>}{placed&&<span className="ar-ar-note">{width+" × "+height+" "+(ru?"см · толщина 1,8 см":"cm · 1.8 cm thick")}</span>}</div>}
+    {mode==="ar"&&<div className="ar-controls"><span>{message}</span>{canPlace&&!placed&&<button type="button" className="ar-place" onClick={placeArtwork}>{ru?"Разместить картину":"Place artwork"}</button>}{placed&&<span className="ar-ar-note">{width+" × "+height+" "+(ru?"см · толщина 1,8 см":"cm · 1.8 cm thick")}</span>}</div>}
   </div>;
 }

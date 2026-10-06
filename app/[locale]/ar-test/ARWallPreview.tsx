@@ -309,8 +309,6 @@ export default function ARWallPreview({imageUrl,title,width,height,ru}:Props){
       let trackedCanvas:HTMLCanvasElement|null=null;
       let trackedArtwork:THREE.Group|null=null;
       let trackedWallGuide:THREE.Mesh|null=null;
-      let trackedArtwork:THREE.Group|null=null;
-      let trackedWallGuide:THREE.Mesh|null=null;
       const initModule={
         name:'petitsot-eightwall-scene',
         onStart:({canvas:startedCanvas}:any)=>{

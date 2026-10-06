@@ -633,7 +633,7 @@ export default function ARWallPreview({imageUrl,title,width,height,ru,artworkCho
   const activeWidth=selectedDimensions.width||width,activeHeight=selectedDimensions.height||height;
   const aspect=activeWidth>0&&activeHeight>0?activeWidth/activeHeight:1;
 
-  return <div ref={rootRef} className="ar-preview" style={{width:"100%",height:"100%",maxWidth:"100%",minHeight:0}}>
+  return <div ref={rootRef} className="ar-preview">
     <video ref={videoRef} className="ar-camera" playsInline muted style={{background:"#000",display:"block",position:"absolute",left:"50%",top:"50%",width:"auto",height:"auto",minWidth:0,minHeight:0,maxWidth:"none",maxHeight:"none",transform:"translate(-50%,-50%)"}}/>
     <div className="ar-topbar"><span>{ru?"ПОСМОТРЕТЬ НА СТЕНЕ":"VIEW ON YOUR WALL"}</span><button type="button" onClick={cleanup}>×</button></div>
     {mode==="idle"&&<div className="ar-start">

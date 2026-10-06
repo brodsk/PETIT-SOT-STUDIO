@@ -16,7 +16,7 @@ type ArtworkBounds={x:number;y:number;width:number;height:number};
 
 function detectArtworkQuad(image:HTMLImageElement,targetAspect:number):ArtworkQuad{
   const w=image.naturalWidth,h=image.naturalHeight;
-  const fallback={points:[{x:0,y:0},{x:1,y:0},{x:1,y:1},{x:0,y:1}],confidence:0};
+  const fallback:ArtworkQuad={points:[{x:0,y:0},{x:1,y:0},{x:1,y:1},{x:0,y:1}],confidence:0};
   if(!w||!h)return fallback;
   const size=640,scale=Math.min(size/w,size/h),canvas=document.createElement("canvas");
   canvas.width=Math.max(120,Math.round(w*scale));canvas.height=Math.max(120,Math.round(h*scale));
@@ -49,7 +49,7 @@ function detectArtworkQuad(image:HTMLImageElement,targetAspect:number):ArtworkQu
       const ww=(dist(p1,p2)+dist(p4,p3))/2,hh=(dist(p1,p4)+dist(p2,p3))/2;if(ww<Math.min(cw,ch)*.22||hh<Math.min(cw,ch)*.22)continue;
       const observed=ww/Math.max(1,hh),aspect=Math.max(.2,Math.min(5,targetAspect||observed)),aspectPenalty=Math.abs(Math.log(observed/aspect)),parallelPenalty=angleDiff(lines[i].theta,lines[j].theta)+angleDiff(lines[k].theta,lines[l].theta);
       const raw=lines[i].score+lines[j].score+lines[k].score+lines[l].score,score=raw-aspectPenalty*Math.max(lines[i].score,1)*.9-parallelPenalty*20;
-      if(score>bestScore){bestScore=score;best={points:pts.map(p=>({x:p.x/cw,y:p.y/ch})) as ArtworkQuad["points"],confidence:Math.min(1,Math.max(0,score/(raw+.0001)))}}
+      if(score>bestScore){bestScore=score;best={points:[{x:p1.x/cw,y:p1.y/ch},{x:p2.x/cw,y:p2.y/ch},{x:p3.x/cw,y:p3.y/ch},{x:p4.x/cw,y:p4.y/ch}],confidence:Math.min(1,Math.max(0,score/(raw+.0001)))}}
     }
   }
   return best&&best.confidence>.42?best:fallback;

@@ -90,8 +90,11 @@ export default function ARWallPreview({imageUrl,title,width,height,ru}:Props){
   const [analysis,setAnalysis]=useState(false),[placed,setPlaced]=useState(false),[canPlace,setCanPlace]=useState(false),[cameraScale,setCameraScale]=useState(1),[xrAvailable,setXrAvailable]=useState<boolean|null>(null),[sceneViewerAvailable,setSceneViewerAvailable]=useState(false);
   const [drag,setDrag]=useState({x:50,y:45});
   const dragRef=useRef({active:false,startX:0,startY:0,x:50,y:45});
+  const eightWallRef=useRef<{stop:()=>void}|null>(null);
 
   const cleanup=()=>{
+    try{eightWallRef.current?.stop();}catch{}
+    eightWallRef.current=null;
     const s=stateRef.current;
     if(s){
       try{s.session.end();}catch{}
@@ -225,6 +228,84 @@ export default function ARWallPreview({imageUrl,title,width,height,ru}:Props){
     }
   };
 
+  const start8thWall=async()=>{
+    if(!imageUrl)return;
+    try{
+      cleanup();
+      setMessage(ru?'Загружаем 8th Wall WebAR…':'Loading 8th Wall WebAR…');
+      const w=window as any;
+      w.THREE=THREE;
+      if(!w.XR8){
+        await new Promise<void>((resolve,reject)=>{
+          const existing=document.querySelector('script[data-petit-sot-8th-wall]') as HTMLScriptElement|null;
+          if(existing){
+            if(w.XR8)resolve(); else window.addEventListener('xrloaded',()=>resolve(),{once:true});
+            setTimeout(()=>w.XR8?resolve():reject(new Error('8th Wall engine timeout')),12000);
+            return;
+          }
+          const script=document.createElement('script');
+          script.src='https://cdn.jsdelivr.net/npm/@8thwall/engine-binary@1/dist/xr.js';
+          script.async=true;
+          script.crossOrigin='anonymous';
+          script.dataset.petitSot8thWall='true';
+          script.setAttribute('data-preload-chunks','slam');
+          script.onload=()=>w.XR8?resolve():reject(new Error('8th Wall engine did not initialize'));
+          script.onerror=()=>reject(new Error('Could not load 8th Wall engine'));
+          document.head.appendChild(script);
+          window.addEventListener('xrloaded',()=>resolve(),{once:true});
+        });
+      }
+      if(!w.XR8)throw new Error('XR8 unavailable');
+      const canvas=document.createElement('canvas');
+      canvas.className='ar-three-canvas';
+      canvas.style.position='fixed';canvas.style.inset='0';canvas.style.width='100vw';canvas.style.height='100vh';canvas.style.zIndex='2';
+      rootRef.current?.appendChild(canvas);
+      const image=new Image();image.crossOrigin='anonymous';image.src=cutoutUrlRef.current||imageUrl;await image.decode();
+      const texture=new THREE.Texture(image);texture.needsUpdate=true;texture.colorSpace=THREE.SRGBColorSpace;
+      const artW=Math.max(.01,width/100),artH=Math.max(.01,height/100),thickness=.018;
+      let scene:THREE.Scene|null=null,camera:THREE.Camera|null=null,renderer:THREE.WebGLRenderer|null=null;
+      const initModule={
+        name:'petitsot-eightwall-scene',
+        onStart:({canvas:startedCanvas}:any)=>{
+          const xrScene=w.XR8.Threejs.xrScene();
+          scene=xrScene.scene;camera=xrScene.camera;renderer=xrScene.renderer;
+          renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));
+          const material=new THREE.MeshBasicMaterial({map:texture,transparent:true,side:THREE.FrontSide});
+          const sideMaterial=new THREE.MeshStandardMaterial({color:0x171717,roughness:.62});
+          const mesh=new THREE.Mesh(new THREE.BoxGeometry(artW,artH,thickness),[sideMaterial,sideMaterial,material,sideMaterial,sideMaterial,sideMaterial]);
+          const artwork=new THREE.Group();artwork.add(mesh);
+          artwork.position.set(0,1.45,-2.2);
+          scene.add(artwork);
+          scene.add(new THREE.HemisphereLight(0xffffff,0x333333,1.15));
+          w.XR8.XrController.updateCameraProjectionMatrix({origin:camera.position,facing:camera.quaternion});
+          startedCanvas.addEventListener('touchstart',(ev:TouchEvent)=>{
+            if(ev.touches.length!==1||!camera)return;
+            w.XR8.XrController.recenter();
+            const direction=new THREE.Vector3(0,0,-1).applyQuaternion(camera.quaternion).normalize();
+            artwork.position.copy(camera.position).add(direction.multiplyScalar(2.2));
+            artwork.position.y=camera.position.y;
+            const face=new THREE.Vector3().subVectors(camera.position,artwork.position).normalize();
+            artwork.quaternion.setFromUnitVectors(new THREE.Vector3(0,0,1),face);
+          },{passive:true});
+          setMessage(ru?'8th Wall запущен. Картина закреплена в пространстве — двигайтесь вокруг неё.':'8th Wall is running. The artwork is anchored in space — walk around it.');
+        },
+        onUpdate:({processCpuResult}:any)=>{
+          const reality=processCpuResult?.reality;
+          if(reality?.trackingStatus==='NORMAL')setMessage(ru?'Трекинг стабилен · двигайтесь вокруг картины':'Tracking stable · walk around the artwork');
+        },
+        onException:({error}:any)=>console.error('8th Wall exception',error),
+      };
+      w.XR8.XrController.configure({disableWorldTracking:false,enableLighting:true,scale:'absolute'});
+      w.XR8.addCameraPipelineModules([w.XR8.GlTextureRenderer.pipelineModule(),w.XR8.Threejs.pipelineModule(),w.XR8.XrController.pipelineModule(),initModule]);
+      w.XR8.run({canvas,allowedDevices:w.XR8.XrConfig.device().MOBILE});
+      setMode('ar');setPlaced(true);setCanPlace(false);
+      eightWallRef.current={stop:()=>{try{w.XR8.stop?.();}catch{}try{texture.dispose();}catch{}try{canvas.remove();}catch{}}};
+    }catch(error){
+      console.error('8th Wall start failed',error);
+      setMessage(ru?'8th Wall не запустился: '+(error instanceof Error?error.message:'неизвестная ошибка'):'8th Wall failed to start: '+(error instanceof Error?error.message:'unknown error'));
+      setMode('idle');
+    }
+  };
   const startAR=async()=>{
     const xr=(navigator as any).xr;
     if(!xr?.isSessionSupported){
@@ -401,8 +482,9 @@ export default function ARWallPreview({imageUrl,title,width,height,ru}:Props){
     <video ref={videoRef} className="ar-camera" playsInline muted/>
     <div className="ar-topbar"><span>{ru?"ПОСМОТРЕТЬ НА СТЕНЕ":"VIEW ON YOUR WALL"}</span><button type="button" onClick={cleanup}>×</button></div>
     {mode==="idle"&&<div className="ar-start">
-      <p>{message|| (ru?"Настоящий AR: камера, определение стены и 3D-картина с реальным размером.":"True AR: camera, wall detection and a 3D artwork at its real size.")}</p>
-      <button type="button" onClick={startAR}>{ru?"Открыть AR":"Open AR"}</button>
+      <p>{message|| (ru?"8th Wall: WebAR-трекинг без ARCore и WebXR, с картиной в реальном размере.":"8th Wall: WebAR tracking without ARCore or WebXR, with the artwork at its real size.")}</p>
+      <button type="button" onClick={start8thWall}>{ru?"Открыть 8th Wall AR":"Open 8th Wall AR"}</button>
+      <button type="button" className="ar-secondary" onClick={startAR}>{ru?"WebXR AR":"WebXR AR"}</button>
       {sceneViewerAvailable&&<button type="button" className="ar-secondary" onClick={openSceneViewer}>{ru?"Android AR / Google":"Android AR / Google"}</button>}
       <button type="button" className="ar-secondary" onClick={runXRDiagnostic}>{ru?"Проверить WebXR":"Check WebXR"}</button>
       <button type="button" className="ar-secondary" onClick={startCamera}>{ru?"Режим камеры":"Camera mode"}</button>

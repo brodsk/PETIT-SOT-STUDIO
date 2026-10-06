@@ -495,7 +495,7 @@ export default function ARWallPreview({imageUrl,title,width,height,ru,artworkCho
                 const plane3=new THREE.Plane().setFromNormalAndCoplanarPoint(stable.normal,stable.position);
                 const hitPoint=new THREE.Vector3();
                 const hit=ray.ray.intersectPlane(plane3,hitPoint);
-                const target=hitPoint||stable.position.clone();
+                const target=hit?hitPoint:stable.position.clone();
                 const candidate={position:target.add(stable.normal.clone().multiplyScalar(wallClearance)),quaternion:q.clone()};
                 trackedWallGuide.userData.candidate=candidate;
                 wallCandidateRef.current=candidate;

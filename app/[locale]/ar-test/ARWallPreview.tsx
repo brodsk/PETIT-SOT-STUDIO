@@ -106,8 +106,9 @@ export default function ARWallPreview({imageUrl,title,width,height,ru}:Props){
     setAnalysis(true);
     try{
       const img=new Image();img.crossOrigin="anonymous";img.src=imageUrl;await img.decode();
-      imageBoundsRef.current=detectArtworkBounds(img);
-      cutoutUrlRef.current=createArtworkCutout(img,imageBoundsRef.current);
+      imageQuadRef.current=detectArtworkQuad(img,aspect);
+      imageBoundsRef.current=quadToBounds(imageQuadRef.current);
+      cutoutUrlRef.current=createArtworkCutout(img,imageQuadRef.current);
       setMessage(ru?"Картина вырезана из фона.":"Artwork cut out from its background.");
     }catch{
       imageBoundsRef.current={x:0,y:0,width:1,height:1};

@@ -267,9 +267,9 @@ export default function ARWallPreview({imageUrl,title,width,height,ru}:Props){
         name:'petitsot-eightwall-scene',
         onStart:({canvas:startedCanvas}:any)=>{
           const xrScene=w.XR8.Threejs.xrScene();
-          const scene=xrScene.scene;
-          const camera=xrScene.camera;
-          const renderer=xrScene.renderer;
+          const scene=xrScene.scene as THREE.Scene;
+          const camera=xrScene.camera as THREE.Camera;
+          const renderer=xrScene.renderer as THREE.WebGLRenderer;
           renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));
           const material=new THREE.MeshBasicMaterial({map:texture,transparent:true,side:THREE.FrontSide});
           const sideMaterial=new THREE.MeshStandardMaterial({color:0x171717,roughness:.62});

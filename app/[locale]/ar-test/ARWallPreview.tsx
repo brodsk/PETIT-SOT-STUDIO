@@ -400,29 +400,11 @@ export default function ARWallPreview({imageUrl,title,width,height,ru,artworkCho
       canvas.style.objectFit='cover';
       rootRef.current?.appendChild(canvas);
 
-      // Keep the WebAR drawing buffer in the exact aspect ratio of the preview.
-      // Otherwise the camera texture can be stretched when the preview is not 16:9.
-      const syncEightWallViewport=()=>{
-        const root=rootRef.current;
-        if(!root)return;
-        const rect=root.getBoundingClientRect();
-        const dpr=Math.min(window.devicePixelRatio||1,2);
-        const width=Math.max(1,Math.round(rect.width));
-        const height=Math.max(1,Math.round(rect.height));
-        canvas.width=Math.max(1,Math.round(width*dpr));
-        canvas.height=Math.max(1,Math.round(height*dpr));
-        canvas.style.width=width+'px';
-        canvas.style.height=height+'px';
-        const xrScene=w.XR8?.Threejs?.xrScene?.();
-        const renderer=xrScene?.renderer as THREE.WebGLRenderer|undefined;
-        if(renderer){
-          renderer.setPixelRatio(dpr);
-          renderer.setSize(width,height,false);
-        }
-      };
-      syncEightWallViewport();
-      const resizeObserver=new ResizeObserver(syncEightWallViewport);
-      if(rootRef.current)resizeObserver.observe(rootRef.current);
+      // Let 8th Wall own the camera canvas and Three.js viewport. Its Threejs
+      // pipeline supplies the real camera intrinsics and render size on start.
+      // Manually resizing the XR canvas here can desynchronise the camera feed
+      // from the SLAM projection on mobile browsers.
+      const resizeObserver={disconnect:()=>{}};
       const image=new Image();image.crossOrigin='anonymous';image.src=selectedImage;await image.decode();
       // AR receives the artwork exactly as supplied. The selected test images are already
       // front-facing and contain only the artwork, so no edge detection, crop or homography is needed.
@@ -441,7 +423,7 @@ export default function ARWallPreview({imageUrl,title,width,height,ru,artworkCho
           else if(status==='hasVideo')setMessage(ru?'SLAM запущен. Медленно наведите телефон на стену.':'SLAM is running. Slowly point the phone at a wall.');
           else if(status==='failed')setMessage(ru?'8th Wall не получил видеопоток камеры. Проверьте разрешение камеры в браузере.':'8th Wall could not get the camera stream. Check camera permission in the browser.');
         },
-        onStart:({canvas:startedCanvas}:any)=>{
+        onStart:({canvas:startedCanvas,canvasWidth,canvasHeight}:any)=>{
           trackedCanvas=startedCanvas;
           const xrScene=w.XR8.Threejs.xrScene();
           const scene=xrScene.scene as THREE.Scene;
@@ -449,6 +431,7 @@ export default function ARWallPreview({imageUrl,title,width,height,ru,artworkCho
           trackedCamera=camera;
           const renderer=xrScene.renderer as THREE.WebGLRenderer;
           renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));
+          renderer.setSize(canvasWidth,canvasHeight,false);
           const material=new THREE.MeshBasicMaterial({map:texture,transparent:true,side:THREE.FrontSide});
           const sideMaterial=new THREE.MeshStandardMaterial({color:0x171717,roughness:.62});
           // BoxGeometry material order: right, left, top, bottom, front, back.
@@ -472,6 +455,8 @@ export default function ARWallPreview({imageUrl,title,width,height,ru,artworkCho
           trackedWallGuide=wallGuide;
           scene.add(wallGuide);
           scene.add(new THREE.HemisphereLight(0xffffff,0x333333,1.15));
+          // This is the canonical 8th Wall + Three.js camera sync. Do it once
+          // after the XR scene is created; the Threejs pipeline keeps it updated.
           w.XR8.XrController.updateCameraProjectionMatrix({origin:camera.position,facing:camera.quaternion});
           // Placement is controlled only by the Place button. Touching the camera view
           // must never recenter or move an already placed artwork.
@@ -479,14 +464,6 @@ export default function ARWallPreview({imageUrl,title,width,height,ru,artworkCho
         },
         onUpdate:({processCpuResult}:any)=>{
           const reality=processCpuResult?.reality;
-          if(reality?.intrinsics&&trackedCamera){
-            // Keep Three.js projection identical to 8th Wall's camera intrinsics.
-            // This is important inside our non-fullscreen AR viewport: otherwise a
-            // physically 12×24 cm artwork can appear with the wrong screen aspect.
-            const projection=Array.from(reality.intrinsics) as number[];
-            trackedCamera.projectionMatrix.fromArray(projection);
-            trackedCamera.projectionMatrixInverse.copy(trackedCamera.projectionMatrix).invert();
-          }
           if(reality?.trackingStatus==='NORMAL'&&Array.isArray(reality.worldPoints)){
             if(!trackedArtwork?.userData.locked){
               const cameraPos=reality.position;
@@ -560,11 +537,21 @@ export default function ARWallPreview({imageUrl,title,width,height,ru,artworkCho
           setMessage(ru?'Ошибка 8th Wall: '+details:'8th Wall error: '+details);
         },
       };
+      // World Tracking/SLAM is explicitly restricted to the mobile device class
+      // in 8th Wall. Using ANY here can open a camera but disables the very
+      // world-tracking path we need for a fixed wall placement.
       w.XR8.XrController.configure({disableWorldTracking:false,enableLighting:true,enableWorldPoints:true,scale:'absolute'});
+      w.XR8.stop?.();
+      w.XR8.clearCameraPipelineModules?.();
       w.XR8.addCameraPipelineModules([w.XR8.GlTextureRenderer.pipelineModule(),w.XR8.Threejs.pipelineModule(),w.XR8.XrController.pipelineModule(),initModule]);
-      w.XR8.run({canvas,cameraConfig:{direction:w.XR8.XrConfig.camera().BACK},allowedDevices:w.XR8.XrConfig.device().ANY});
+      w.XR8.run({
+        canvas,
+        cameraConfig:{direction:w.XR8.XrConfig.camera().BACK},
+        allowedDevices:w.XR8.XrConfig.device().MOBILE,
+        glContextConfig:{antialias:true,alpha:true}
+      });
       setMode('ar');setPlaced(false);setCanPlace(false);
-      eightWallRef.current={stop:()=>{try{resizeObserver.disconnect();}catch{}try{w.XR8.stop?.();}catch{}try{texture.dispose();}catch{}try{canvas.remove();}catch{}wallCandidateRef.current=null;trackedCamera=null;trackedCanvas=null;trackedArtwork=null;trackedWallGuide=null;eightWallArtworkRef.current=null;eightWallCanvasRef.current=null;}};
+      eightWallRef.current={stop:()=>{try{resizeObserver.disconnect();}catch{}try{w.XR8.stop?.();}try{w.XR8.clearCameraPipelineModules?.();}catch{}try{texture.dispose();}catch{}try{canvas.remove();}catch{}wallCandidateRef.current=null;trackedCamera=null;trackedCanvas=null;trackedArtwork=null;trackedWallGuide=null;eightWallArtworkRef.current=null;eightWallCanvasRef.current=null;}};
     }catch(error){
       console.error('8th Wall start failed',error);
       setMessage(ru?'8th Wall не запустился: '+(error instanceof Error?error.message:'неизвестная ошибка'):'8th Wall failed to start: '+(error instanceof Error?error.message:'unknown error'));

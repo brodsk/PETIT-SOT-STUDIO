@@ -258,7 +258,7 @@ export default function ARWallPreview({imageUrl,title,width,height,ru}:Props){
     <video ref={videoRef} className="ar-camera" playsInline muted/>
     <div className="ar-topbar"><span>{ru?"ПОСМОТРЕТЬ НА СТЕНЕ":"VIEW ON YOUR WALL"}</span><button type="button" onClick={cleanup}>×</button></div>
     {mode==="idle"&&<div className="ar-start">
-      <p>{ru?"Настоящий AR: камера, определение стены и 3D-картина с реальным размером.":"True AR: camera, wall detection and a 3D artwork at its real size."}</p>
+      <p>{message|| (ru?"Настоящий AR: камера, определение стены и 3D-картина с реальным размером.":"True AR: camera, wall detection and a 3D artwork at its real size.")}</p>
       <button type="button" onClick={startAR}>{ru?"Открыть AR":"Open AR"}</button>
       <button type="button" className="ar-secondary" onClick={runXRDiagnostic}>{ru?"Проверить WebXR":"Check WebXR"}</button>
       <button type="button" className="ar-secondary" onClick={startCamera}>{ru?"Режим камеры":"Camera mode"}</button>

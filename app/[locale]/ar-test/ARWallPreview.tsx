@@ -11,109 +11,68 @@ type XRState={
   lastHit?:{position:THREE.Vector3;quaternion:THREE.Quaternion};
 };
 
+type ArtworkQuad={points:[{x:number;y:number},{x:number;y:number},{x:number;y:number},{x:number;y:number}];confidence:number};
 type ArtworkBounds={x:number;y:number;width:number;height:number};
 
-function detectArtworkBounds(image:HTMLImageElement):ArtworkBounds{
+function detectArtworkQuad(image:HTMLImageElement,targetAspect:number):ArtworkQuad{
   const w=image.naturalWidth,h=image.naturalHeight;
-  if(!w||!h)return {x:0,y:0,width:1,height:1};
-
-  // Find the four strongest long straight edges. This is deliberately
-  // geometry-first: for a painting photographed on a wall, the frame/canvas
-  // boundary is much more useful than guessing the wall's average colour.
-  const size=480,scale=Math.min(size/w,size/h);
-  const canvas=document.createElement("canvas");
-  canvas.width=Math.max(80,Math.round(w*scale));
-  canvas.height=Math.max(80,Math.round(h*scale));
-  const ctx=canvas.getContext("2d",{willReadFrequently:true});
-  if(!ctx)return {x:0,y:0,width:1,height:1};
+  const fallback={points:[{x:0,y:0},{x:1,y:0},{x:1,y:1},{x:0,y:1}],confidence:0};
+  if(!w||!h)return fallback;
+  const size=640,scale=Math.min(size/w,size/h),canvas=document.createElement("canvas");
+  canvas.width=Math.max(120,Math.round(w*scale));canvas.height=Math.max(120,Math.round(h*scale));
+  const ctx=canvas.getContext("2d",{willReadFrequently:true});if(!ctx)return fallback;
   ctx.drawImage(image,0,0,canvas.width,canvas.height);
-  const data=ctx.getImageData(0,0,canvas.width,canvas.height).data;
-  const cw=canvas.width,ch=canvas.height;
-  const gray=new Float32Array(cw*ch);
-  for(let y=0;y<ch;y++)for(let x=0;x<cw;x++){
-    const i=(y*cw+x)*4;
-    gray[y*cw+x]=.299*data[i]+.587*data[i+1]+.114*data[i+2];
-  }
-
-  const vx=new Float32Array(cw),hy=new Float32Array(ch);
-  for(let y=1;y<ch-1;y++)for(let x=1;x<cw-1;x++){
-    const n=y*cw+x,gx=Math.abs(gray[n+1]-gray[n-1]),gy=Math.abs(gray[n+cw]-gray[n-cw]);
-    vx[x]+=gy; hy[y]+=gx;
-  }
-  const smooth=(a:Float32Array,r:number)=>{
-    const out=new Float32Array(a.length);
-    for(let i=0;i<a.length;i++){
-      let s=0,n=0;
-      for(let j=Math.max(0,i-r);j<=Math.min(a.length-1,i+r);j++){s+=a[j];n++}
-      out[i]=s/n;
+  const data=ctx.getImageData(0,0,canvas.width,canvas.height).data,cw=canvas.width,ch=canvas.height;
+  const gray=new Float32Array(cw*ch),edge=new Uint8Array(cw*ch);let maxEdge=0;
+  for(let y=1;y<ch-1;y++)for(let x=1;x<cw-1;x++){const i=(y*cw+x)*4;gray[y*cw+x]=.299*data[i]+.587*data[i+1]+.114*data[i+2]}
+  for(let y=1;y<ch-1;y++)for(let x=1;x<cw-1;x++){const n=y*cw+x,gx=gray[n+1]-gray[n-1],gy=gray[n+cw]-gray[n-cw],v=Math.min(255,Math.round(Math.hypot(gx,gy)));edge[n]=v;if(v>maxEdge)maxEdge=v}
+  const threshold=Math.max(22,maxEdge*.22),points:{x:number;y:number;v:number}[]=[];
+  for(let y=Math.round(ch*.04);y<Math.round(ch*.96);y+=2)for(let x=Math.round(cw*.04);x<Math.round(cw*.96);x+=2){const v=edge[y*cw+x];if(v>=threshold)points.push({x,y,v})}
+  if(points.length<80)return fallback;
+  const angles:number[]=[];for(let a=-55;a<=55;a+=5)angles.push(a*Math.PI/180);for(let a=35;a<=145;a+=5)if(!angles.some(v=>Math.abs(v-a*Math.PI/180)<.001))angles.push(a*Math.PI/180);
+  const diag=Math.hypot(cw,ch),rhoBins=Math.ceil(diag*2)+1,peaks:{theta:number;rho:number;score:number}[]=[];
+  for(const theta of angles){const cos=Math.cos(theta),sin=Math.sin(theta),votes=new Float32Array(rhoBins);for(const p of points){const rho=Math.round(p.x*cos+p.y*sin+diag);votes[rho]+=p.v}for(let r=2;r<rhoBins-2;r++){const v=votes[r];if(v>votes[r-1]&&v>=votes[r+1]&&v>points.length*.7)peaks.push({theta,rho:r-diag,score:v})}}
+  peaks.sort((a,b)=>b.score-a.score);const lines:{theta:number;rho:number;score:number}[]=[];
+  for(const p of peaks)if(lines.every(l=>{const da=Math.abs(Math.atan2(Math.sin(p.theta-l.theta),Math.cos(p.theta-l.theta)));return da>5*Math.PI/180||Math.abs(p.rho-l.rho)>Math.min(cw,ch)*.06})){lines.push(p);if(lines.length>=28)break}
+  if(lines.length<4)return fallback;
+  const intersection=(a:{theta:number;rho:number},b:{theta:number;rho:number})=>{const det=Math.cos(a.theta)*Math.sin(b.theta)-Math.sin(a.theta)*Math.cos(b.theta);if(Math.abs(det)<.08)return null;return{x:(a.rho*Math.sin(b.theta)-b.rho*Math.sin(a.theta))/det,y:(Math.cos(a.theta)*b.rho-Math.cos(b.theta)*a.rho)/det}};
+  const angleDiff=(a:number,b:number)=>{let d=Math.abs(Math.atan2(Math.sin(a-b),Math.cos(a-b)));if(d>Math.PI/2)d=Math.PI-d;return d};
+  const area=(p:{x:number;y:number}[])=>Math.abs(p.reduce((s,q,i)=>s+q.x*p[(i+1)%p.length].y-q.y*p[(i+1)%p.length].x,0))/2;
+  const inside=(p:{x:number;y:number})=>p.x>cw*.015&&p.x<cw*.985&&p.y>ch*.015&&p.y<ch*.985;
+  const dist=(a:{x:number;y:number},b:{x:number;y:number})=>Math.hypot(a.x-b.x,a.y-b.y);
+  let best:ArtworkQuad|null=null,bestScore=-Infinity;
+  for(let i=0;i<lines.length;i++)for(let j=i+1;j<lines.length;j++){if(angleDiff(lines[i].theta,lines[j].theta)>18*Math.PI/180||Math.abs(lines[i].rho-lines[j].rho)<Math.min(cw,ch)*.22)continue;
+    for(let k=0;k<lines.length;k++)for(let l=k+1;l<lines.length;l++){if(k===i||k===j||l===i||l===j||angleDiff(lines[k].theta,lines[l].theta)>18*Math.PI/180)continue;
+      if(Math.abs(angleDiff((lines[i].theta+lines[j].theta)/2,(lines[k].theta+lines[l].theta)/2)-Math.PI/2)>24*Math.PI/180)continue;
+      const p1=intersection(lines[i],lines[k]),p2=intersection(lines[i],lines[l]),p3=intersection(lines[j],lines[l]),p4=intersection(lines[j],lines[k]);if(!p1||!p2||!p3||!p4)continue;
+      const pts=[p1,p2,p3,p4];if(!pts.every(inside))continue;const a=area(pts);if(a<cw*ch*.18||a>cw*ch*.94)continue;
+      const ww=(dist(p1,p2)+dist(p4,p3))/2,hh=(dist(p1,p4)+dist(p2,p3))/2;if(ww<Math.min(cw,ch)*.22||hh<Math.min(cw,ch)*.22)continue;
+      const observed=ww/Math.max(1,hh),aspect=Math.max(.2,Math.min(5,targetAspect||observed)),aspectPenalty=Math.abs(Math.log(observed/aspect)),parallelPenalty=angleDiff(lines[i].theta,lines[j].theta)+angleDiff(lines[k].theta,lines[l].theta);
+      const raw=lines[i].score+lines[j].score+lines[k].score+lines[l].score,score=raw-aspectPenalty*Math.max(lines[i].score,1)*.9-parallelPenalty*20;
+      if(score>bestScore){bestScore=score;best={points:pts.map(p=>({x:p.x/cw,y:p.y/ch})) as ArtworkQuad["points"],confidence:Math.min(1,Math.max(0,score/(raw+.0001)))}}
     }
-    return out;
-  };
-  const xs=smooth(vx,Math.max(2,Math.round(cw*.012)));
-  const ys=smooth(hy,Math.max(2,Math.round(ch*.012)));
-
-  const peak=(scores:Float32Array,lo:number,hi:number)=>{
-    let best=lo,bestScore=-Infinity;
-    for(let i=lo;i<=hi;i++)if(scores[i]>bestScore){bestScore=scores[i];best=i}
-    return best;
-  };
-  const marginX=Math.round(cw*.06),marginY=Math.round(ch*.06);
-  const left=peak(xs,marginX,Math.round(cw*.42));
-  const right=peak(xs,Math.round(cw*.58),cw-marginX);
-  const top=peak(ys,marginY,Math.round(ch*.42));
-  const bottom=peak(ys,Math.round(ch*.58),ch-marginY);
-
-  const x=Math.min(left,right),y=Math.min(top,bottom);
-  const r=Math.max(left,right),b=Math.max(top,bottom);
-  const bw=(r-x)/cw,bh=(b-y)/ch;
-  if(bw<.30||bh<.30||bw>.97||bh>.97||r<=x||b<=y)return {x:0,y:0,width:1,height:1};
-
-  const pad=Math.max(2,Math.round(Math.min(cw,ch)*.012));
-  const px=Math.max(0,x-pad),py=Math.max(0,y-pad),pr=Math.min(cw,r+pad),pb=Math.min(ch,b+pad);
-  return {x:px/cw,y:py/ch,width:(pr-px)/cw,height:(pb-py)/ch};
+  }
+  return best&&best.confidence>.42?best:fallback;
 }
 
-function createArtworkCutout(image:HTMLImageElement,bounds:ArtworkBounds){
-  const w=image.naturalWidth,h=image.naturalHeight;
-  const maxSide=1600,scale=Math.min(1,maxSide/Math.max(w,h));
-  const full=document.createElement("canvas");
-  full.width=Math.max(1,Math.round(w*scale));
-  full.height=Math.max(1,Math.round(h*scale));
-  const ctx=full.getContext("2d",{willReadFrequently:true});
-  if(!ctx)return image.src;
-  ctx.drawImage(image,0,0,full.width,full.height);
+function quadToBounds(quad:ArtworkQuad):ArtworkBounds{
+  const xs=quad.points.map(p=>p.x),ys=quad.points.map(p=>p.y),x=Math.max(0,Math.min(...xs)),y=Math.max(0,Math.min(...ys)),r=Math.min(1,Math.max(...xs)),b=Math.min(1,Math.max(...ys));
+  return{x,y,width:Math.max(.01,r-x),height:Math.max(.01,b-y)};
+}
 
-  const sx=Math.max(0,Math.floor(bounds.x*full.width));
-  const sy=Math.max(0,Math.floor(bounds.y*full.height));
-  const sw=Math.max(1,Math.min(full.width-sx,Math.ceil(bounds.width*full.width)));
-  const sh=Math.max(1,Math.min(full.height-sy,Math.ceil(bounds.height*full.height)));
-
-  // Make everything outside the detected artwork rectangle transparent.
-  // Unlike the previous colour flood-fill, this cannot leave the surrounding
-  // wall as an opaque rectangle.
-  const pixels=ctx.getImageData(0,0,full.width,full.height);
-  const d=pixels.data;
-  const feather=Math.max(2,Math.round(Math.min(full.width,full.height)*.004));
-  for(let y=0;y<full.height;y++)for(let x=0;x<full.width;x++){
-    const dx=Math.max(sx-x,0,x-(sx+sw-1));
-    const dy=Math.max(sy-y,0,y-(sy+sh-1));
-    const dist=Math.max(dx,dy);
-    if(dist>feather)d[(y*full.width+x)*4+3]=0;
-    else if(dist>0)d[(y*full.width+x)*4+3]=Math.round(255*(1-dist/feather));
-  }
-  ctx.putImageData(pixels,0,0);
-
-  const crop=document.createElement("canvas");
-  crop.width=sw;crop.height=sh;
-  const cropCtx=crop.getContext("2d");
-  if(!cropCtx)return full.toDataURL("image/png");
-  cropCtx.drawImage(full,sx,sy,sw,sh,0,0,sw,sh);
-  return crop.toDataURL("image/png");
+function createArtworkCutout(image:HTMLImageElement,quad:ArtworkQuad){
+  const w=image.naturalWidth,h=image.naturalHeight,maxSide=1800,scale=Math.min(1,maxSide/Math.max(w,h)),full=document.createElement("canvas");
+  full.width=Math.max(1,Math.round(w*scale));full.height=Math.max(1,Math.round(h*scale));const ctx=full.getContext("2d",{willReadFrequently:true});if(!ctx)return image.src;ctx.drawImage(image,0,0,full.width,full.height);
+  const pts=quad.points.map(p=>({x:p.x*full.width,y:p.y*full.height})),pixels=ctx.getImageData(0,0,full.width,full.height),d=pixels.data;
+  const sign=(a:{x:number;y:number},b:{x:number;y:number},p:{x:number;y:number})=>(b.x-a.x)*(p.y-a.y)-(b.y-a.y)*(p.x-a.x),orient=sign(pts[0],pts[1],pts[2])>=0?1:-1,feather=Math.max(2,Math.round(Math.min(full.width,full.height)*.004));
+  const minX=Math.max(0,Math.floor(Math.min(...pts.map(p=>p.x))-feather)),maxX=Math.min(full.width-1,Math.ceil(Math.max(...pts.map(p=>p.x))+feather)),minY=Math.max(0,Math.floor(Math.min(...pts.map(p=>p.y))-feather)),maxY=Math.min(full.height-1,Math.ceil(Math.max(...pts.map(p=>p.y))+feather));
+  for(let y=minY;y<=maxY;y++)for(let x=minX;x<=maxX;x++){const p={x,y},inside=pts.every((a,i)=>orient*sign(a,pts[(i+1)%4],p)>=-1);if(!inside){d[(y*full.width+x)*4+3]=0;continue}const ds=pts.map((a,i)=>Math.abs(sign(a,pts[(i+1)%4],p))/Math.max(1,Math.hypot(pts[(i+1)%4].x-a.x,pts[(i+1)%4].y-a.y))),edge=Math.min(...ds);d[(y*full.width+x)*4+3]=Math.min(255,Math.round(255*Math.min(1,edge/feather)))}
+  ctx.putImageData(pixels,0,0);return full.toDataURL("image/png");
 }
 
 export default function ARWallPreview({imageUrl,title,width,height,ru}:Props){
   const rootRef=useRef<HTMLDivElement>(null),videoRef=useRef<HTMLVideoElement>(null);
-  const stateRef=useRef<XRState|null>(null),imageBoundsRef=useRef<ArtworkBounds>({x:0,y:0,width:1,height:1}),cutoutUrlRef=useRef<string|null>(null);
+  const stateRef=useRef<XRState|null>(null),imageQuadRef=useRef<ArtworkQuad>({points:[{x:0,y:0},{x:1,y:0},{x:1,y:1},{x:0,y:1}],confidence:0}),imageBoundsRef=useRef<ArtworkBounds>({x:0,y:0,width:1,height:1}),cutoutUrlRef=useRef<string|null>(null);
   const [mode,setMode]=useState<"idle"|"camera"|"ar">("idle"),[message,setMessage]=useState("");
   const [analysis,setAnalysis]=useState(false),[placed,setPlaced]=useState(false),[canPlace,setCanPlace]=useState(false),[cameraScale,setCameraScale]=useState(1);
   const [drag,setDrag]=useState({x:50,y:45});
@@ -182,7 +141,7 @@ export default function ARWallPreview({imageUrl,title,width,height,ru}:Props){
       renderer.domElement.className="ar-three-canvas";rootRef.current?.appendChild(renderer.domElement);
 
       const scene=new THREE.Scene(),camera=new THREE.PerspectiveCamera(70,window.innerWidth/window.innerHeight,.01,30);
-      const texture=new THREE.TextureLoader().load(cutoutUrlRef.current||imageUrl!);texture.colorSpace=THREE.SRGBColorSpace;texture.anisotropy=4;texture.wrapS=THREE.ClampToEdgeWrapping;texture.wrapT=THREE.ClampToEdgeWrapping;const bounds=imageBoundsRef.current;texture.repeat.set(1,1);texture.offset.set(0,0);
+      const texture=new THREE.TextureLoader().load(cutoutUrlRef.current||imageUrl!);texture.colorSpace=THREE.SRGBColorSpace;texture.anisotropy=4;texture.wrapS=THREE.ClampToEdgeWrapping;texture.wrapT=THREE.ClampToEdgeWrapping;texture.repeat.set(1,1);texture.offset.set(0,0);
       const artW=Math.max(.01,width/100),artH=Math.max(.01,height/100),thickness=.018;
       const group=new THREE.Group();group.visible=false;
       const front=new THREE.MeshStandardMaterial({map:texture,roughness:.72,metalness:0});

@@ -551,7 +551,7 @@ export default function ARWallPreview({imageUrl,title,width,height,ru,artworkCho
         glContextConfig:{antialias:true,alpha:true}
       });
       setMode('ar');setPlaced(false);setCanPlace(false);
-      eightWallRef.current={stop:()=>{try{resizeObserver.disconnect();}catch{}try{w.XR8.stop?.();}try{w.XR8.clearCameraPipelineModules?.();}catch{}try{texture.dispose();}catch{}try{canvas.remove();}catch{}wallCandidateRef.current=null;trackedCamera=null;trackedCanvas=null;trackedArtwork=null;trackedWallGuide=null;eightWallArtworkRef.current=null;eightWallCanvasRef.current=null;}};
+      eightWallRef.current={stop:()=>{try{resizeObserver.disconnect();}catch{}try{w.XR8.stop?.();}catch{}try{w.XR8.clearCameraPipelineModules?.();}catch{}try{texture.dispose();}catch{}try{canvas.remove();}catch{}wallCandidateRef.current=null;trackedCamera=null;trackedCanvas=null;trackedArtwork=null;trackedWallGuide=null;eightWallArtworkRef.current=null;eightWallCanvasRef.current=null;}};
     }catch(error){
       console.error('8th Wall start failed',error);
       setMessage(ru?'8th Wall не запустился: '+(error instanceof Error?error.message:'неизвестная ошибка'):'8th Wall failed to start: '+(error instanceof Error?error.message:'unknown error'));

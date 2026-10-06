@@ -309,6 +309,8 @@ export default function ARWallPreview({imageUrl,title,width,height,ru}:Props){
       let trackedCanvas:HTMLCanvasElement|null=null;
       let trackedArtwork:THREE.Group|null=null;
       let trackedWallGuide:THREE.Mesh|null=null;
+      let trackedArtwork:THREE.Group|null=null;
+      let trackedWallGuide:THREE.Mesh|null=null;
       const initModule={
         name:'petitsot-eightwall-scene',
         onStart:({canvas:startedCanvas}:any)=>{
@@ -325,15 +327,17 @@ export default function ARWallPreview({imageUrl,title,width,height,ru}:Props){
           const mesh=new THREE.Mesh(new THREE.BoxGeometry(artW,artH,thickness),[sideMaterial,sideMaterial,sideMaterial,sideMaterial,material,sideMaterial]);
           const artwork=new THREE.Group();artwork.add(mesh);
           trackedArtwork=artwork;
+          trackedArtwork=artwork;
           artwork.position.set(0,1.45,-2.2);
           scene.add(artwork);
           const wallGuide=new THREE.Mesh(
             new THREE.PlaneGeometry(artW,artH),
             new THREE.MeshBasicMaterial({map:texture,transparent:true,opacity:.28,side:THREE.DoubleSide,depthWrite:false})
           );
-          wallGuide.visible=false;
+          if(trackedWallGuide)trackedWallGuide.visible=false;
           trackedWallGuide=wallGuide;
           scene.add(wallGuide);
+          trackedWallGuide=wallGuide;
           scene.add(new THREE.HemisphereLight(0xffffff,0x333333,1.15));
           w.XR8.XrController.updateCameraProjectionMatrix({origin:camera.position,facing:camera.quaternion});
           startedCanvas.addEventListener('touchstart',(ev:TouchEvent)=>{
@@ -357,10 +361,10 @@ export default function ARWallPreview({imageUrl,title,width,height,ru}:Props){
               trackedWallGuide.quaternion.slerp(q,.22);
               trackedWallGuide.visible=true;
               trackedWallGuide.userData.candidate={position:plane.center.clone().add(plane.normal.clone().multiplyScalar(.012)),quaternion:q.clone()};
-              wallCandidateRef.current=wallGuide.userData.candidate;
+              wallCandidateRef.current=trackedWallGuide!.userData.candidate;
               setCanPlace(true);
               setMessage(ru?'Стена найдена — нажмите «Разместить картину».':'Wall detected — tap Place artwork.');
-            }else if(!artwork.userData.locked){
+            }else if(!trackedArtwork?.userData.locked){
               if(trackedWallGuide)trackedWallGuide.visible=false;
               wallCandidateRef.current=null;
               setCanPlace(false);

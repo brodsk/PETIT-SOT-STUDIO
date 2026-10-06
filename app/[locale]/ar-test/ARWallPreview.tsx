@@ -473,16 +473,9 @@ export default function ARWallPreview({imageUrl,title,width,height,ru,artworkCho
         },
         onUpdate:({processCpuResult}:any)=>{
           if(!trackedCamera||trackedArtwork?.userData.locked)return;
-          // Always put the artwork into the tracked 3D world immediately. Wall detection
-          // refines this pose later; this prevents a blank camera while SLAM is warming up.
-          if(trackedArtwork&&!wallCandidateRef.current){
-      // Do not float the artwork in front of the camera. Until a real vertical wall
-      // is detected, keep the artwork hidden. The only valid placement is the
-      // intersection of the camera ray with the tracked wall plane.
-      trackedArtwork.visible=false;
-
-            }
-          }
+          // Never float the artwork in front of the camera.
+          // It becomes visible only after a real vertical wall plane is detected.
+          if(trackedArtwork&&!wallCandidateRef.current)trackedArtwork.visible=false;
           const reality=processCpuResult?.reality;
           if(reality?.trackingStatus!=='NORMAL'||!Array.isArray(reality.worldPoints))return;
           const plane=fitWorldPlane(reality.worldPoints,trackedCamera);
@@ -494,7 +487,8 @@ export default function ARWallPreview({imageUrl,title,width,height,ru,artworkCho
           const wallPlane=new THREE.Plane().setFromNormalAndCoplanarPoint(stable.normal,stable.center);
           const ray=new THREE.Raycaster();ray.setFromCamera(new THREE.Vector2(0,0),trackedCamera);
           const hit=new THREE.Vector3();const hitOk=ray.ray.intersectPlane(wallPlane,hit);
-          if(!hitOk)return;\n          // Put the rear face a few millimetres in front of the physical wall.\n          // The artwork's local +Z points toward the viewer.\n          const pos=hit.clone().add(stable.normal.clone().multiplyScalar(thickness/2+.003));
+          if(!hitOk)return;
+          // Put the rear face a few millimetres in front of the physical wall.\n          // The artwork's local +Z points toward the viewer.\n          const pos=hit.clone().add(stable.normal.clone().multiplyScalar(thickness/2+.003));
           const q=makeWallQuaternion(stable.normal);
           lastCandidate={position:pos,quaternion:q};wallCandidateRef.current=lastCandidate;
           if(trackedGuide){trackedGuide.position.copy(pos);trackedGuide.quaternion.copy(q);trackedGuide.visible=true;}

@@ -397,7 +397,7 @@ export default function ARWallPreview({imageUrl,title,width,height,ru,artworkCho
       eightWallCanvasRef.current=canvas;
       canvas.className='ar-three-canvas';
       canvas.style.position='absolute';canvas.style.inset='0';canvas.style.width='100%';canvas.style.height='100%';canvas.style.zIndex='2';
-      canvas.style.objectFit='contain';
+      canvas.style.objectFit='cover';
       rootRef.current?.appendChild(canvas);
 
       // Keep the WebAR drawing buffer in the exact aspect ratio of the preview.
@@ -475,7 +475,7 @@ export default function ARWallPreview({imageUrl,title,width,height,ru,artworkCho
           w.XR8.XrController.updateCameraProjectionMatrix({origin:camera.position,facing:camera.quaternion});
           // Placement is controlled only by the Place button. Touching the camera view
           // must never recenter or move an already placed artwork.
-          setMessage(ru?'8th Wall запущен. Картина закреплена в пространстве — двигайтесь вокруг неё.':'8th Wall is running. The artwork is anchored in space — walk around it.');
+          setMessage(ru?'8th Wall запущен. Медленно наведите камеру на стену.':'8th Wall is running. Slowly point the camera at a wall.');
         },
         onUpdate:({processCpuResult}:any)=>{
           const reality=processCpuResult?.reality;
@@ -562,7 +562,7 @@ export default function ARWallPreview({imageUrl,title,width,height,ru,artworkCho
       };
       w.XR8.XrController.configure({disableWorldTracking:false,enableLighting:true,enableWorldPoints:true,scale:'absolute'});
       w.XR8.addCameraPipelineModules([w.XR8.GlTextureRenderer.pipelineModule(),w.XR8.Threejs.pipelineModule(),w.XR8.XrController.pipelineModule(),initModule]);
-      w.XR8.run({canvas,allowedDevices:w.XR8.XrConfig.device().MOBILE});
+      w.XR8.run({canvas,cameraConfig:{direction:w.XR8.XrConfig.camera().BACK},allowedDevices:w.XR8.XrConfig.device().ANY});
       setMode('ar');setPlaced(false);setCanPlace(false);
       eightWallRef.current={stop:()=>{try{resizeObserver.disconnect();}catch{}try{w.XR8.stop?.();}catch{}try{texture.dispose();}catch{}try{canvas.remove();}catch{}wallCandidateRef.current=null;trackedCamera=null;trackedCanvas=null;trackedArtwork=null;trackedWallGuide=null;eightWallArtworkRef.current=null;eightWallCanvasRef.current=null;}};
     }catch(error){

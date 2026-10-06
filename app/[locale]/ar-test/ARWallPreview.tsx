@@ -355,7 +355,7 @@ export default function ARWallPreview({imageUrl,title,width,height,ru,artworkCho
       if(!w.XR8)throw new Error('XR8 unavailable');
       const canvas=document.createElement('canvas');
       canvas.className='ar-three-canvas';
-      canvas.style.position='fixed';canvas.style.inset='0';canvas.style.width='100vw';canvas.style.height='100vh';canvas.style.zIndex='2';
+      canvas.style.position='absolute';canvas.style.inset='0';canvas.style.width='100%';canvas.style.height='100%';canvas.style.zIndex='2';
       rootRef.current?.appendChild(canvas);
       const image=new Image();image.crossOrigin='anonymous';image.src=cutoutUrlRef.current||selectedImage;await image.decode();
       const texture=new THREE.Texture(image);texture.needsUpdate=true;texture.colorSpace=THREE.SRGBColorSpace;
@@ -428,7 +428,7 @@ export default function ARWallPreview({imageUrl,title,width,height,ru,artworkCho
       w.XR8.XrController.configure({disableWorldTracking:false,enableLighting:true,enableWorldPoints:true,scale:'absolute'});
       w.XR8.addCameraPipelineModules([w.XR8.GlTextureRenderer.pipelineModule(),w.XR8.Threejs.pipelineModule(),w.XR8.XrController.pipelineModule(),initModule]);
       w.XR8.run({canvas,allowedDevices:w.XR8.XrConfig.device().MOBILE});
-      setMode('ar');setPlaced(true);setCanPlace(false);
+      setMode('ar');setPlaced(false);setCanPlace(false);
       eightWallRef.current={stop:()=>{try{w.XR8.stop?.();}catch{}try{texture.dispose();}catch{}try{canvas.remove();}catch{}wallCandidateRef.current=null;trackedCamera=null;trackedCanvas=null;trackedArtwork=null;trackedWallGuide=null;}};
     }catch(error){
       console.error('8th Wall start failed',error);

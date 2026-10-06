@@ -305,12 +305,14 @@ export default function ARWallPreview({imageUrl,title,width,height,ru}:Props){
       const image=new Image();image.crossOrigin='anonymous';image.src=cutoutUrlRef.current||imageUrl;await image.decode();
       const texture=new THREE.Texture(image);texture.needsUpdate=true;texture.colorSpace=THREE.SRGBColorSpace;
       const artW=Math.max(.01,width/100),artH=Math.max(.01,height/100),thickness=.018;
+      let trackedCamera:THREE.Camera|null=null;
       const initModule={
         name:'petitsot-eightwall-scene',
         onStart:({canvas:startedCanvas}:any)=>{
           const xrScene=w.XR8.Threejs.xrScene();
           const scene=xrScene.scene as THREE.Scene;
           const camera=xrScene.camera as THREE.Camera;
+          trackedCamera=camera;
           const renderer=xrScene.renderer as THREE.WebGLRenderer;
           renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));
           const material=new THREE.MeshBasicMaterial({map:texture,transparent:true,side:THREE.FrontSide});
@@ -342,7 +344,7 @@ export default function ARWallPreview({imageUrl,title,width,height,ru}:Props){
         onUpdate:({processCpuResult}:any)=>{
           const reality=processCpuResult?.reality;
           if(reality?.trackingStatus==='NORMAL'&&Array.isArray(reality.worldPoints)){
-            const plane=detectWallPlane(reality.worldPoints,camera,startedCanvas.clientWidth||window.innerWidth,startedCanvas.clientHeight||window.innerHeight);
+            const plane=detectWallPlane(reality.worldPoints,trackedCamera||new THREE.PerspectiveCamera(),startedCanvas.clientWidth||window.innerWidth,startedCanvas.clientHeight||window.innerHeight);
             if(plane&&!artwork.userData.locked){
               const q=makeWallQuaternion(plane.normal);
               wallGuide.position.lerp(plane.center,.22);

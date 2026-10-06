@@ -393,16 +393,36 @@ export default function ARWallPreview({imageUrl,title,width,height,ru,artworkCho
         });
       }
       if(!w.XR8)throw new Error('XR8 unavailable');
+      // XRExtras is separate from the distributed engine binary. Load it so
+      // FullWindowCanvas can manage the camera canvas exactly as in 8th Wall's
+      // reference Three.js integration.
+      if(!w.XRExtras?.FullWindowCanvas){
+        await new Promise<void>((resolve,reject)=>{
+          const existing=document.querySelector('script[data-petit-sot-xrextras]') as HTMLScriptElement|null;
+          if(existing){
+            if(w.XRExtras?.FullWindowCanvas){resolve();return;}
+            window.addEventListener('xrextrasloaded',()=>resolve(),{once:true});
+            setTimeout(()=>w.XRExtras?.FullWindowCanvas?resolve():reject(new Error('XRExtras timeout')),10000);
+            return;
+          }
+          const script=document.createElement('script');
+          script.src='https://cdn.8thwall.com/web/xrextras/xrextras.js';
+          script.async=true;
+          script.dataset.petitSotXrextras='true';
+          script.onload=()=>w.XRExtras?.FullWindowCanvas?resolve():reject(new Error('XRExtras did not initialize'));
+          script.onerror=()=>reject(new Error('Could not load XRExtras'));
+          document.head.appendChild(script);
+        });
+      }
       const canvas=document.createElement('canvas');
       eightWallCanvasRef.current=canvas;
       canvas.className='ar-three-canvas';
       canvas.style.position='absolute';canvas.style.inset='0';canvas.style.width='100%';canvas.style.height='100%';canvas.style.zIndex='2';canvas.style.display='block';
             rootRef.current?.appendChild(canvas);
 
-      // Let 8th Wall own the camera canvas and Three.js viewport. Its Threejs
-      // pipeline supplies the real camera intrinsics and render size on start.
-      // Manually resizing the XR canvas here can desynchronise the camera feed
-      // from the SLAM projection on mobile browsers.
+      // 8th Wall's FullWindowCanvas owns the camera canvas sizing. Do not resize
+      // the canvas or Three.js renderer ourselves: that can desynchronise the
+      // camera image from the SLAM projection on mobile browsers.
       const resizeObserver={disconnect:()=>{}};
       const image=new Image();image.crossOrigin='anonymous';image.src=selectedImage;await image.decode();
       // AR receives the artwork exactly as supplied. The selected test images are already
@@ -429,23 +449,21 @@ export default function ARWallPreview({imageUrl,title,width,height,ru,artworkCho
           const camera=xrScene.camera as THREE.Camera;
           trackedCamera=camera;
           const renderer=xrScene.renderer as THREE.WebGLRenderer;
-          const displayWidth=Math.max(1,startedCanvas.clientWidth||rootRef.current?.clientWidth||window.innerWidth);
-          const displayHeight=Math.max(1,startedCanvas.clientHeight||rootRef.current?.clientHeight||window.innerHeight);
-          const dpr=Math.min(window.devicePixelRatio||1,2);
-          startedCanvas.width=Math.round(displayWidth*dpr);
-          startedCanvas.height=Math.round(displayHeight*dpr);
-          renderer.setPixelRatio(dpr);
-          renderer.setSize(displayWidth,displayHeight,false);
-          const material=new THREE.MeshBasicMaterial({map:texture,transparent:true,side:THREE.FrontSide});
+          // The artwork itself is a double-sided plane. This removes the
+          // front/back ambiguity of BoxGeometry while preserving exact physical
+          // width/height from the artwork metadata.
+          const material=new THREE.MeshBasicMaterial({map:texture,transparent:true,side:THREE.DoubleSide,depthWrite:true});
+          const planeGeometry=new THREE.PlaneGeometry(artW,artH);
+          const artworkPlane=new THREE.Mesh(planeGeometry,material);
+          artworkPlane.position.z=thickness/2;
           const sideMaterial=new THREE.MeshStandardMaterial({color:0x171717,roughness:.62});
-          // BoxGeometry material order: right, left, top, bottom, front, back.
-          const geometry=new THREE.BoxGeometry(artW,artH,thickness);
-          // Physical dimensions are authoritative: width/height come from the artwork metadata.
-          geometry.scale(1,1,1);
-          // Keep the artwork's physical aspect ratio independent of the source photo.
-          geometry.computeBoundingBox();
-          const mesh=new THREE.Mesh(geometry,[sideMaterial,sideMaterial,sideMaterial,sideMaterial,material,sideMaterial]);
-          const artwork=new THREE.Group();artwork.add(mesh);
+          const backingGeometry=new THREE.BoxGeometry(artW,artH,thickness);
+          const backing=new THREE.Mesh(backingGeometry,[
+            sideMaterial,sideMaterial,sideMaterial,sideMaterial,sideMaterial,sideMaterial
+          ]);
+          const artwork=new THREE.Group();
+          artwork.add(backing);
+          artwork.add(artworkPlane);
           trackedArtwork=artwork;
           eightWallArtworkRef.current=artwork;
           artwork.visible=true;
@@ -558,7 +576,18 @@ export default function ARWallPreview({imageUrl,title,width,height,ru,artworkCho
       w.XR8.XrController.configure({disableWorldTracking:false,enableLighting:true,enableWorldPoints:true,scale:'absolute'});
       w.XR8.stop?.();
       w.XR8.clearCameraPipelineModules?.();
-      w.XR8.addCameraPipelineModules([w.XR8.GlTextureRenderer.pipelineModule(),w.XR8.Threejs.pipelineModule(),w.XR8.XrController.pipelineModule(),initModule]);
+
+      // Use the same FullWindowCanvas pipeline as 8th Wall's own Three.js
+      // examples. It keeps the camera feed and the Three.js viewport aligned
+      // across mobile orientation/aspect-ratio changes.
+      const pipelineModules=[
+        w.XR8.GlTextureRenderer.pipelineModule(),
+        w.XR8.Threejs.pipelineModule(),
+        w.XR8.XrController.pipelineModule(),
+        ...(w.XRExtras?.FullWindowCanvas?.pipelineModule ? [w.XRExtras.FullWindowCanvas.pipelineModule()] : []),
+        initModule
+      ];
+      w.XR8.addCameraPipelineModules(pipelineModules);
       w.XR8.run({
         canvas,
         cameraConfig:{direction:w.XR8.XrConfig.camera().BACK},

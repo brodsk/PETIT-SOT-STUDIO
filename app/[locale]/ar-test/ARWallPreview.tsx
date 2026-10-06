@@ -115,6 +115,37 @@ function buildSceneViewerIntent(modelUrl:string,fallbackUrl:string){
   const params = new URLSearchParams({file:modelUrl,mode:"ar_preferred"});
   return "intent://arvr.google.com/scene-viewer/1.0?"+params.toString()+"#Intent;scheme=https;package=com.google.android.googlequicksearchbox;action=android.intent.action.VIEW;S.browser_fallback_url="+encodeURIComponent(fallbackUrl)+";end;";
 }
+function makeArtworkTextureCanvas(image:HTMLImageElement,targetAspect:number){
+  const maxSide=1800;
+  const scale=Math.min(1,maxSide/Math.max(image.naturalWidth,image.naturalHeight));
+  const sourceW=Math.max(1,Math.round(image.naturalWidth*scale));
+  const sourceH=Math.max(1,Math.round(image.naturalHeight*scale));
+  const source=document.createElement("canvas");
+  source.width=sourceW;source.height=sourceH;
+  const sctx=source.getContext("2d");
+  if(!sctx)return image;
+  sctx.drawImage(image,0,0,sourceW,sourceH);
+
+  const sourceAspect=sourceW/sourceH;
+  let sx=0,sy=0,sw=sourceW,sh=sourceH;
+  if(targetAspect>0&&Math.abs(sourceAspect-targetAspect)>.002){
+    if(sourceAspect>targetAspect){
+      sw=Math.max(1,Math.round(sourceH*targetAspect));
+      sx=Math.round((sourceW-sw)/2);
+    }else{
+      sh=Math.max(1,Math.round(sourceW/targetAspect));
+      sy=Math.round((sourceH-sh)/2);
+    }
+  }
+  const canvas=document.createElement("canvas");
+  canvas.width=Math.max(1,Math.round(sw));
+  canvas.height=Math.max(1,Math.round(sh));
+  const ctx=canvas.getContext("2d");
+  if(!ctx)return image;
+  ctx.drawImage(source,sx,sy,sw,sh,0,0,canvas.width,canvas.height);
+  return canvas;
+}
+
 function createArtworkCutout(image:HTMLImageElement,quad:ArtworkQuad){
   const w=image.naturalWidth,h=image.naturalHeight,maxSide=1800,scale=Math.min(1,maxSide/Math.max(w,h)),full=document.createElement("canvas");
   full.width=Math.max(1,Math.round(w*scale));full.height=Math.max(1,Math.round(h*scale));const ctx=full.getContext("2d",{willReadFrequently:true});if(!ctx)return image.src;ctx.drawImage(image,0,0,full.width,full.height);
@@ -383,7 +414,8 @@ export default function ARWallPreview({imageUrl,title,width,height,ru,artworkCho
       const resizeObserver=new ResizeObserver(syncEightWallViewport);
       if(rootRef.current)resizeObserver.observe(rootRef.current);
       const image=new Image();image.crossOrigin='anonymous';image.src=cutoutUrlRef.current||selectedImage;await image.decode();
-      const texture=new THREE.Texture(image);texture.needsUpdate=true;texture.colorSpace=THREE.SRGBColorSpace;
+      const textureSource=makeArtworkTextureCanvas(image,activeWidth/Math.max(.01,activeHeight));
+      const texture=new THREE.Texture(textureSource);texture.needsUpdate=true;texture.colorSpace=THREE.SRGBColorSpace;
       const artW=Math.max(.01,activeWidth/100),artH=Math.max(.01,activeHeight/100),thickness=.018;
       let trackedCamera:THREE.Camera|null=null;
       let trackedCanvas:HTMLCanvasElement|null=null;
@@ -417,7 +449,7 @@ export default function ARWallPreview({imageUrl,title,width,height,ru,artworkCho
           scene.add(new THREE.HemisphereLight(0xffffff,0x333333,1.15));
           w.XR8.XrController.updateCameraProjectionMatrix({origin:camera.position,facing:camera.quaternion});
           startedCanvas.addEventListener('touchstart',(ev:TouchEvent)=>{
-            if(ev.touches.length!==1||!camera)return;
+            if(ev.touches.length!==1||!camera||artwork.userData.locked)return;
             w.XR8.XrController.recenter();
             const direction=new THREE.Vector3(0,0,-1).applyQuaternion(camera.quaternion).normalize();
             artwork.position.copy(camera.position).add(direction.multiplyScalar(2.2));
@@ -633,7 +665,13 @@ export default function ARWallPreview({imageUrl,title,width,height,ru,artworkCho
         const xrScene=w.XR8?.Threejs?.xrScene?.();
         const group=xrScene?.scene?.children?.find((o:any)=>o?.type==="Group"&&o?.children?.some((m:any)=>m?.geometry?.type==="BoxGeometry"));
         if(group){
-          group.position.copy(eight.position);group.quaternion.copy(eight.quaternion);group.userData.locked=true;group.visible=true;
+          group.position.copy(eight.position);
+          group.quaternion.copy(eight.quaternion);
+          group.updateMatrixWorld(true);
+          group.userData.locked=true;
+          group.userData.anchorPosition=group.position.clone();
+          group.userData.anchorQuaternion=group.quaternion.clone();
+          group.visible=true;
           const guide=xrScene.scene.children.find((o:any)=>o?.type==="Mesh"&&o?.geometry?.type==="PlaneGeometry");
           if(guide)guide.visible=false;
           setPlaced(true);setCanPlace(false);

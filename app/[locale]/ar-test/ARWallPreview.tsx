@@ -122,7 +122,17 @@ function createArtworkCutout(image:HTMLImageElement,quad:ArtworkQuad){
   const sign=(a:{x:number;y:number},b:{x:number;y:number},p:{x:number;y:number})=>(b.x-a.x)*(p.y-a.y)-(b.y-a.y)*(p.x-a.x),orient=sign(pts[0],pts[1],pts[2])>=0?1:-1,feather=Math.max(2,Math.round(Math.min(full.width,full.height)*.004));
   const minX=Math.max(0,Math.floor(Math.min(...pts.map(p=>p.x))-feather)),maxX=Math.min(full.width-1,Math.ceil(Math.max(...pts.map(p=>p.x))+feather)),minY=Math.max(0,Math.floor(Math.min(...pts.map(p=>p.y))-feather)),maxY=Math.min(full.height-1,Math.ceil(Math.max(...pts.map(p=>p.y))+feather));
   for(let y=minY;y<=maxY;y++)for(let x=minX;x<=maxX;x++){const p={x,y},inside=pts.every((a,i)=>orient*sign(a,pts[(i+1)%4],p)>=-1);if(!inside){d[(y*full.width+x)*4+3]=0;continue}const ds=pts.map((a,i)=>Math.abs(sign(a,pts[(i+1)%4],p))/Math.max(1,Math.hypot(pts[(i+1)%4].x-a.x,pts[(i+1)%4].y-a.y))),edge=Math.min(...ds);d[(y*full.width+x)*4+3]=Math.min(255,Math.round(255*Math.min(1,edge/feather)))}
-  ctx.putImageData(pixels,0,0);return full.toDataURL("image/png");
+  ctx.putImageData(pixels,0,0);
+  const cropX=Math.max(0,Math.floor(Math.min(...pts.map(p=>p.x))));
+  const cropY=Math.max(0,Math.floor(Math.min(...pts.map(p=>p.y))));
+  const cropR=Math.min(full.width,Math.ceil(Math.max(...pts.map(p=>p.x))));
+  const cropB=Math.min(full.height,Math.ceil(Math.max(...pts.map(p=>p.y))));
+  const crop=document.createElement("canvas");
+  crop.width=Math.max(1,cropR-cropX);crop.height=Math.max(1,cropB-cropY);
+  const cropCtx=crop.getContext("2d");
+  if(!cropCtx)return full.toDataURL("image/png");
+  cropCtx.drawImage(full,cropX,cropY,crop.width,crop.height,0,0,crop.width,crop.height);
+  return crop.toDataURL("image/png");
 }
 
 export default function ARWallPreview({imageUrl,title,width,height,ru,artworkChoices=[]}:Props){
@@ -585,7 +595,7 @@ export default function ARWallPreview({imageUrl,title,width,height,ru,artworkCho
   const aspect=activeWidth>0&&activeHeight>0?activeWidth/activeHeight:1;
 
   return <div ref={rootRef} className="ar-preview">
-    <video ref={videoRef} className="ar-camera" playsInline muted style={{objectFit:"contain",width:"100%",height:"100%",background:"#000",display:"block"}}/>
+    <video ref={videoRef} className="ar-camera" playsInline muted style={{background:"#000",display:"block"}}/>
     <div className="ar-topbar"><span>{ru?"ПОСМОТРЕТЬ НА СТЕНЕ":"VIEW ON YOUR WALL"}</span><button type="button" onClick={cleanup}>×</button></div>
     {mode==="idle"&&<div className="ar-start">
       {artworkChoices.length>0&&<div className="ar-artwork-picker" style={{position:"relative",zIndex:20,width:"100%",maxWidth:720,padding:"10px 12px",boxSizing:"border-box",pointerEvents:"auto"}}><span style={{display:"block",fontSize:12,letterSpacing:".08em",textTransform:"uppercase",marginBottom:8}}>{ru?"Выберите картину":"Choose artwork"}</span><div className="ar-artwork-options" style={{display:"flex",gap:8,overflowX:"auto",overflowY:"hidden",width:"100%",paddingBottom:4,pointerEvents:"auto",WebkitOverflowScrolling:"touch"}}>{artworkChoices.map(a=><button key={a.id} type="button" className={selectedImage===a.image?"selected":""} style={{flex:"0 0 72px",width:72,minWidth:72,height:92,padding:4,margin:0,boxSizing:"border-box",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"space-between",overflow:"hidden",cursor:"pointer",pointerEvents:"auto",touchAction:"manipulation",border:"1px solid rgba(255,255,255,.28)",background:"rgba(0,0,0,.45)",color:"inherit"}} onClick={()=>{setSelectedImage(a.image);setSelectedDimensions({width:a.width||width,height:a.height||height});setSelectedTitle(a.title);setMessage(ru?"Картина выбрана.":"Artwork selected.");}}><img src={a.image} alt={a.title} style={{display:"block",width:"100%",height:66,maxWidth:"100%",objectFit:"contain",flex:"0 0 66px"}}/><small style={{display:"block",width:"100%",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",fontSize:9,lineHeight:"12px"}}>{a.title}</small></button>)}</div></div>}

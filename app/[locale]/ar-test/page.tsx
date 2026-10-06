@@ -6,7 +6,7 @@ export default async function ARTest({params}:{params:Promise<{locale:string}>})
   const ru=locale==="ru";
   const works=await getWorks();
   const work=works.find(w=>w.imageUrl);
-  const dimensions=(work?.size||"").match(/([\\d.,]+)\\s*×\\s*([\\d.,]+)/);
+  const dimensions=(work?.size||"").match(/([\d.,]+)\s*×\s*([\d.,]+)/);
   const width=dimensions?Number(dimensions[1].replace(",",".")):0;
   const height=dimensions?Number(dimensions[2].replace(",",".")):0;
   return <main className="ar-page">

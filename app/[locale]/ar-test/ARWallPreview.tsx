@@ -170,66 +170,129 @@ export default function ARWallPreview({imageUrl,title,width,height,ru}:Props){
 
   const startAR=async()=>{
     const xr=(navigator as any).xr;
-    if(!xr?.isSessionSupported){await startCamera();return;}
+    if(!xr?.isSessionSupported){
+      setXrAvailable(false);
+      setMessage(ru?"WebXR недоступен.":"WebXR is unavailable.");
+      return;
+    }
     try{
-      if(!(await xr.isSessionSupported("immersive-ar"))){await startCamera();return;}
-      await analyzeSource();
+      const supported=await xr.isSessionSupported("immersive-ar");
+      setXrAvailable(supported);
+      if(!supported){
+        setMessage(ru?"immersive-ar не поддерживается.":"immersive-ar is not supported.");
+        return;
+      }
+
       const session=await xr.requestSession("immersive-ar",{
-        requiredFeatures:["hit-test"],optionalFeatures:["dom-overlay","local-floor","anchors"],
+        requiredFeatures:["hit-test"],
+        optionalFeatures:["dom-overlay","local-floor","anchors"],
         domOverlay:{root:rootRef.current}
       });
+
       const renderer=new THREE.WebGLRenderer({antialias:true,alpha:true,powerPreference:"high-performance"});
       renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
       renderer.setSize(window.innerWidth,window.innerHeight);
-      renderer.xr.enabled=true;renderer.xr.setReferenceSpaceType("local");await renderer.xr.setSession(session);
-      renderer.domElement.className="ar-three-canvas";rootRef.current?.appendChild(renderer.domElement);
+      renderer.xr.enabled=true;
+      renderer.xr.setReferenceSpaceType("local");
+      await renderer.xr.setSession(session);
+      renderer.domElement.className="ar-three-canvas";
+      rootRef.current?.appendChild(renderer.domElement);
 
-      const scene=new THREE.Scene(),camera=new THREE.PerspectiveCamera(70,window.innerWidth/window.innerHeight,.01,30);
-      const texture=new THREE.TextureLoader().load(cutoutUrlRef.current||imageUrl!);texture.colorSpace=THREE.SRGBColorSpace;texture.anisotropy=4;texture.wrapS=THREE.ClampToEdgeWrapping;texture.wrapT=THREE.ClampToEdgeWrapping;texture.repeat.set(1,1);texture.offset.set(0,0);
+      const scene=new THREE.Scene();
+      const camera=new THREE.PerspectiveCamera(70,window.innerWidth/window.innerHeight,.01,30);
+
+      // Temporary diagnostic object: a plain 3D panel.
+      // Artwork analysis is deliberately excluded until hit-test placement is confirmed.
       const artW=Math.max(.01,width/100),artH=Math.max(.01,height/100),thickness=.018;
-      const group=new THREE.Group();group.visible=false;
-      const front=new THREE.MeshStandardMaterial({map:texture,roughness:.72,metalness:0});
-      const side=new THREE.MeshStandardMaterial({color:0x171717,roughness:.48,metalness:.08});
       const geometry=new THREE.BoxGeometry(artW,artH,thickness);
-      const artwork=new THREE.Mesh(geometry,[side,side,front,side,side,side]);artwork.castShadow=true;group.add(artwork);scene.add(group);
-      const ring=new THREE.Mesh(new THREE.RingGeometry(.045,.06,32),new THREE.MeshBasicMaterial({color:0xeeeae3,side:THREE.DoubleSide}));
-      ring.rotation.x=-Math.PI/2;ring.visible=false;scene.add(ring);
+      const front=new THREE.MeshStandardMaterial({color:0xf0ece4,roughness:.8});
+      const side=new THREE.MeshStandardMaterial({color:0x171717,roughness:.5});
+      const artwork=new THREE.Mesh(geometry,[side,side,front,side,side,side]);
+      artwork.visible=false;
+      const group=new THREE.Group();
+      group.add(artwork);
+      scene.add(group);
+
+      const ring=new THREE.Mesh(
+        new THREE.RingGeometry(.045,.06,32),
+        new THREE.MeshBasicMaterial({color:0xeeeae3,side:THREE.DoubleSide})
+      );
+      ring.visible=false;
+      scene.add(ring);
       scene.add(new THREE.HemisphereLight(0xffffff,0x333333,1.2));
 
-      const ref=await session.requestReferenceSpace("local"),viewer=await session.requestReferenceSpace("viewer");
-      const hitSource=await session.requestHitTestSource({space:viewer});
-      const state:XRState={session,referenceSpace:ref,hitSource,renderer,scene,camera,artwork:group,reticle:ring,placed:false};
-      stateRef.current=state;setMode("ar");setMessage(ru?"Наведите камеру на стену.":"Point the camera at a wall.");
+      const referenceSpace=await session.requestReferenceSpace("local");
+      const viewerSpace=await session.requestReferenceSpace("viewer");
+      const hitSource=await session.requestHitTestSource({space:viewerSpace});
+
+      const state:XRState={
+        session,referenceSpace,hitSource,renderer,scene,camera,
+        artwork:group,reticle:ring,placed:false
+      };
+      stateRef.current=state;
+      setMode("ar");
+      setPlaced(false);
+      setCanPlace(false);
+      setMessage(ru?"Наведите камеру на стену.":"Point the camera at a wall.");
 
       session.addEventListener("end",()=>{
         if(stateRef.current===state){
           try{renderer.setAnimationLoop(null);renderer.dispose();}catch{}
-          renderer.domElement.remove();stateRef.current=null;setMode("idle");setPlaced(false);
+          renderer.domElement.remove();
+          stateRef.current=null;
+          setMode("idle");
+          setPlaced(false);
+          setCanPlace(false);
         }
       },{once:true});
 
       renderer.setAnimationLoop((_time,frame)=>{
         if(!frame||stateRef.current!==state)return;
         const hit=frame.getHitTestResults(hitSource)[0];
+
         if(hit){
-          const pose=hit.getPose(ref);
+          const pose=hit.getPose(referenceSpace);
           if(pose){
-            const m=pose.transform.matrix,position=new THREE.Vector3(m[12],m[13],m[14]);
-            const xAxis=new THREE.Vector3(m[0],m[1],m[2]).normalize();
-            const normal=new THREE.Vector3(m[4],m[5],m[6]).normalize();
-            const zAxis=new THREE.Vector3().crossVectors(xAxis,normal).normalize();
-            const quaternion=new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().makeBasis(xAxis,zAxis,normal));
-            ring.position.copy(position);ring.quaternion.setFromUnitVectors(new THREE.Vector3(0,0,1),normal);ring.visible=!state.placed;
-            if(!state.placed){group.position.copy(position);group.quaternion.copy(quaternion);group.visible=false;}
-            state.lastHit={position,quaternion};
-            if(!state.placed){setCanPlace(true);setMessage(ru?"Стена найдена — нажмите «Разместить».":"Wall found — tap Place artwork.");}
+            const matrix=new THREE.Matrix4().fromArray(pose.transform.matrix);
+            const position=new THREE.Vector3().setFromMatrixPosition(matrix);
+            const normal=new THREE.Vector3(0,0,1).applyMatrix4(
+              new THREE.Matrix4().extractRotation(matrix)
+            ).normalize();
+
+            ring.position.copy(position);
+            ring.quaternion.setFromUnitVectors(new THREE.Vector3(0,0,1),normal);
+            ring.visible=!state.placed;
+
+            if(!state.placed){
+              group.position.copy(position);
+              group.quaternion.copy(ring.quaternion);
+              group.visible=false;
+              setCanPlace(true);
+              setMessage(ru?"Поверхность найдена — нажмите «Разместить картину».":"Surface found — tap Place artwork.");
+            }
+
+            state.lastHit={
+              position:position.clone(),
+              quaternion:ring.quaternion.clone()
+            };
           }
         }else if(!state.placed){
-          ring.visible=false;setCanPlace(false);setMessage(ru?"Медленно наведите камеру на стену.":"Move the camera slowly over the wall.");
+          ring.visible=false;
+          setCanPlace(false);
+          setMessage(ru?"Наведите камеру на стену и медленно двигайте телефон.":"Point at a wall and move the phone slowly.");
         }
+
         renderer.render(scene,camera);
       });
-    }catch(error){console.error(error);await startCamera();}
+    }catch(error){
+      console.error("WebXR AR start failed",error);
+      setXrAvailable(false);
+      setMessage(
+        ru
+          ? "WebXR запустился с ошибкой. Обычная камера НЕ включалась — ошибка записана в консоль."
+          : "WebXR started with an error. Camera fallback was NOT used — check the console."
+      );
+    }
   };
 
   const placeArtwork=()=>{

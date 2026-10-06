@@ -16,77 +16,95 @@ type ArtworkBounds={x:number;y:number;width:number;height:number};
 function detectArtworkBounds(image:HTMLImageElement):ArtworkBounds{
   const w=image.naturalWidth,h=image.naturalHeight;
   if(!w||!h)return {x:0,y:0,width:1,height:1};
-  const size=320,scale=Math.min(size/w,size/h);
+
+  // Find the four strongest long straight edges. This is deliberately
+  // geometry-first: for a painting photographed on a wall, the frame/canvas
+  // boundary is much more useful than guessing the wall's average colour.
+  const size=480,scale=Math.min(size/w,size/h);
   const canvas=document.createElement("canvas");
-  canvas.width=Math.max(1,Math.round(w*scale)); canvas.height=Math.max(1,Math.round(h*scale));
+  canvas.width=Math.max(80,Math.round(w*scale));
+  canvas.height=Math.max(80,Math.round(h*scale));
   const ctx=canvas.getContext("2d",{willReadFrequently:true});
   if(!ctx)return {x:0,y:0,width:1,height:1};
   ctx.drawImage(image,0,0,canvas.width,canvas.height);
   const data=ctx.getImageData(0,0,canvas.width,canvas.height).data;
-  const samples:number[][]=[],edge=Math.max(3,Math.round(Math.min(canvas.width,canvas.height)*.04));
-  for(let y=0;y<canvas.height;y++)for(let x=0;x<canvas.width;x++){
-    if(x<edge||y<edge||x>=canvas.width-edge||y>=canvas.height-edge){
-      const i=(y*canvas.width+x)*4;samples.push([data[i],data[i+1],data[i+2]]);
+  const cw=canvas.width,ch=canvas.height;
+  const gray=new Float32Array(cw*ch);
+  for(let y=0;y<ch;y++)for(let x=0;x<cw;x++){
+    const i=(y*cw+x)*4;
+    gray[y*cw+x]=.299*data[i]+.587*data[i+1]+.114*data[i+2];
+  }
+
+  const vx=new Float32Array(cw),hy=new Float32Array(ch);
+  for(let y=1;y<ch-1;y++)for(let x=1;x<cw-1;x++){
+    const n=y*cw+x,gx=Math.abs(gray[n+1]-gray[n-1]),gy=Math.abs(gray[n+cw]-gray[n-cw]);
+    vx[x]+=gy; hy[y]+=gx;
+  }
+  const smooth=(a:Float32Array,r:number)=>{
+    const out=new Float32Array(a.length);
+    for(let i=0;i<a.length;i++){
+      let s=0,n=0;
+      for(let j=Math.max(0,i-r);j<=Math.min(a.length-1,i+r);j++){s+=a[j];n++}
+      out[i]=s/n;
     }
-  }
-  if(!samples.length)return {x:0,y:0,width:1,height:1};
-  const bg=samples.reduce((a,p)=>[a[0]+p[0],a[1]+p[1],a[2]+p[2]],[0,0,0]).map(v=>v/samples.length);
-  let minX=canvas.width,minY=canvas.height,maxX=-1,maxY=-1;
-  for(let y=0;y<canvas.height;y++)for(let x=0;x<canvas.width;x++){
-    const i=(y*canvas.width+x)*4;
-    const d=Math.abs(data[i]-bg[0])+Math.abs(data[i+1]-bg[1])+Math.abs(data[i+2]-bg[2]);
-    if(d>34){minX=Math.min(minX,x);minY=Math.min(minY,y);maxX=Math.max(maxX,x);maxY=Math.max(maxY,y);}
-  }
-  if(maxX<0)return {x:0,y:0,width:1,height:1};
-  const pad=2,x=Math.max(0,minX-pad)/canvas.width,y=Math.max(0,minY-pad)/canvas.height;
-  const right=Math.min(canvas.width,maxX+1+pad)/canvas.width,bottom=Math.min(canvas.height,maxY+1+pad)/canvas.height;
-  const bw=right-x,bh=bottom-y;
-  if(bw<.55||bh<.55||(bw>.995&&bh>.995))return {x:0,y:0,width:1,height:1};
-  return {x,y,width:bw,height:bh};
+    return out;
+  };
+  const xs=smooth(vx,Math.max(2,Math.round(cw*.012)));
+  const ys=smooth(hy,Math.max(2,Math.round(ch*.012)));
+
+  const peak=(scores:Float32Array,lo:number,hi:number)=>{
+    let best=lo,bestScore=-Infinity;
+    for(let i=lo;i<=hi;i++)if(scores[i]>bestScore){bestScore=scores[i];best=i}
+    return best;
+  };
+  const marginX=Math.round(cw*.06),marginY=Math.round(ch*.06);
+  const left=peak(xs,marginX,Math.round(cw*.42));
+  const right=peak(xs,Math.round(cw*.58),cw-marginX);
+  const top=peak(ys,marginY,Math.round(ch*.42));
+  const bottom=peak(ys,Math.round(ch*.58),ch-marginY);
+
+  const x=Math.min(left,right),y=Math.min(top,bottom);
+  const r=Math.max(left,right),b=Math.max(top,bottom);
+  const bw=(r-x)/cw,bh=(b-y)/ch;
+  if(bw<.30||bh<.30||bw>.97||bh>.97||r<=x||b<=y)return {x:0,y:0,width:1,height:1};
+
+  const pad=Math.max(2,Math.round(Math.min(cw,ch)*.012));
+  const px=Math.max(0,x-pad),py=Math.max(0,y-pad),pr=Math.min(cw,r+pad),pb=Math.min(ch,b+pad);
+  return {x:px/cw,y:py/ch,width:(pr-px)/cw,height:(pb-py)/ch};
 }
 
-/* Turn the detected artwork into a real transparent cutout.
-   The border color is used as the background seed and a flood-fill removes
-   connected pixels that look like that background. */
 function createArtworkCutout(image:HTMLImageElement,bounds:ArtworkBounds){
   const w=image.naturalWidth,h=image.naturalHeight;
-  const maxSide=1400,scale=Math.min(1,maxSide/Math.max(w,h));
+  const maxSide=1600,scale=Math.min(1,maxSide/Math.max(w,h));
   const full=document.createElement("canvas");
-  full.width=Math.max(1,Math.round(w*scale));full.height=Math.max(1,Math.round(h*scale));
+  full.width=Math.max(1,Math.round(w*scale));
+  full.height=Math.max(1,Math.round(h*scale));
   const ctx=full.getContext("2d",{willReadFrequently:true});
   if(!ctx)return image.src;
   ctx.drawImage(image,0,0,full.width,full.height);
+
+  const sx=Math.max(0,Math.floor(bounds.x*full.width));
+  const sy=Math.max(0,Math.floor(bounds.y*full.height));
+  const sw=Math.max(1,Math.min(full.width-sx,Math.ceil(bounds.width*full.width)));
+  const sh=Math.max(1,Math.min(full.height-sy,Math.ceil(bounds.height*full.height)));
+
+  // Make everything outside the detected artwork rectangle transparent.
+  // Unlike the previous colour flood-fill, this cannot leave the surrounding
+  // wall as an opaque rectangle.
   const pixels=ctx.getImageData(0,0,full.width,full.height);
-  const d=pixels.data,fw=full.width,fh=full.height;
-  const edge=Math.max(2,Math.round(Math.min(fw,fh)*.025));
-  const bgSamples:number[][]=[];
-  for(let y=0;y<fh;y+=Math.max(1,Math.floor(fh/40)))for(let x=0;x<fw;x+=Math.max(1,Math.floor(fw/40))){
-    if(x<edge||y<edge||x>=fw-edge||y>=fh-edge){
-      const i=(y*fw+x)*4;bgSamples.push([d[i],d[i+1],d[i+2]]);
-    }
-  }
-  const bg=bgSamples.reduce((a,p)=>[a[0]+p[0],a[1]+p[1],a[2]+p[2]],[0,0,0]).map(v=>v/Math.max(1,bgSamples.length));
-  const seen=new Uint8Array(fw*fh),queue:number[]=[];
-  const push=(x:number,y:number)=>{const n=y*fw+x;if(seen[n])return;seen[n]=1;queue.push(n)};
-  for(let x=0;x<fw;x++){push(x,0);push(x,fh-1)}
-  for(let y=0;y<fh;y++){push(0,y);push(fw-1,y)}
-  const threshold=58;
-  let head=0;
-  while(head<queue.length){
-    const n=queue[head++],x=n%fw,y=Math.floor(n/fw),i=n*4;
-    const dist=Math.abs(d[i]-bg[0])+Math.abs(d[i+1]-bg[1])+Math.abs(d[i+2]-bg[2]);
-    if(dist>threshold)continue;
-    d[i+3]=0;
-    if(x>0&&!seen[n-1])push(x-1,y);
-    if(x<fw-1&&!seen[n+1])push(x+1,y);
-    if(y>0&&!seen[n-fw])push(x,y-1);
-    if(y<fh-1&&!seen[n+fw])push(x,y+1);
+  const d=pixels.data;
+  const feather=Math.max(2,Math.round(Math.min(full.width,full.height)*.004));
+  for(let y=0;y<full.height;y++)for(let x=0;x<full.width;x++){
+    const dx=Math.max(sx-x,0,x-(sx+sw-1));
+    const dy=Math.max(sy-y,0,y-(sy+sh-1));
+    const dist=Math.max(dx,dy);
+    if(dist>feather)d[(y*full.width+x)*4+3]=0;
+    else if(dist>0)d[(y*full.width+x)*4+3]=Math.round(255*(1-dist/feather));
   }
   ctx.putImageData(pixels,0,0);
-  const sx=Math.max(0,Math.floor(bounds.x*fw)),sy=Math.max(0,Math.floor(bounds.y*fh));
-  const sw=Math.max(1,Math.min(fw-sx,Math.ceil(bounds.width*fw)));
-  const sh=Math.max(1,Math.min(fh-sy,Math.ceil(bounds.height*fh)));
-  const crop=document.createElement("canvas");crop.width=sw;crop.height=sh;
+
+  const crop=document.createElement("canvas");
+  crop.width=sw;crop.height=sh;
   const cropCtx=crop.getContext("2d");
   if(!cropCtx)return full.toDataURL("image/png");
   cropCtx.drawImage(full,sx,sy,sw,sh,0,0,sw,sh);

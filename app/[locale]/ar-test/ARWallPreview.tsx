@@ -557,11 +557,12 @@ export default function ARWallPreview({imageUrl,title,width,height,ru,artworkCho
 
       // Real AR path: native hit-test against physical planes. We require hit-test
       // because a wall must be a real tracked surface, not a 2D camera overlay.
-      const overlayRoot=rootRef.current;
+      // Keep the first session request deliberately minimal. Some Android
+      // WebXR implementations reject otherwise valid AR configurations when
+      // optional modules are requested at session creation.
       const session=await xr.requestSession("immersive-ar",{
         requiredFeatures:["hit-test"],
-        optionalFeatures:["anchors","local-floor","dom-overlay"],
-        ...(overlayRoot?{domOverlay:{root:overlayRoot}}:{})
+        optionalFeatures:["anchors"]
       });
 
       const renderer=new THREE.WebGLRenderer({
@@ -632,8 +633,7 @@ export default function ARWallPreview({imageUrl,title,width,height,ru,artworkCho
       const viewerSpace=await session.requestReferenceSpace("viewer");
 
       const hitSource=await session.requestHitTestSource({
-        space:viewerSpace,
-        entityTypes:["plane"]
+        space:viewerSpace
       });
 
       const state:XRState={

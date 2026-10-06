@@ -52,7 +52,12 @@ function detectArtworkQuad(image:HTMLImageElement,targetAspect:number):ArtworkQu
       if(score>bestScore){bestScore=score;best={points:[{x:p1.x/cw,y:p1.y/ch},{x:p2.x/cw,y:p2.y/ch},{x:p3.x/cw,y:p3.y/ch},{x:p4.x/cw,y:p4.y/ch}],confidence:Math.min(1,Math.max(0,score/(raw+.0001)))}}
     }
   }
-  if(!best)return fallback;\n  const bx=best.points.reduce((s,p)=>s+p.x,0)/4,by=best.points.reduce((s,p)=>s+p.y,0)/4;\n  const centered=best.points.every(p=>p.x>0.03&&p.x<0.97&&p.y>0.03&&p.y<0.97);\n  const plausible=best.confidence>.5&&centered&&bx>.12&&bx<.88&&by>.12&&by<.88;\n  return plausible?best:fallback;
+  if(!best)return fallback;
+  const bx=best.points.reduce((s,p)=>s+p.x,0)/4;
+  const by=best.points.reduce((s,p)=>s+p.y,0)/4;
+  const centered=best.points.every(p=>p.x>0.03&&p.x<0.97&&p.y>0.03&&p.y<0.97);
+  const plausible=best.confidence>.5&&centered&&bx>.12&&bx<.88&&by>.12&&by<.88;
+  return plausible?best:fallback;
 }
 
 function quadToBounds(quad:ArtworkQuad):ArtworkBounds{

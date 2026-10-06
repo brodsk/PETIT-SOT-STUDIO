@@ -8,7 +8,7 @@ type Props={imageUrl?:string;title:string;width:number;height:number;ru:boolean;
 type XRState={
   session:any; referenceSpace:any; hitSource:any; renderer:THREE.WebGLRenderer;
   scene:THREE.Scene; camera:THREE.PerspectiveCamera; artwork:THREE.Group;
-  reticle:THREE.Mesh; placed:boolean;
+  reticle:THREE.Mesh; placed:boolean; anchor?:any; pendingHit?:any;
   lastHit?:{position:THREE.Vector3;quaternion:THREE.Quaternion};
 };
 
@@ -553,48 +553,71 @@ export default function ARWallPreview({imageUrl,title,width,height,ru,artworkCho
         return;
       }
 
-      let session:any=null;
-      let lastError:any=null;
-      const sessionConfigs:XRSessionInit[]=[
-        {},
-        {optionalFeatures:["hit-test"]},
-        {optionalFeatures:["local-floor"]},
-        {optionalFeatures:["hit-test","local-floor"]}
-      ];
-      for(const config of sessionConfigs){
-        try{
-          session=await xr.requestSession("immersive-ar",config);
-          break;
-        }catch(error){
-          lastError=error;
-        }
-      }
-      if(!session){
-        throw lastError||new DOMException("immersive-ar session could not be created","NotSupportedError");
-      }
+      cleanup();
 
-      const renderer=new THREE.WebGLRenderer({antialias:true,alpha:true,powerPreference:"high-performance"});
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
+      // Real AR path: native hit-test against physical planes. We require hit-test
+      // because a wall must be a real tracked surface, not a 2D camera overlay.
+      const overlayRoot=rootRef.current;
+      const session=await xr.requestSession("immersive-ar",{
+        requiredFeatures:["hit-test"],
+        optionalFeatures:["anchors","local-floor","dom-overlay"],
+        ...(overlayRoot?{domOverlay:{root:overlayRoot}}:{})
+      });
+
+      const renderer=new THREE.WebGLRenderer({
+        antialias:true,
+        alpha:true,
+        powerPreference:"high-performance"
+      });
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));
       renderer.setSize(window.innerWidth,window.innerHeight);
       renderer.xr.enabled=true;
       renderer.xr.setReferenceSpaceType("local");
       await renderer.xr.setSession(session);
       renderer.domElement.className="ar-three-canvas";
+      renderer.domElement.style.position="absolute";
+      renderer.domElement.style.inset="0";
+      renderer.domElement.style.width="100%";
+      renderer.domElement.style.height="100%";
+      renderer.domElement.style.zIndex="1";
       rootRef.current?.appendChild(renderer.domElement);
 
       const scene=new THREE.Scene();
       const camera=new THREE.PerspectiveCamera(70,window.innerWidth/window.innerHeight,.01,30);
 
-      // Temporary diagnostic object: a plain 3D panel.
-      // Artwork analysis is deliberately excluded until hit-test placement is confirmed.
-      const artW=Math.max(.01,activeWidth/100),artH=Math.max(.01,activeHeight/100),thickness=.018;
+      const artW=Math.max(.01,activeWidth/100);
+      const artH=Math.max(.01,activeHeight/100);
+      const thickness=.018;
+
+      const image=new Image();
+      image.crossOrigin="anonymous";
+      image.src=selectedImage;
+      await image.decode();
+
+      // A real 3D object: metadata dimensions are in centimetres, so the mesh
+      // is exactly the physical size requested by the artwork.
+      const texture=new THREE.Texture(image);
+      texture.colorSpace=THREE.SRGBColorSpace;
+      texture.needsUpdate=true;
+      texture.anisotropy=renderer.capabilities.getMaxAnisotropy();
+
+      const front=new THREE.MeshStandardMaterial({
+        map:texture,
+        roughness:.82,
+        metalness:0,
+        side:THREE.FrontSide
+      });
+      const side=new THREE.MeshStandardMaterial({
+        color:0x171717,
+        roughness:.55,
+        metalness:0
+      });
       const geometry=new THREE.BoxGeometry(artW,artH,thickness);
-      const front=new THREE.MeshStandardMaterial({color:0xf0ece4,roughness:.8});
-      const side=new THREE.MeshStandardMaterial({color:0x171717,roughness:.5});
-      const artwork=new THREE.Mesh(geometry,[side,side,front,side,side,side]);
-      artwork.visible=false;
+      // BoxGeometry: right, left, top, bottom, front, back.
+      const artworkMesh=new THREE.Mesh(geometry,[side,side,side,side,front,side]);
       const group=new THREE.Group();
-      group.add(artwork);
+      group.add(artworkMesh);
+      group.visible=false;
       scene.add(group);
 
       const ring=new THREE.Mesh(
@@ -607,22 +630,40 @@ export default function ARWallPreview({imageUrl,title,width,height,ru,artworkCho
 
       const referenceSpace=await session.requestReferenceSpace("local");
       const viewerSpace=await session.requestReferenceSpace("viewer");
-      let hitSource:any=null;
-      try{hitSource=await session.requestHitTestSource({space:viewerSpace});}catch(error){console.warn("WebXR hit-test unavailable",error);}
+
+      const hitSource=await session.requestHitTestSource({
+        space:viewerSpace,
+        entityTypes:["plane"]
+      });
 
       const state:XRState={
-        session,referenceSpace,hitSource,renderer,scene,camera,
-        artwork:group,reticle:ring,placed:false
+        session,
+        referenceSpace,
+        hitSource,
+        renderer,
+        scene,
+        camera,
+        artwork:group,
+        reticle:ring,
+        placed:false
       };
       stateRef.current=state;
+
       setMode("ar");
       setPlaced(false);
       setCanPlace(false);
-      setMessage(ru?"AR запущен. Наведите камеру на стену.":"AR started. Point the camera at a wall.");
+      setMessage(ru
+        ?"Наведите камеру на стену и медленно двигайте телефон."
+        :"Point the camera at a wall and move the phone slowly.");
 
       session.addEventListener("end",()=>{
         if(stateRef.current===state){
-          try{renderer.setAnimationLoop(null);renderer.dispose();}catch{}
+          try{renderer.setAnimationLoop(null);}catch{}
+          try{renderer.dispose();}catch{}
+          try{texture.dispose();}catch{}
+          try{geometry.dispose();}catch{}
+          try{front.dispose();}catch{}
+          try{side.dispose();}catch{}
           renderer.domElement.remove();
           stateRef.current=null;
           setMode("idle");
@@ -633,99 +674,141 @@ export default function ARWallPreview({imageUrl,title,width,height,ru,artworkCho
 
       renderer.setAnimationLoop((_time,frame)=>{
         if(!frame||stateRef.current!==state)return;
+
+        // After placement we stop following the live gaze hit. The object stays
+        // at its world pose; if anchors are available, the AR system refines it.
+        if(state.anchor){
+          const anchorPose=frame.getPose(state.anchor.anchorSpace,referenceSpace);
+          if(anchorPose){
+            group.matrix.fromArray(anchorPose.transform.matrix);
+            group.matrixAutoUpdate=false;
+            group.visible=true;
+          }
+        }
+
         const hit=hitSource?frame.getHitTestResults(hitSource)[0]:null;
 
-        if(hit){
+        if(hit&&!state.placed){
           const pose=hit.getPose(referenceSpace);
           if(pose){
             const matrix=new THREE.Matrix4().fromArray(pose.transform.matrix);
             const position=new THREE.Vector3().setFromMatrixPosition(matrix);
-            const normal=new THREE.Vector3(0,0,1).applyMatrix4(
-              new THREE.Matrix4().extractRotation(matrix)
+
+            // WebXR hit-test poses define the local +Y axis as the physical
+            // surface normal. A wall therefore has a nearly horizontal normal.
+            const normal=new THREE.Vector3(
+              matrix.elements[4],
+              matrix.elements[5],
+              matrix.elements[6]
             ).normalize();
 
-            ring.position.copy(position);
-            ring.quaternion.setFromUnitVectors(new THREE.Vector3(0,0,1),normal);
-            ring.visible=!state.placed;
+            const wall=Math.abs(normal.y)<.22;
+            if(wall){
+              const wallNormal=normal.clone();
+              wallNormal.y=0;
+              wallNormal.normalize();
 
-            if(!state.placed){
-              group.position.copy(position);
-              group.quaternion.copy(ring.quaternion);
+              // Always face the artwork toward the camera.
+              if(wallNormal.dot(new THREE.Vector3().subVectors(camera.position,position))<0){
+                wallNormal.negate();
+              }
+
+              // Build an upright wall basis: X = horizontal tangent,
+              // Y = world-up, Z = outward wall normal.
+              const up=new THREE.Vector3(0,1,0);
+              const tangent=new THREE.Vector3().crossVectors(up,wallNormal).normalize();
+              const upright=new THREE.Vector3().crossVectors(wallNormal,tangent).normalize();
+              const wallQuaternion=new THREE.Quaternion().setFromRotationMatrix(
+                new THREE.Matrix4().makeBasis(tangent,upright,wallNormal)
+              );
+
+              // Only a few millimetres in front of the wall: no artificial 10 cm
+              // floating gap and no z-fighting with the physical surface.
+              const clearance=thickness/2+.003;
+              const candidatePosition=position.clone().add(wallNormal.clone().multiplyScalar(clearance));
+
+              ring.position.copy(candidatePosition);
+              ring.quaternion.copy(wallQuaternion);
+              ring.visible=true;
+
+              group.position.copy(candidatePosition);
+              group.quaternion.copy(wallQuaternion);
+              group.matrixAutoUpdate=true;
               group.visible=false;
-              setCanPlace(true);
-              setMessage(ru?"Поверхность найдена — нажмите «Разместить картину».":"Surface found — tap Place artwork.");
-            }
 
-            state.lastHit={
-              position:position.clone(),
-              quaternion:ring.quaternion.clone()
-            };
+              state.lastHit={
+                position:candidatePosition.clone(),
+                quaternion:wallQuaternion.clone()
+              };
+              state.pendingHit=hit;
+
+              setCanPlace(true);
+              setMessage(ru
+                ?"Стена найдена — нажмите «Разместить картину»."
+                :"Wall found — tap Place artwork.");
+            }else{
+              ring.visible=false;
+              state.lastHit=undefined;
+              state.pendingHit=undefined;
+              setCanPlace(false);
+              setMessage(ru
+                ?"Это не стена. Наведите камеру на вертикальную поверхность."
+                :"That is not a wall. Point at a vertical surface.");
+            }
           }
         }else if(!state.placed){
           ring.visible=false;
+          state.lastHit=undefined;
+          state.pendingHit=undefined;
           setCanPlace(false);
-          setMessage(hitSource
-            ? (ru?"Наведите камеру на стену и медленно двигайте телефон.":"Point at a wall and move the phone slowly.")
-            : (ru?"AR запущен, но hit-test недоступен на этом устройстве.":"AR started, but hit-test is unavailable on this device."));
+          setMessage(ru
+            ?"Наведите камеру на стену и медленно двигайте телефон."
+            :"Point at a wall and move the phone slowly.");
         }
 
         renderer.render(scene,camera);
       });
     }catch(error){
-      console.error("WebXR AR start failed",error);
+      console.error("WebXR wall AR start failed",error);
       setXrAvailable(false);
       const e=error as any;
       const details=[e?.name,e?.message].filter(Boolean).join(": ");
       setMessage(ru
-        ? `AR недоступен на этом устройстве${details?": "+details:""}.`
-        : `AR is unavailable on this device${details?": "+details:""}.`);
-      try{
-        await startCamera();
-        if(videoRef.current?.srcObject){
-          setMessage(ru?"AR недоступен — используется режим камеры.":"AR unavailable — camera mode is active.");
-        }
-      }catch{}
+        ? `Настоящий Wall AR недоступен на этом устройстве${details?": "+details:""}.`
+        : `Real Wall AR is unavailable on this device${details?": "+details:""}.`);
     }
   };
 
-  const placeArtwork=()=>{
-    const eight=wallCandidateRef.current;
-    if(eight&&mode==="ar"){
-      const root=window.document.querySelector('.ar-three-canvas')?.parentElement;
-      void root;
-      // 8th Wall keeps the artwork in its Three.js world; the candidate is applied by
-      // the dedicated placement event below.
-    }
+  const placeArtwork=async()=>{
     const s=stateRef.current;
-    if(s?.lastHit){
-      s.artwork.position.copy(s.lastHit.position);s.artwork.quaternion.copy(s.lastHit.quaternion);
-      s.artwork.visible=true;s.placed=true;s.reticle.visible=false;setPlaced(true);setCanPlace(false);
-      setMessage(ru?"Готово — теперь обойдите картину.":"Placed — now walk around the artwork.");
-      return;
-    }
-    const canvas=rootRef.current?.querySelector('.ar-three-canvas') as HTMLCanvasElement|null;
-    if(eight&&canvas){
-      const w=window as any;
+    if(!s?.lastHit)return;
+
+    const candidate=s.lastHit;
+    s.artwork.position.copy(candidate.position);
+    s.artwork.quaternion.copy(candidate.quaternion);
+    s.artwork.matrixAutoUpdate=true;
+    s.artwork.visible=true;
+    s.placed=true;
+    s.reticle.visible=false;
+    setPlaced(true);
+    setCanPlace(false);
+
+    // If the browser exposes WebXR Anchors, bind the painting to the exact
+    // hit-test result. Otherwise the frozen pose remains in the local XR world.
+    const hit=s.pendingHit;
+    if(hit&&s.session.enabledFeatures?.includes?.("anchors")){
       try{
-        const xrScene=w.XR8?.Threejs?.xrScene?.();
-        const group=(eightWallArtworkRef.current||null);
-        if(group){
-          group.position.copy(eight.position);
-          group.quaternion.copy(eight.quaternion);
-          group.updateMatrixWorld(true);
-          group.userData.locked=true;
-          group.userData.anchorPosition=group.position.clone();
-          group.userData.anchorQuaternion=group.quaternion.clone();
-          group.userData.locked=true;
-          group.visible=true;
-          const guide=xrScene.scene.children.find((o:any)=>o?.type==="Mesh"&&o?.geometry?.type==="PlaneGeometry");
-          if(guide)guide.visible=false;
-          wallCandidateRef.current=null;wallStableRef.current=null;
-          setPlaced(true);setCanPlace(false);
-          setMessage(ru?"Готово — картина закреплена в пространстве. Теперь можно подойти или отойти.":"Done — the artwork is anchored in space. You can now walk closer or farther away.");
-        }
-      }catch(error){console.error("8th Wall placement failed",error);}
+        s.anchor=await hit.createAnchor();
+        s.pendingHit=undefined;
+      }catch(error){
+        console.warn("WebXR anchor creation failed; using local world pose",error);
+      }
     }
+    s.pendingHit=undefined;
+
+    setMessage(ru
+      ?"Готово. Картина закреплена в пространстве — теперь подойдите к ней, отойдите и обойдите её."
+      :"Done. The artwork is fixed in space — walk closer, farther away, and around it.");
   };
 
   const captureArPhoto=async()=>{

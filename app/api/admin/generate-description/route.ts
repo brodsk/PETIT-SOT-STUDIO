@@ -105,14 +105,7 @@ export async function POST(request: Request) {
       generationConfig: {
         maxOutputTokens: 900,
         responseMimeType: "application/json",
-        responseSchema: {
-          type: "OBJECT",
-          properties: {
-            ru: { type: "STRING" },
-            en: { type: "STRING" },
-          },
-          required: ["ru", "en"],
-        },
+        
       },
     };
 

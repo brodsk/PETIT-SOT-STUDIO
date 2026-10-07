@@ -84,7 +84,7 @@ export async function POST(request: Request) {
     const models = Array.from(new Set([
       configuredModel,
       "gemini-3.5-flash-lite",
-      "gemini-2.5-flash-lite",
+      "gemini-3.1-flash-lite",
     ].filter(Boolean))) as string[];
 
     const requestBody = {

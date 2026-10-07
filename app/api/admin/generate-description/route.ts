@@ -55,13 +55,25 @@ export async function POST(request: Request) {
 
     const [, mimeType, base64Image] = match;
 
-    // Do not feed form fields into the model request. Description generation
-    // must depend only on the artwork image, so editing title/year/size/price
-    // can never break the AI request.
+    const title = String(body.title ?? "").trim();
+    const medium = String(body.medium ?? "").trim();
+    const year = String(body.year ?? "").trim();
+    const width = String(body.width_cm ?? "").trim();
+    const height = String(body.height_cm ?? "").trim();
+    const depth = String(body.depth_cm ?? "").trim();
 
-    // Keep the model configurable, but never let an old/invalid Vercel value
-    const prompt = "You are writing a refined contemporary-art catalogue description for PETIT.SOT STUDIO and artist Olga Trikhleb.\n\n" +
-      "Look carefully at the supplied artwork image. Describe only what can reasonably be observed: composition, forms, palette, material appearance, gesture, texture, spatial relationships and visual atmosphere. Do not invent symbolism, biography, provenance, dimensions, medium, date or other facts.\n\n" +
+    const metadata = [
+      title ? `Title: ${title}` : "",
+      medium ? `Medium: ${medium}` : "",
+      year ? `Year: ${year}` : "",
+      width && height ? `Dimensions: ${width} × ${height}${depth ? ` × ${depth}` : ""} cm` : "",
+    ].filter(Boolean).join("\n");
+
+    const prompt =
+      "You are writing a refined contemporary-art catalogue description for PETIT.SOT STUDIO and artist Olga Trikhleb.\n\n" +
+      "Use the supplied artwork image together with the factual metadata below. Treat the metadata as factual and do not contradict it.\n\n" +
+      (metadata ? "ARTWORK INFORMATION:\n" + metadata + "\n\n" : "") +
+      "Look carefully at the supplied artwork image. Describe composition, forms, palette, material appearance, gesture, texture, spatial relationships and visual atmosphere. Do not invent symbolism, biography, provenance or facts that are not visible or supplied.\n\n" +
       "Write TWO versions: Russian 90–150 words, elegant and restrained; English 90–150 words as a faithful natural translation.\n\n" +
       'Avoid clichés, exaggerated claims, art-world jargon and phrases like "invites the viewer". Do not mention AI.\n\n' +
       'Return ONLY valid JSON in exactly this shape: {"ru":"Russian description","en":"English description"}';
@@ -205,3 +217,4 @@ export async function POST(request: Request) {
       { status: 500 },
     );
   }
+}

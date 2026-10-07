@@ -19,9 +19,14 @@ export default function AdminDashboard({initialArtworks}:Props){
   const [busy,setBusy]=useState(false);
   const [aiBusy,setAiBusy]=useState(false);
   const [message,setMessage]=useState("");
+  const [etsy,setEtsy]=useState<{connected:boolean;shop_name?:string|null;etsy_shop_id?:number|null}|null>(null);
 
   const form=selected ?? {id:"",slug:"",title:"",title_en:"",year:new Date().getFullYear(),medium:"",width_cm:null,height_cm:null,depth_cm:null,description:"",description_en:"",ai_description:"",price_eur:0,status:"available",image_path:null,certificate_number:null,created_at:""};
   const imageUrl=useMemo(()=>form.image_path?supabase.storage.from("petit-sot-artworks").getPublicUrl(form.image_path).data.publicUrl:"",[form.image_path,supabase]);
+
+  useEffect(()=>{
+    fetch("/api/admin/etsy/status",{cache:"no-store"}).then(r=>r.ok?r.json():null).then(data=>{if(data?.connected)setEtsy({connected:true,...data.connection});else setEtsy({connected:false});}).catch(()=>setEtsy({connected:false}));
+  },[]);
 
   useEffect(()=>{
     let cancelled=false;
@@ -231,7 +236,7 @@ export default function AdminDashboard({initialArtworks}:Props){
   async function logout(){await supabase.auth.signOut();location.href="/admin/login";}
 
   return <main className="admin-page">
-    <header className="admin-top"><div className="admin-brand"><span className="eyebrow"><a href="/admin">PETIT.SOT</a> / АРХИВ</span><h1>Картины</h1></div><nav><a href="/admin/orders">Заказы</a><button onClick={logout}>Выйти</button></nav></header>
+    <header className="admin-top"><div className="admin-brand"><span className="eyebrow"><a href="/admin">PETIT.SOT</a> / АРХИВ</span><h1>Картины</h1></div><nav><a href="/admin/orders">Заказы</a>{etsy?.connected?<span className="eyebrow">ETSY · {etsy.shop_name||"подключён"}</span>:<a href="/api/admin/etsy/connect">Подключить Etsy ↗</a>}<button onClick={logout}>Выйти</button></nav></header>
     <section className="admin-layout">
       <aside className="admin-list"><button className="admin-new" onClick={()=>{setSelected(null);setImage(null);setImagePreview("");setGalleryImages([]);setNewImages([]);setMessage("");}}>+ Новая картина</button>{artworks.map(w=><button key={w.id} className={"admin-list-row "+(form.id===w.id?"active":"")} onClick={()=>{setSelected(w);setImage(null);setImagePreview("");setNewImages([]);setMessage("");}}><span>{w.title||"Без названия"}</span><small>{({draft:"Черновик",available:"В продаже",sold:"Продана",archived:"Архив"} as Record<string,string>)[w.status]||w.status}</small></button>)}</aside>
       <section className="admin-editor"><form onSubmit={save}>

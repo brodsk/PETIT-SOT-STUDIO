@@ -78,125 +78,67 @@ export async function POST(request: Request) {
       "Metadata:\n" +
       metadata;
 
-    const model = process.env.GEMINI_MODEL || "gemini-3.5-flash-lite";
+    // Keep the model configurable, but never let an old/invalid Vercel value
+    // break the feature. These are stable multimodal Gemini models.
+    const configuredModel = process.env.GEMINI_MODEL?.trim();
+    const models = Array.from(new Set([
+      configuredModel,
+      "gemini-3.5-flash-lite",
+      "gemini-2.5-flash-lite",
+    ].filter(Boolean))) as string[];
 
-    const response = await fetch(
-      "https://generativelanguage.googleapis.com/v1beta/models/" +
-        encodeURIComponent(model) +
-        ":generateContent",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-goog-api-key": apiKey,
-        },
-        body: JSON.stringify({
-          contents: [
+    const requestBody = {
+      contents: [
+        {
+          role: "user",
+          parts: [
+            { text: prompt },
             {
-              role: "user",
-              parts: [
-                { text: prompt },
-                {
-                  inline_data: {
-                    mime_type: mimeType.toLowerCase(),
-                    data: base64Image,
-                  },
-                },
-              ],
+              inline_data: {
+                mime_type: mimeType.toLowerCase(),
+                data: base64Image,
+              },
             },
           ],
-          generationConfig: {
-            maxOutputTokens: 900,
-            responseMimeType: "application/json",
+        },
+      ],
+      generationConfig: {
+        maxOutputTokens: 900,
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: "OBJECT",
+          properties: {
+            ru: { type: "STRING" },
+            en: { type: "STRING" },
           },
-        }),
+          required: ["ru", "en"],
+        },
       },
-    );
+    };
 
-    const responseText = await response.text();
+    let responseText = "";
+    let lastGeminiError = "";
 
-    if (!response.ok) {
-      return NextResponse.json(
+    for (const model of models) {
+      const response = await fetch(
+        "https://generativelanguage.googleapis.com/v1beta/models/" +
+          encodeURIComponent(model) +
+          ":generateContent",
         {
-          error: "Gemini request failed.",
-          detail: responseText.slice(0, 1500),
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "x-goog-api-key": apiKey,
+          },
+          body: JSON.stringify(requestBody),
         },
-        { status: 502 },
       );
+
+      responseText = await response.text();
+      if (response.ok) break;
+
+      lastGeminiError = `${model}: ${responseText.slice(0, 1000)}`;
+      responseText = "";
     }
 
-    let data: any;
-    try {
-      data = JSON.parse(responseText);
-    } catch {
-      return NextResponse.json(
-        {
-          error: "Gemini returned an invalid response.",
-          detail: responseText.slice(0, 1000),
-        },
-        { status: 502 },
-      );
-    }
 
-    const raw =
-      data.candidates?.[0]?.content?.parts
-        ?.map((part: any) => part.text)
-        .filter(Boolean)
-        .join("")
-        .trim() || "";
-
-    if (!raw) {
-      return NextResponse.json(
-        {
-          error: "Gemini returned no description.",
-          detail: JSON.stringify(data).slice(0, 1500),
-        },
-        { status: 502 },
-      );
-    }
-
-    try {
-      const cleaned = raw
-        .replace(/^\`\`\`json\s*/i, "")
-        .replace(/^\`\`\`\s*/i, "")
-        .replace(/\s*\`\`\`$/i, "")
-        .trim();
-
-      const parsed = JSON.parse(cleaned);
-
-      if (
-        typeof parsed.ru !== "string" ||
-        typeof parsed.en !== "string" ||
-        !parsed.ru.trim() ||
-        !parsed.en.trim()
-      ) {
-        throw new Error("Missing bilingual description");
-      }
-
-      return NextResponse.json({
-        description: parsed.ru.trim(),
-        descriptionRu: parsed.ru.trim(),
-        descriptionEn: parsed.en.trim(),
-      });
-    } catch {
-      return NextResponse.json(
-        {
-          error: "Gemini returned an invalid bilingual description.",
-          detail: raw.slice(0, 1500),
-        },
-        { status: 502 },
-      );
-    }
-  } catch (error) {
-    console.error("Artwork description generation failed:", error);
-
-    return NextResponse.json(
-      {
-        error: "Artwork description generation failed.",
-        detail:
-          error instanceof Error ? error.message : "Unknown server error.",
-      },
-      { status: 500 },
-    );
-  }
-}

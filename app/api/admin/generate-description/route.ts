@@ -55,17 +55,17 @@ export async function POST(request: Request) {
 
     const [, mimeType, base64Image] = match;
 
-    const metadata = [
-      body.title && "Название: " + body.title,
-      body.year && "Год: " + body.year,
-      body.medium && "Материал / техника: " + body.medium,
-      body.width_cm &&
-        body.height_cm &&
-        "Размер: " + body.width_cm + " × " + body.height_cm + " см",
-      body.depth_cm && "Глубина: " + body.depth_cm + " см",
-    ]
-      .filter(Boolean)
-      .join("\n");
+    // Keep catalogue metadata separate from the visual prompt so filled-in
+    // form fields can never accidentally alter the request structure.
+    const metadata = {
+      title: body.title == null ? "" : String(body.title).slice(0, 200),
+      year: body.year == null ? "" : String(body.year),
+      medium: body.medium == null ? "" : String(body.medium).slice(0, 200),
+      width_cm: body.width_cm == null ? "" : String(body.width_cm),
+      height_cm: body.height_cm == null ? "" : String(body.height_cm),
+      depth_cm: body.depth_cm == null ? "" : String(body.depth_cm),
+      price_eur: body.price_eur == null ? "" : String(body.price_eur),
+    };
 
     const prompt =
       "You are writing a refined contemporary-art catalogue description for PETIT.SOT STUDIO and artist Olga Trikhleb.\n\n" +
@@ -75,8 +75,8 @@ export async function POST(request: Request) {
       "2. English: a faithful, natural translation of the Russian version, also 90–150 words.\n\n" +
       'Avoid clichés, exaggerated claims, art-world jargon and phrases like "invites the viewer". Do not mention that you are AI.\n\n' +
       'Return ONLY valid JSON in exactly this shape: {"ru":"Russian description","en":"English description"}\n\n' +
-      "Metadata:\n" +
-      metadata;
+      "Factual metadata (use only if useful; never invent or alter it):\n" +
+      JSON.stringify(metadata, null, 2);
 
     // Keep the model configurable, but never let an old/invalid Vercel value
     // break the feature. These are stable multimodal Gemini models.

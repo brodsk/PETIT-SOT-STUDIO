@@ -43,7 +43,7 @@ export async function POST(request: Request) {
 
     const imageDataUrl = String(body.imageDataUrl);
     const match = imageDataUrl.match(
-      /^data:(image\/[a-zA-Z0-9.+-]+);base64,(.+)$/s,
+      /^data:(image\/[a-zA-Z0-9.+-]+);base64,([\\s\\S]+)$/ ,
     );
 
     if (!match) {

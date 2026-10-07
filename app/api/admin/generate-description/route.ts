@@ -141,4 +141,88 @@ export async function POST(request: Request) {
       responseText = "";
     }
 
+    if (!responseText) {
+      return NextResponse.json(
+        {
+          error: "Gemini request failed.",
+          detail: lastGeminiError || "No Gemini response.",
+        },
+        { status: 502 },
+      );
+    }
 
+    let data: any;
+    try {
+      data = JSON.parse(responseText);
+    } catch {
+      return NextResponse.json(
+        {
+          error: "Gemini returned an invalid response.",
+          detail: responseText.slice(0, 1000),
+        },
+        { status: 502 },
+      );
+    }
+
+    const raw =
+      data.candidates?.[0]?.content?.parts
+        ?.map((part: any) => part.text)
+        .filter(Boolean)
+        .join("")
+        .trim() || "";
+
+    if (!raw) {
+      return NextResponse.json(
+        {
+          error: "Gemini returned no description.",
+          detail: JSON.stringify(data).slice(0, 1500),
+        },
+        { status: 502 },
+      );
+    }
+
+    try {
+      const cleaned = raw
+        .replace(/^\`\`\`json\s*/i, "")
+        .replace(/^\`\`\`\s*/i, "")
+        .replace(/\s*\`\`\`$/i, "")
+        .trim();
+
+      const parsed = JSON.parse(cleaned);
+
+      if (
+        typeof parsed.ru !== "string" ||
+        typeof parsed.en !== "string" ||
+        !parsed.ru.trim() ||
+        !parsed.en.trim()
+      ) {
+        throw new Error("Missing bilingual description");
+      }
+
+      return NextResponse.json({
+        description: parsed.ru.trim(),
+        descriptionRu: parsed.ru.trim(),
+        descriptionEn: parsed.en.trim(),
+      });
+    } catch {
+      return NextResponse.json(
+        {
+          error: "Gemini returned an invalid bilingual description.",
+          detail: raw.slice(0, 1500),
+        },
+        { status: 502 },
+      );
+    }
+  } catch (error) {
+    console.error("Artwork description generation failed:", error);
+
+    return NextResponse.json(
+      {
+        error: "Artwork description generation failed.",
+        detail:
+          error instanceof Error ? error.message : "Unknown server error.",
+      },
+      { status: 500 },
+    );
+  }
+}

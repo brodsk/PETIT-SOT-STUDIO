@@ -93,6 +93,18 @@ export async function POST(request: Request) {
           parts: [
             { text: prompt },
             {
+              text: JSON.stringify({
+                title,
+                medium,
+                year: year || null,
+                dimensions_cm: {
+                  width: width || null,
+                  height: height || null,
+                  depth: depth || null,
+                },
+              }),
+            },
+            {
               inline_data: {
                 mime_type: mimeType.toLowerCase(),
                 data: base64Image,

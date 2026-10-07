@@ -18,10 +18,6 @@ export default function AdminDashboard({initialArtworks}:Props){
   const [newImages,setNewImages]=useState<File[]>([]);
   const [busy,setBusy]=useState(false);
   const [aiBusy,setAiBusy]=useState(false);
-  const [interiorBusy,setInteriorBusy]=useState(false);
-  const [interiorStyle,setInteriorStyle]=useState("minimal");
-  const [interiorPrompt,setInteriorPrompt]=useState("");
-  const [interiors,setInteriors]=useState<InteriorImage[]>([]);
   const [message,setMessage]=useState("");
 
   const form=selected ?? {id:"",slug:"",title:"",title_en:"",year:new Date().getFullYear(),medium:"",width_cm:null,height_cm:null,depth_cm:null,description:"",description_en:"",ai_description:"",price_eur:0,status:"available",image_path:null,certificate_number:null,created_at:""};
@@ -35,20 +31,6 @@ export default function AdminDashboard({initialArtworks}:Props){
       if(!cancelled)setGalleryImages(error?[]:(data||[]));
     }
     load();
-    return ()=>{cancelled=true};
-  },[form.id,supabase]);
-
-  useEffect(()=>{
-    let cancelled=false;
-    async function loadInteriors(){
-      if(!form.id){setInteriors([]);return;}
-      const {data,error}=await supabase.from("petit_sot_artwork_interiors").select("*").eq("artwork_id",form.id).order("created_at",{ascending:false});
-      if(!cancelled){
-        const rows=(data||[]).map((row:any)=>({...row,image_url:supabase.storage.from("petit-sot-artworks").getPublicUrl(row.image_path).data.publicUrl}));
-        setInteriors(error?[]:rows);
-      }
-    }
-    loadInteriors();
     return ()=>{cancelled=true};
   },[form.id,supabase]);
 
@@ -235,35 +217,6 @@ export default function AdminDashboard({initialArtworks}:Props){
     }
   }
 
-  async function deleteInterior(item:InteriorImage){
-    if(!window.confirm("Удалить эту генерацию?"))return;
-    setBusy(true);setMessage("");
-    try{
-      const storage=await supabase.storage.from("petit-sot-artworks").remove([item.image_path]);
-      if(storage.error)throw storage.error;
-      const {error}=await supabase.from("petit_sot_artwork_interiors").delete().eq("id",item.id);
-      if(error)throw error;
-      setInteriors(prev=>prev.filter(x=>x.id!==item.id));
-      setMessage("Генерация удалена.");
-    }catch(err:any){setMessage(err?.message||"Не удалось удалить генерацию.");}
-    setBusy(false);
-  }
-
-  async function generateInterior(){
-    if(!form.id){setMessage("Сначала сохраните картину.");return;}
-    if(!form.image_path){setMessage("Сначала добавьте главное изображение картины.");return;}
-    setInteriorBusy(true);setMessage("");
-    try{
-      const res=await fetch("/api/admin/generate-interior",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({artworkId:form.id,style:interiorStyle,customPrompt:interiorPrompt})});
-      const json=await res.json();
-      if(!res.ok)throw new Error([json.error,json.detail].filter(Boolean).join(" ")||"Не удалось создать интерьер.");
-      const row=json.interior as InteriorImage;
-      setInteriors(prev=>[row,...prev]);
-      setMessage("Интерьер создан. Можно сгенерировать ещё один вариант.");
-    }catch(err:any){setMessage(err?.message||"Не удалось создать интерьер.");}
-    setInteriorBusy(false);
-  }
-
   async function passport(){
     if(!form.id){setMessage("Сначала сохраните картину.");return;}
     setBusy(true);setMessage("");
@@ -286,19 +239,6 @@ export default function AdminDashboard({initialArtworks}:Props){
         <div className="admin-image-field">{imagePreview?<img src={imagePreview} alt="" />:imageUrl?<img src={imageUrl} alt="" />:<div><span>Изображение картины</span><small>JPG / PNG / WEBP · максимум 15 МБ</small></div>}<label>{image?"Заменить изображение":"Выбрать изображение"}<input type="file" accept="image/jpeg,image/png,image/webp" onChange={e=>chooseImage(e.target.files?.[0]||null)}/></label>{image&&<p className="admin-file-name">{image.name}</p>}</div><div className="admin-gallery-manager"><div className="admin-gallery-head"><div><span className="eyebrow">ГАЛЕРЕЯ</span><h3>Дополнительные фотографии</h3></div><label className="admin-gallery-add">+ Добавить фото<input type="file" accept="image/jpeg,image/png,image/webp" multiple onChange={e=>chooseGalleryImages(e.target.files)}/></label></div>{(galleryImages.length||newImages.length)?<div className="admin-gallery-grid">{galleryImages.map((item,index)=><div className="admin-gallery-item" key={item.id}><img src={supabase.storage.from("petit-sot-artworks").getPublicUrl(item.image_path).data.publicUrl} alt="" /><div className="admin-gallery-item-actions"><button type="button" onClick={()=>moveGalleryImage(index,-1)} disabled={busy||index===0}>←</button><span>{index+1}</span><button type="button" onClick={()=>moveGalleryImage(index,1)} disabled={busy||index===galleryImages.length-1}>→</button><button type="button" className="make-main" onClick={()=>makeGalleryImageMain(item)} disabled={busy||!form.image_path} title="Сделать главной">Главная</button><button type="button" className="delete" onClick={()=>removeGalleryImage(item)} disabled={busy}>×</button></div></div>)}{newImages.map((file,index)=><div className="admin-gallery-item pending" key={file.name+index}><img src={URL.createObjectURL(file)} alt="" /><div className="admin-gallery-item-actions"><span>Новое</span><button type="button" className="delete" onClick={()=>setNewImages(prev=>prev.filter((_,i)=>i!==index))}>×</button></div></div>)}</div>:<p className="admin-gallery-empty">Добавьте несколько фотографий — детали картины покажут их как галерею.</p>}</div>
         <div className="admin-form-grid"><label>Название<input value={form.title} onChange={e=>patch("title",e.target.value)} required/></label><label>Адрес страницы (Slug)<input value={form.slug} onChange={e=>patch("slug",e.target.value)} placeholder="например, untitled-i" required/></label><label>Год<input type="number" value={form.year??""} onChange={e=>patch("year",Number(e.target.value)||null)}/></label><label>Материал / техника<input value={form.medium??""} onChange={e=>patch("medium",e.target.value)} placeholder="например, масло на холсте"/></label><label>Ширина / см<input type="number" step="0.1" value={form.width_cm??""} onChange={e=>patch("width_cm",Number(e.target.value)||null)}/></label><label>Высота / см<input type="number" step="0.1" value={form.height_cm??""} onChange={e=>patch("height_cm",Number(e.target.value)||null)}/></label><label>Глубина / см<input type="number" step="0.1" value={form.depth_cm??""} onChange={e=>patch("depth_cm",Number(e.target.value)||null)}/></label><label>Цена / EUR<input type="number" step="0.01" min="0" value={form.price_eur===0?"":form.price_eur} onChange={e=>patch("price_eur",e.target.value===""?0:Number(e.target.value))}/></label></div>
         <div className="admin-description-head"><label>Описание (русский)<textarea value={form.description} onChange={e=>patch("description",e.target.value)} rows={8}/></label><div><button type="button" className="ai-button" onClick={generateDescription} disabled={aiBusy}>{aiBusy?"Анализирую картину…":"✦ Создать описание с ИИ"}</button><p>ИИ анализирует изображение и создаёт описание на русском и английском. Фактические данные не выдумываются.</p></div></div>
-        <div className="admin-interior">
-          <div className="admin-interior-head">
-            <div><span className="eyebrow">AI / INTERIOR</span><h3>Картина в интерьере</h3></div>
-            <p>ИИ сохраняет саму работу как оригинал и создаёт только окружающее пространство.</p>
-          </div>
-          <div className="admin-interior-controls">
-            <div className="admin-interior-styles">{[["minimal","Minimal / Gallery"],["modern","Modern Apartment"],["warm","Warm Interior"],["luxury","Luxury"]].map(([value,label])=><button key={value} type="button" className={interiorStyle===value?"active":""} onClick={()=>setInteriorStyle(value)} disabled={interiorBusy}>{label}</button>)}</div>
-            <input className="admin-interior-prompt" value={interiorPrompt} onChange={e=>setInteriorPrompt(e.target.value)} placeholder="Дополнительно: например, светлая квартира в Вене, бетон и дуб" disabled={interiorBusy}/>
-            <button type="button" className="ai-button admin-interior-generate" onClick={generateInterior} disabled={interiorBusy||!form.id||!form.image_path}>{interiorBusy?"Создаю интерьер…":"✦ Generate in interior"}</button>
-          </div>
-          {interiors.length>0&&<div className="admin-interior-grid">{interiors.map(item=><figure key={item.id}><img src={item.image_url} alt="" /><figcaption><span>{item.style}</span><small>{new Date(item.created_at).toLocaleDateString("ru-RU")}</small><button type="button" className="delete-interior" onClick={()=>deleteInterior(item)} disabled={busy}>Удалить</button></figcaption></figure>)}</div>}
-          {!interiors.length&&<p className="admin-interior-empty">После генерации здесь появится превью. Каждый новый вариант сохраняется отдельно.</p>}
-        </div>
         {message&&<p className="admin-message">{message}</p>}
         <div className="admin-actions"><button type="button" onClick={publish} disabled={busy||!form.id}>Опубликовать ↗</button><button type="submit" disabled={busy}>{busy?"Сохраняю…":"Сохранить картину"} <span>↗</span></button>{form.id&&<><button type="button" className="secondary" onClick={passport} disabled={busy}>Создать паспорт PDF</button><button type="button" className="secondary" onClick={removeArtwork} disabled={busy}>Удалить картину</button></>}</div>
       </form></section>

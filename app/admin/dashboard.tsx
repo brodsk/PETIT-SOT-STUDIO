@@ -194,16 +194,45 @@ export default function AdminDashboard({initialArtworks}:Props){
 
   async function generateDescription(){
     if(!image&&!form.image_path){setMessage("Сначала добавьте изображение картины.");return;}
-    setAiBusy(true);setMessage("");
+    setAiBusy(true);setMessage("Подготавливаю изображение…");
     try{
       let dataUrl="";
-      if(image)dataUrl=await compressImage(image);
-      else{const res=await fetch(imageUrl);if(!res.ok)throw new Error("Не удалось прочитать загруженное изображение.");dataUrl=await compressImage(await res.blob());}
-      const res=await fetch("/api/admin/generate-description",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({imageDataUrl:dataUrl,title:form.title,medium:form.medium,year:form.year,width_cm:form.width_cm,height_cm:form.height_cm,depth_cm:form.depth_cm})});
-      const json=await res.json();if(!res.ok)throw new Error([json.error,json.detail].filter(Boolean).join(" ")||"Не удалось создать описание.");
-      setSelected({...form,description:json.descriptionRu||json.description,ai_description:json.descriptionEn||json.description} as Artwork);setMessage("Описание создано. При необходимости отредактируйте его и сохраните.");
-    }catch(err:any){setMessage(err?.message||"Не удалось создать описание.");}
-    setAiBusy(false);
+      if(image){
+        setMessage("Сжимаю изображение…");
+        dataUrl=await compressImage(image);
+      } else {
+        setMessage("Загружаю изображение картины…");
+        const imageResponse=await fetch(imageUrl);
+        if(!imageResponse.ok)throw new Error("Не удалось прочитать загруженное изображение.");
+        setMessage("Сжимаю изображение…");
+        dataUrl=await compressImage(await imageResponse.blob());
+      }
+      setMessage("Отправляю картину в ИИ…");
+      const controller=new AbortController();
+      const timeout=setTimeout(()=>controller.abort(),60000);
+      let res:Response;
+      try{
+        res=await fetch("/api/admin/generate-description",{
+          method:"POST",
+          headers:{"content-type":"application/json"},
+          body:JSON.stringify({imageDataUrl:dataUrl,title:form.title,medium:form.medium,year:form.year,width_cm:form.width_cm,height_cm:form.height_cm,depth_cm:form.depth_cm}),
+          signal:controller.signal,
+        });
+      }finally{clearTimeout(timeout);}
+      const responseText=await res.text();
+      let json:any={};
+      try{json=JSON.parse(responseText);}catch{}
+      if(!res.ok)throw new Error([json.error,json.detail,responseText.slice(0,500)].filter(Boolean).join(" ")||`Сервер вернул HTTP ${res.status}.`);
+      if(!json.descriptionRu&&!json.description)throw new Error("ИИ не вернул русское описание.");
+      setSelected({...form,description:json.descriptionRu||json.description,ai_description:json.descriptionEn||json.description} as Artwork);
+      setMessage("Описание создано. При необходимости отредактируйте его и сохраните.");
+    }catch(err:any){
+      const message=err?.name==="AbortError"?"ИИ не ответил за 60 секунд.":err?.message||"Не удалось создать описание.";
+      console.error("generateDescription failed:",err);
+      setMessage("Ошибка: "+message);
+    }finally{
+      setAiBusy(false);
+    }
   }
 
   async function deleteInterior(item:InteriorImage){

@@ -25,6 +25,9 @@ export default function AdminDashboard({initialArtworks}:Props){
   const imageUrl=useMemo(()=>form.image_path?supabase.storage.from("petit-sot-artworks").getPublicUrl(form.image_path).data.publicUrl:"",[form.image_path,supabase]);
 
   useEffect(()=>{
+    const params=new URLSearchParams(window.location.search);
+    const etsyError=params.get("etsy")==="error"?params.get("reason"):"";
+    if(etsyError)setMessage("Etsy: "+etsyError);
     fetch("/api/admin/etsy/status",{cache:"no-store"}).then(r=>r.ok?r.json():null).then(data=>{if(data?.connected)setEtsy({connected:true,...data.connection});else setEtsy({connected:false});}).catch(()=>setEtsy({connected:false}));
   },[]);
 

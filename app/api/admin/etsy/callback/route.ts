@@ -41,8 +41,12 @@ export async function GET(request:Request) {
     const shops = await shopsResponse.json().catch(()=>({}));
     if (!shopsResponse.ok) throw new Error(shops.error || shops.error_description || `Could not read Etsy shop (HTTP ${shopsResponse.status}).`);
 
-    const shop = shops.results?.[0];
-    if (!shop?.shop_id) throw new Error("No Etsy shop was found for this account.");
+    // Etsy's owner-shop endpoint can return a single Shop object, while some responses
+    // may be wrapped in a results array. Accept both response shapes.
+    const shop = Array.isArray(shops.results) ? shops.results[0] : shops;
+    if (!shop?.shop_id) {
+      throw new Error("Etsy authorized the account, but no shop_id was returned. Make sure this Etsy account has an opened shop.");
+    }
 
     const { error:saveError } = await supabase.from("petit_sot_etsy_connections").upsert({
       id:1,

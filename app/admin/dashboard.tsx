@@ -23,7 +23,7 @@ export default function AdminDashboard({initialArtworks}:Props){
   const [etsyImporting,setEtsyImporting]=useState(false);
   const [etsyProgress,setEtsyProgress]=useState("");
 
-  const form=selected ?? {id:"",slug:"",title:"",title_en:"",year:new Date().getFullYear(),medium:"",width_cm:null,height_cm:null,depth_cm:null,description:"",description_en:"",ai_description:"",price_eur:0,status:"available",image_path:null,certificate_number:null,created_at:""};
+  const form:Artwork=selected ?? {id:"",slug:"",title:"",title_en:"",year:new Date().getFullYear(),medium:"",width_cm:null,height_cm:null,depth_cm:null,description:"",description_en:"",ai_description:"",price_eur:0,status:"available",image_path:null,certificate_number:null,created_at:"",etsy_listing_id:null,etsy_state:null,etsy_error:null,etsy_listing_url:null};
   const imageUrl=useMemo(()=>form.image_path?supabase.storage.from("petit-sot-artworks").getPublicUrl(form.image_path).data.publicUrl:"",[form.image_path,supabase]);
 
   useEffect(()=>{

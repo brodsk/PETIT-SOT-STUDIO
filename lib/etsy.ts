@@ -16,7 +16,7 @@ function config() {
 
 export function etsyRedirectUri() {
   return process.env.ETSY_REDIRECT_URI?.trim() ||
-    "https://petitsot-studio.vercel.app/api/admin/etsy/callback";
+    "https://petitsot.com/api/admin/etsy/callback";
 }
 
 export function createPkce() {

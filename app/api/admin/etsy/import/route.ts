@@ -72,7 +72,6 @@ export async function POST(request:Request){
     .select("id,title,title_en,year,medium,width_cm,height_cm,depth_cm,description,description_en,price_eur,image_path,etsy_listing_id")
     .eq("id",artworkId).single();
   if(artworkError||!artwork)return fail("Картина не найдена.",404);
-  if(artwork.etsy_listing_id)return NextResponse.json({ok:true,skipped:true,listingId:artwork.etsy_listing_id});
 
   try{
     const {data:connection,error:connectionError}=await supabase.from("petit_sot_etsy_connections").select("etsy_shop_id").eq("id",1).maybeSingle();
@@ -125,11 +124,14 @@ export async function POST(request:Request){
     for(const tag of ["original art","contemporary art","wall art","abstract painting"])form.append("tags",tag);
     if(artwork.medium)form.append("materials",String(artwork.medium).replace(/[^\p{L}\p{Nd}\p{Zs}]/gu," ").replace(/\s+/g," ").trim().slice(0,45));
 
-    const createResponse=await etsyRequest("/application/shops/"+shopId+"/listings?legacy=false",{method:"POST",body:form});
-    const created=await json(createResponse);
-    if(!createResponse.ok)throw new Error("Создание объявления: "+etsyError(created,"Etsy не создал черновик."));
-    const listingId=Number(created?.listing_id||0);
-    if(!listingId)throw new Error("Etsy ответил без listing_id: "+etsyError(created,"пустой ответ API."));
+    let listingId=Number(artwork.etsy_listing_id||0);
+    if(!listingId){
+      const createResponse=await etsyRequest("/application/shops/"+shopId+"/listings?legacy=false",{method:"POST",body:form});
+      const created=await json(createResponse);
+      if(!createResponse.ok)throw new Error("Создание объявления: "+etsyError(created,"Etsy не создал черновик."));
+      listingId=Number(created?.listing_id||0);
+      if(!listingId)throw new Error("Etsy ответил без listing_id: "+etsyError(created,"пустой ответ API."));
+    }
 
     const listingUrl="https://www.etsy.com/listing/"+listingId;
     const {error:createdSaveError}=await supabase.from("petit_sot_artworks").update({
@@ -150,7 +152,7 @@ export async function POST(request:Request){
       const buffer=await imageResponse.arrayBuffer();
       const uploadForm=new FormData();
       uploadForm.append("image",new Blob([buffer],{type:imageResponse.headers.get("content-type")||"image/jpeg"}),paths[i].split("/").pop()||("artwork-"+(i+1)+".jpg"));
-      uploadForm.append("rank",String(i));
+      uploadForm.append("rank",String(i+1));
       const uploadResponse=await etsyRequest("/application/shops/"+shopId+"/listings/"+listingId+"/images",{method:"POST",body:uploadForm});
       const uploaded=await json(uploadResponse);
       if(!uploadResponse.ok)throw new Error("Объявление #"+listingId+" создано, но Etsy не принял фото №"+(i+1)+": "+etsyError(uploaded,"ошибка загрузки изображения."));

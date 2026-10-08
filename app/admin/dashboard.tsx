@@ -245,6 +245,7 @@ export default function AdminDashboard({initialArtworks}:Props){
     if(!window.confirm("Загрузить "+pending.length+" картин в Etsy как черновики?"))return;
     setEtsyImporting(true);setBusy(true);setMessage("");
     let ok=0;let failed=0;
+    const failures:string[]=[];
     for(let i=0;i<pending.length;i++){
       const artwork=pending[i];
       setEtsyProgress((i+1)+"/"+pending.length+" · "+artwork.title);
@@ -252,17 +253,19 @@ export default function AdminDashboard({initialArtworks}:Props){
         const response=await fetch("/api/admin/etsy/import",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({artworkId:artwork.id})});
         const data=await response.json().catch(()=>({}));
         if(!response.ok)throw new Error(data.error||"Ошибка Etsy");
+        if(!data.listingId)throw new Error("Сервер не подтвердил ID объявления Etsy.");
         ok++;
-        if(data.listingId)setArtworks(prev=>prev.map(x=>x.id===artwork.id?{...x,etsy_listing_id:data.listingId,etsy_state:"draft",etsy_error:null,etsy_listing_url:data.listingUrl}:x));
+        setArtworks(prev=>prev.map(x=>x.id===artwork.id?{...x,etsy_listing_id:data.listingId,etsy_state:"draft",etsy_error:null,etsy_listing_url:data.listingUrl}:x));
       }catch(err:any){
         failed++;
-        const message=err?.message||"Ошибка";
-        setArtworks(prev=>prev.map(x=>x.id===artwork.id?{...x,etsy_error:message}:x));
+        const reason=err?.message||"Ошибка";
+        failures.push(artwork.title+": "+reason);
+        setArtworks(prev=>prev.map(x=>x.id===artwork.id?{...x,etsy_error:reason}:x));
       }
     }
     setEtsyProgress("");
     setEtsyImporting(false);setBusy(false);
-    setMessage("Etsy: загружено "+ok+(failed?" · ошибок "+failed:"")+".");
+    setMessage("Etsy: создано "+ok+" объявлений"+(failed?" · ошибок "+failed:"")+(failures.length?": "+failures.slice(0,3).join(" | ")+(failures.length>3?" | и ещё "+(failures.length-3):""):"")+".");
   }
 
   async function logout(){await supabase.auth.signOut();location.href="/admin/login";}
@@ -270,7 +273,7 @@ export default function AdminDashboard({initialArtworks}:Props){
   return <main className="admin-page">
     <header className="admin-top"><div className="admin-brand"><span className="eyebrow"><a href="/admin">PETIT.SOT</a> / АРХИВ</span><h1>Картины</h1></div><nav><a href="/admin/orders">Заказы</a>{etsy?.connected?<><span className="eyebrow">ETSY · {etsy.shop_name||"подключён"}</span><button type="button" onClick={importAllToEtsy} disabled={etsyImporting||busy}>{etsyImporting?etsyProgress:"Загрузить всё в Etsy ↗"}</button></>:<a href="/api/admin/etsy/connect">Подключить Etsy ↗</a>}<button onClick={logout}>Выйти</button></nav></header>
     <section className="admin-layout">
-      <aside className="admin-list"><button className="admin-new" onClick={()=>{setSelected(null);setImage(null);setImagePreview("");setGalleryImages([]);setNewImages([]);setMessage("");}}>+ Новая картина</button>{artworks.map(w=><button key={w.id} className={"admin-list-row "+(form.id===w.id?"active":"")} onClick={()=>{setSelected(w);setImage(null);setImagePreview("");setNewImages([]);setMessage("");}}><span>{w.title||"Без названия"}</span><small>{({draft:"Черновик",available:"В продаже",sold:"Продана",archived:"Архив"} as Record<string,string>)[w.status]||w.status}{w.etsy_listing_id?" · Etsy draft":""}</small></button>)}</aside>
+      <aside className="admin-list"><button className="admin-new" onClick={()=>{setSelected(null);setImage(null);setImagePreview("");setGalleryImages([]);setNewImages([]);setMessage("");}}>+ Новая картина</button>{artworks.map(w=><button key={w.id} className={"admin-list-row "+(form.id===w.id?"active":"")} onClick={()=>{setSelected(w);setImage(null);setImagePreview("");setNewImages([]);setMessage("");}}><span>{w.title||"Без названия"}</span><small>{({draft:"Черновик",available:"В продаже",sold:"Продана",archived:"Архив"} as Record<string,string>)[w.status]||w.status}{w.etsy_listing_id?" · Etsy #"+w.etsy_listing_id:""}</small>{w.etsy_error&&<small style={{color:"#b45309",whiteSpace:"normal"}}>Etsy: {w.etsy_error}</small>}</button>)}</aside>
       <section className="admin-editor"><form onSubmit={save}>
         <div className="admin-editor-head"><div><span className="eyebrow">КАРТИНА</span><h2>{form.title||"Новая работа"}</h2></div><select aria-label="Статус" value={form.status} onChange={e=>patch("status",e.target.value)}><option value="draft">Черновик</option><option value="available">В продаже</option><option value="sold">Продана</option><option value="archived">Архив</option></select></div>
         <div className="admin-image-field">{imagePreview?<img src={imagePreview} alt="" />:imageUrl?<img src={imageUrl} alt="" />:<div><span>Изображение картины</span><small>JPG / PNG / WEBP · максимум 15 МБ</small></div>}<label>{image?"Заменить изображение":"Выбрать изображение"}<input type="file" accept="image/jpeg,image/png,image/webp" onChange={e=>chooseImage(e.target.files?.[0]||null)}/></label>{image&&<p className="admin-file-name">{image.name}</p>}</div><div className="admin-gallery-manager"><div className="admin-gallery-head"><div><span className="eyebrow">ГАЛЕРЕЯ</span><h3>Дополнительные фотографии</h3></div><label className="admin-gallery-add">+ Добавить фото<input type="file" accept="image/jpeg,image/png,image/webp" multiple onChange={e=>chooseGalleryImages(e.target.files)}/></label></div>{(galleryImages.length||newImages.length)?<div className="admin-gallery-grid">{galleryImages.map((item,index)=><div className="admin-gallery-item" key={item.id}><img src={supabase.storage.from("petit-sot-artworks").getPublicUrl(item.image_path).data.publicUrl} alt="" /><div className="admin-gallery-item-actions"><button type="button" onClick={()=>moveGalleryImage(index,-1)} disabled={busy||index===0}>←</button><span>{index+1}</span><button type="button" onClick={()=>moveGalleryImage(index,1)} disabled={busy||index===galleryImages.length-1}>→</button><button type="button" className="make-main" onClick={()=>makeGalleryImageMain(item)} disabled={busy||!form.image_path} title="Сделать главной">Главная</button><button type="button" className="delete" onClick={()=>removeGalleryImage(item)} disabled={busy}>×</button></div></div>)}{newImages.map((file,index)=><div className="admin-gallery-item pending" key={file.name+index}><img src={URL.createObjectURL(file)} alt="" /><div className="admin-gallery-item-actions"><span>Новое</span><button type="button" className="delete" onClick={()=>setNewImages(prev=>prev.filter((_,i)=>i!==index))}>×</button></div></div>)}</div>:<p className="admin-gallery-empty">Добавьте несколько фотографий — детали картины покажут их как галерею.</p>}</div>

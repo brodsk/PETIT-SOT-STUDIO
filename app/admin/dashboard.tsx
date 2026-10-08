@@ -3,7 +3,7 @@
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { createClient } from "../../lib/supabase/client";
 
-type Artwork={id:string;slug:string;title:string;title_en:string;year:number|null;medium:string|null;width_cm:number|null;height_cm:number|null;depth_cm:number|null;description:string;description_en:string;ai_description:string;price_eur:number;status:string;image_path:string|null;certificate_number:string|null;created_at:string};
+type Artwork={id:string;slug:string;title:string;title_en:string;year:number|null;medium:string|null;width_cm:number|null;height_cm:number|null;depth_cm:number|null;description:string;description_en:string;ai_description:string;price_eur:number;status:string;image_path:string|null;certificate_number:string|null;created_at:string;etsy_listing_id:number|null;etsy_state:string|null;etsy_error:string|null;etsy_listing_url:string|null};
 type ArtworkImage={id:string;artwork_id:string;image_path:string;sort_order:number;created_at:string};
 type InteriorImage={id:string;artwork_id:string;image_path:string;style:string;custom_prompt:string;created_at:string;image_url:string};
 type Props={initialArtworks:Artwork[]};
@@ -19,7 +19,7 @@ export default function AdminDashboard({initialArtworks}:Props){
   const [busy,setBusy]=useState(false);
   const [aiBusy,setAiBusy]=useState(false);
   const [message,setMessage]=useState("");
-  const [etsy,setEtsy]=useState<{connected:boolean;shop_name?:string|null;etsy_shop_id?:number|null}|null>(null);
+  const [etsy,setEtsy]=useState<{connected:boolean;shop_name?:string|null;etsy_shop_id?:number|null}|null>(null);\n  const [etsyImporting,setEtsyImporting]=useState(false);\n  const [etsyProgress,setEtsyProgress]=useState("");
 
   const form=selected ?? {id:"",slug:"",title:"",title_en:"",year:new Date().getFullYear(),medium:"",width_cm:null,height_cm:null,depth_cm:null,description:"",description_en:"",ai_description:"",price_eur:0,status:"available",image_path:null,certificate_number:null,created_at:""};
   const imageUrl=useMemo(()=>form.image_path?supabase.storage.from("petit-sot-artworks").getPublicUrl(form.image_path).data.publicUrl:"",[form.image_path,supabase]);
@@ -233,12 +233,39 @@ export default function AdminDashboard({initialArtworks}:Props){
     setBusy(false);
   }
 
+  async function importAllToEtsy(){
+    if(!etsy?.connected){setMessage("Сначала подключите Etsy.");return;}
+    const pending=artworks.filter(x=>!x.etsy_listing_id);
+    if(!pending.length){setMessage("Все картины уже загружены в Etsy.");return;}
+    if(!window.confirm("Загрузить "+pending.length+" картин в Etsy как черновики?"))return;
+    setEtsyImporting(true);setBusy(true);setMessage("");
+    let ok=0;let failed=0;
+    for(let i=0;i<pending.length;i++){
+      const artwork=pending[i];
+      setEtsyProgress((i+1)+"/"+pending.length+" · "+artwork.title);
+      try{
+        const response=await fetch("/api/admin/etsy/import",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({artworkId:artwork.id})});
+        const data=await response.json().catch(()=>({}));
+        if(!response.ok)throw new Error(data.error||"Ошибка Etsy");
+        ok++;
+        if(data.listingId)setArtworks(prev=>prev.map(x=>x.id===artwork.id?{...x,etsy_listing_id:data.listingId,etsy_state:"draft",etsy_error:null,etsy_listing_url:data.listingUrl}:x));
+      }catch(err:any){
+        failed++;
+        const message=err?.message||"Ошибка";
+        setArtworks(prev=>prev.map(x=>x.id===artwork.id?{...x,etsy_error:message}:x));
+      }
+    }
+    setEtsyProgress("");
+    setEtsyImporting(false);setBusy(false);
+    setMessage("Etsy: загружено "+ok+(failed?" · ошибок "+failed:"")+".");
+  }
+
   async function logout(){await supabase.auth.signOut();location.href="/admin/login";}
 
   return <main className="admin-page">
-    <header className="admin-top"><div className="admin-brand"><span className="eyebrow"><a href="/admin">PETIT.SOT</a> / АРХИВ</span><h1>Картины</h1></div><nav><a href="/admin/orders">Заказы</a>{etsy?.connected?<span className="eyebrow">ETSY · {etsy.shop_name||"подключён"}</span>:<a href="/api/admin/etsy/connect">Подключить Etsy ↗</a>}<button onClick={logout}>Выйти</button></nav></header>
+    <header className="admin-top"><div className="admin-brand"><span className="eyebrow"><a href="/admin">PETIT.SOT</a> / АРХИВ</span><h1>Картины</h1></div><nav><a href="/admin/orders">Заказы</a>{etsy?.connected?<><span className="eyebrow">ETSY · {etsy.shop_name||"подключён"}</span><button type="button" onClick={importAllToEtsy} disabled={etsyImporting||busy}>{etsyImporting?etsyProgress:"Загрузить всё в Etsy ↗"}</button></>:<a href="/api/admin/etsy/connect">Подключить Etsy ↗</a>}<button onClick={logout}>Выйти</button></nav></header>
     <section className="admin-layout">
-      <aside className="admin-list"><button className="admin-new" onClick={()=>{setSelected(null);setImage(null);setImagePreview("");setGalleryImages([]);setNewImages([]);setMessage("");}}>+ Новая картина</button>{artworks.map(w=><button key={w.id} className={"admin-list-row "+(form.id===w.id?"active":"")} onClick={()=>{setSelected(w);setImage(null);setImagePreview("");setNewImages([]);setMessage("");}}><span>{w.title||"Без названия"}</span><small>{({draft:"Черновик",available:"В продаже",sold:"Продана",archived:"Архив"} as Record<string,string>)[w.status]||w.status}</small></button>)}</aside>
+      <aside className="admin-list"><button className="admin-new" onClick={()=>{setSelected(null);setImage(null);setImagePreview("");setGalleryImages([]);setNewImages([]);setMessage("");}}>+ Новая картина</button>{artworks.map(w=><button key={w.id} className={"admin-list-row "+(form.id===w.id?"active":"")} onClick={()=>{setSelected(w);setImage(null);setImagePreview("");setNewImages([]);setMessage("");}}><span>{w.title||"Без названия"}</span><small>{({draft:"Черновик",available:"В продаже",sold:"Продана",archived:"Архив"} as Record<string,string>)[w.status]||w.status}{w.etsy_listing_id?" · Etsy draft":""}</small></button>)}</aside>
       <section className="admin-editor"><form onSubmit={save}>
         <div className="admin-editor-head"><div><span className="eyebrow">КАРТИНА</span><h2>{form.title||"Новая работа"}</h2></div><select aria-label="Статус" value={form.status} onChange={e=>patch("status",e.target.value)}><option value="draft">Черновик</option><option value="available">В продаже</option><option value="sold">Продана</option><option value="archived">Архив</option></select></div>
         <div className="admin-image-field">{imagePreview?<img src={imagePreview} alt="" />:imageUrl?<img src={imageUrl} alt="" />:<div><span>Изображение картины</span><small>JPG / PNG / WEBP · максимум 15 МБ</small></div>}<label>{image?"Заменить изображение":"Выбрать изображение"}<input type="file" accept="image/jpeg,image/png,image/webp" onChange={e=>chooseImage(e.target.files?.[0]||null)}/></label>{image&&<p className="admin-file-name">{image.name}</p>}</div><div className="admin-gallery-manager"><div className="admin-gallery-head"><div><span className="eyebrow">ГАЛЕРЕЯ</span><h3>Дополнительные фотографии</h3></div><label className="admin-gallery-add">+ Добавить фото<input type="file" accept="image/jpeg,image/png,image/webp" multiple onChange={e=>chooseGalleryImages(e.target.files)}/></label></div>{(galleryImages.length||newImages.length)?<div className="admin-gallery-grid">{galleryImages.map((item,index)=><div className="admin-gallery-item" key={item.id}><img src={supabase.storage.from("petit-sot-artworks").getPublicUrl(item.image_path).data.publicUrl} alt="" /><div className="admin-gallery-item-actions"><button type="button" onClick={()=>moveGalleryImage(index,-1)} disabled={busy||index===0}>←</button><span>{index+1}</span><button type="button" onClick={()=>moveGalleryImage(index,1)} disabled={busy||index===galleryImages.length-1}>→</button><button type="button" className="make-main" onClick={()=>makeGalleryImageMain(item)} disabled={busy||!form.image_path} title="Сделать главной">Главная</button><button type="button" className="delete" onClick={()=>removeGalleryImage(item)} disabled={busy}>×</button></div></div>)}{newImages.map((file,index)=><div className="admin-gallery-item pending" key={file.name+index}><img src={URL.createObjectURL(file)} alt="" /><div className="admin-gallery-item-actions"><span>Новое</span><button type="button" className="delete" onClick={()=>setNewImages(prev=>prev.filter((_,i)=>i!==index))}>×</button></div></div>)}</div>:<p className="admin-gallery-empty">Добавьте несколько фотографий — детали картины покажут их как галерею.</p>}</div>

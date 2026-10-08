@@ -19,19 +19,13 @@ export async function generateMetadata({
     description: ru
       ? "Официальный сайт художницы Ольги Трихлеб: живопись, визуальные исследования и доступные работы."
       : "Official portfolio of contemporary artist Olga Trikhleb: paintings, visual research and selected available works.",
-    alternates: {
-      languages: {
-        en: `${SITE_URL}/en`,
-        ru: `${SITE_URL}/ru`,
-        "x-default": `${SITE_URL}/en`,
-      },
-    },
+    alternates: { canonical: SITE_URL },
     openGraph: {
       title: ru ? "Ольга Трихлеб — художница" : "Olga Trikhleb — Contemporary Artist",
       description: ru
         ? "Живопись, визуальные исследования и работы Ольги Трихлеб."
         : "Paintings, visual research and selected works by Olga Trikhleb.",
-      url: `${SITE_URL}/${locale}`,
+      url: SITE_URL,
       locale: ru ? "ru_RU" : "en_GB",
     },
   };
@@ -51,13 +45,13 @@ export default async function LocaleLayout({
   return (
     <div data-locale={locale} lang={locale}>
       <header className="site-header">
-        <Link href={"/" + locale} className="wordmark">
+        <Link href="/" className="wordmark">
           PETIT.SOT <span className="wordmark-divider">|</span> <span>STUDIO</span>
         </Link>
         <nav>
-          <Link href={"/" + locale + "/works"}>{ru ? "Работы" : "Works"}</Link>
-          <Link href={"/" + locale + "/about"}>{ru ? "О студии" : "About"}</Link>
-          <Link href={"/" + locale + "/contact"}>{ru ? "Контакты" : "Contact"}</Link>
+          <Link href="/works">{ru ? "Работы" : "Works"}</Link>
+          <Link href="/about">{ru ? "О студии" : "About"}</Link>
+          <Link href="/contact">{ru ? "Контакты" : "Contact"}</Link>
           <LanguageSwitcher locale={locale} />
         </nav>
       </header>

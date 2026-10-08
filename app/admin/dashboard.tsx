@@ -19,7 +19,9 @@ export default function AdminDashboard({initialArtworks}:Props){
   const [busy,setBusy]=useState(false);
   const [aiBusy,setAiBusy]=useState(false);
   const [message,setMessage]=useState("");
-  const [etsy,setEtsy]=useState<{connected:boolean;shop_name?:string|null;etsy_shop_id?:number|null}|null>(null);\n  const [etsyImporting,setEtsyImporting]=useState(false);\n  const [etsyProgress,setEtsyProgress]=useState("");
+  const [etsy,setEtsy]=useState<{connected:boolean;shop_name?:string|null;etsy_shop_id?:number|null}|null>(null);
+  const [etsyImporting,setEtsyImporting]=useState(false);
+  const [etsyProgress,setEtsyProgress]=useState("");
 
   const form=selected ?? {id:"",slug:"",title:"",title_en:"",year:new Date().getFullYear(),medium:"",width_cm:null,height_cm:null,depth_cm:null,description:"",description_en:"",ai_description:"",price_eur:0,status:"available",image_path:null,certificate_number:null,created_at:""};
   const imageUrl=useMemo(()=>form.image_path?supabase.storage.from("petit-sot-artworks").getPublicUrl(form.image_path).data.publicUrl:"",[form.image_path,supabase]);

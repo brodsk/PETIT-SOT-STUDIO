@@ -2,7 +2,7 @@ import { createHash, randomBytes } from "crypto";
 import { cookies } from "next/headers";
 import { createClient } from "./supabase/server";
 
-const ETSY_API = "https://api.etsy.com/v3";
+const ETSY_API = "https://openapi.etsy.com/v3";
 const ETSY_OAUTH = "https://www.etsy.com/oauth/connect";
 const ETSY_TOKEN = "https://api.etsy.com/v3/public/oauth/token";
 const CONNECTION_ID = 1;

@@ -8,14 +8,31 @@ const statuses=["pending","paid","processing","shipped","completed","cancelled",
 const labels:Record<string,string>={pending:"Ожидает оплаты",paid:"Оплачен",processing:"В обработке",shipped:"Отправлен",completed:"Завершён",cancelled:"Отменён",refunded:"Возвращён"};
 
 export default function OrdersAdmin(){
-  const supabase=createClient();
   const [orders,setOrders]=useState<Order[]>([]);
   const [busy,setBusy]=useState("");
-  useEffect(()=>{supabase.from("petit_sot_orders").select("*").order("created_at",{ascending:false}).then(({data})=>setOrders((data||[]) as Order[]));},[]);
+
+  useEffect(()=>{
+    const supabase=createClient();
+    supabase
+      .from("petit_sot_orders")
+      .select("*")
+      .order("created_at",{ascending:false})
+      .then(({data})=>setOrders((data||[]) as Order[]));
+  },[]);
+
   async function change(id:string,status:string){
-    setBusy(id); const {data,error}=await supabase.from("petit_sot_orders").update({status}).eq("id",id).select().single();
-    if(!error&&data)setOrders(x=>x.map(o=>o.id===id?data:o)); setBusy("");
+    setBusy(id);
+    const supabase=createClient();
+    const {data,error}=await supabase
+      .from("petit_sot_orders")
+      .update({status})
+      .eq("id",id)
+      .select()
+      .single();
+    if(!error&&data)setOrders(x=>x.map(o=>o.id===id?data:o));
+    setBusy("");
   }
+
   return <main className="admin-page">
     <header className="admin-top"><div><span className="eyebrow">PETIT.SOT / АРХИВ</span><h1>Заказы</h1></div><nav><a href="/admin">Картины</a></nav></header>
     <section className="orders-table">

@@ -240,7 +240,7 @@ export default function AdminDashboard({initialArtworks}:Props){
 
   async function importAllToEtsy(){
     if(!etsy?.connected){setMessage("Сначала подключите Etsy.");return;}
-    const pending=artworks.filter(x=>!x.etsy_listing_id);
+    const pending=artworks.filter(x=>!x.etsy_listing_id||x.etsy_error);
     if(!pending.length){setMessage("Все картины уже загружены в Etsy.");return;}
     if(!window.confirm("Загрузить "+pending.length+" картин в Etsy как черновики?"))return;
     setEtsyImporting(true);setBusy(true);setMessage("");

@@ -8,7 +8,8 @@ export async function GET(request:Request) {
   const code = url.searchParams.get("code");
   const state = url.searchParams.get("state");
   const error = url.searchParams.get("error");
-  if (error) return NextResponse.redirect(new URL("/admin?etsy=error&reason="+encodeURIComponent(error), request.url));
+  const errorDescription = url.searchParams.get("error_description");
+  if (error) return NextResponse.redirect(new URL("/admin?etsy=error&reason="+encodeURIComponent(errorDescription || error), request.url));
 
   const cookieStore = await cookies();
   const expectedState = cookieStore.get("etsy_oauth_state")?.value;
@@ -23,6 +24,7 @@ export async function GET(request:Request) {
   try {
     const { supabase } = await requireAdmin();
     const token = await exchangeEtsyCode(code, verifier);
+    if (!token.access_token || !token.refresh_token) throw new Error("Etsy did not return OAuth tokens.");
     const tokenParts = String(token.access_token || "").split(".");
     const userId = Number(tokenParts[0]);
     if (!Number.isFinite(userId) || userId <= 0) throw new Error("Etsy returned an invalid user id.");
@@ -37,7 +39,7 @@ export async function GET(request:Request) {
     };
     const shopsResponse = await fetch("https://api.etsy.com/v3/application/users/"+userId+"/shops", {headers, cache:"no-store"});
     const shops = await shopsResponse.json().catch(()=>({}));
-    if (!shopsResponse.ok) throw new Error(shops.error || "Could not read Etsy shop.");
+    if (!shopsResponse.ok) throw new Error(shops.error || shops.error_description || `Could not read Etsy shop (HTTP ${shopsResponse.status}).`);
 
     const shop = shops.results?.[0];
     if (!shop?.shop_id) throw new Error("No Etsy shop was found for this account.");

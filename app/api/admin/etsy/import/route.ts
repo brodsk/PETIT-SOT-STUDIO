@@ -6,7 +6,27 @@ function fail(message:string,status=400){return NextResponse.json({ok:false,erro
 
 async function json(response:Response){
   const text=await response.text();
-  try{return JSON.parse(text)}catch{return {error:text.slice(0,1000)}}
+  try{return JSON.parse(text)}catch{return {error:text.slice(0,1200)}}
+}
+
+function etsyError(payload:any,fallback:string){
+  if(typeof payload==="string"&&payload.trim())return payload.trim().slice(0,1200);
+  const candidates=[
+    payload?.error_description,
+    typeof payload?.error==="string"?payload.error:payload?.error?.message,
+    payload?.message,
+    payload?.detail,
+    payload?.title,
+  ].filter((value:any)=>typeof value==="string"&&value.trim());
+  if(candidates.length)return candidates[0].trim().slice(0,1200);
+  if(Array.isArray(payload?.errors)&&payload.errors.length){
+    const details=payload.errors.map((item:any)=>typeof item==="string"?item:item?.message||item?.error||item?.code||JSON.stringify(item)).filter(Boolean);
+    if(details.length)return details.join("; ").slice(0,1200);
+  }
+  if(payload&&typeof payload==="object"&&Object.keys(payload).length){
+    try{return JSON.stringify(payload).slice(0,1200)}catch{}
+  }
+  return fallback;
 }
 
 function whenMade(year:number|null){
@@ -62,13 +82,13 @@ export async function POST(request:Request){
 
     const shippingResponse=await etsyRequest("/application/shops/"+shopId+"/shipping-profiles");
     const shipping=await json(shippingResponse);
-    if(!shippingResponse.ok)throw new Error(shipping?.error||"Не удалось получить shipping profiles Etsy.");
+    if(!shippingResponse.ok)throw new Error(etsyError(shipping,"Не удалось получить shipping profiles Etsy."));
     const shippingProfile=shipping?.results?.find((x:any)=>!x.is_deleted)||shipping?.results?.[0];
     if(!shippingProfile?.shipping_profile_id)throw new Error("В Etsy нет shipping profile. Создайте профиль доставки в Shop Manager.");
 
     const readinessResponse=await etsyRequest("/application/shops/"+shopId+"/readiness-state-definitions?limit=100");
     const readiness=await json(readinessResponse);
-    if(!readinessResponse.ok)throw new Error(readiness?.error||"Не удалось получить processing profiles Etsy.");
+    if(!readinessResponse.ok)throw new Error(etsyError(readiness,"Не удалось получить processing profiles Etsy."));
     const readinessProfile=readiness?.results?.find((x:any)=>x.readiness_state==="ready_to_ship")||readiness?.results?.[0];
     if(!readinessProfile?.readiness_state_id)throw new Error("В Etsy нет processing profile. Создайте профиль обработки заказа.");
 
@@ -76,7 +96,7 @@ export async function POST(request:Request){
     if(!taxonomyId){
       const taxonomyResponse=await etsyRequest("/application/seller-taxonomy/nodes");
       const taxonomy=await json(taxonomyResponse);
-      if(!taxonomyResponse.ok)throw new Error(taxonomy?.error||"Не удалось получить категории Etsy.");
+      if(!taxonomyResponse.ok)throw new Error(etsyError(taxonomy,"Не удалось получить категории Etsy."));
       taxonomyId=Number(findPainting(taxonomy?.results||[])?.id||0);
     }
     if(!taxonomyId)throw new Error("Не удалось определить категорию Paintings в Etsy.");
@@ -107,9 +127,15 @@ export async function POST(request:Request){
 
     const createResponse=await etsyRequest("/application/shops/"+shopId+"/listings?legacy=false",{method:"POST",body:form});
     const created=await json(createResponse);
-    if(!createResponse.ok)throw new Error(created?.error||created?.message||"Etsy не создал черновик.");
+    if(!createResponse.ok)throw new Error("Создание объявления: "+etsyError(created,"Etsy не создал черновик."));
     const listingId=Number(created?.listing_id||0);
-    if(!listingId)throw new Error("Etsy создал ответ без listing_id.");
+    if(!listingId)throw new Error("Etsy ответил без listing_id: "+etsyError(created,"пустой ответ API."));
+
+    const listingUrl="https://www.etsy.com/listing/"+listingId;
+    const {error:createdSaveError}=await supabase.from("petit_sot_artworks").update({
+      etsy_listing_id:listingId,etsy_state:"draft",etsy_error:null,etsy_listing_url:listingUrl,etsy_synced_at:new Date().toISOString()
+    }).eq("id",artwork.id);
+    if(createdSaveError)throw new Error("Etsy создал объявление #"+listingId+", но не удалось сохранить его ID на сайте: "+createdSaveError.message);
 
     const paths:string[]=[];
     if(artwork.image_path)paths.push(artwork.image_path);
@@ -127,7 +153,7 @@ export async function POST(request:Request){
       uploadForm.append("rank",String(i));
       const uploadResponse=await etsyRequest("/application/shops/"+shopId+"/listings/"+listingId+"/images",{method:"POST",body:uploadForm});
       const uploaded=await json(uploadResponse);
-      if(!uploadResponse.ok)throw new Error(uploaded?.error||uploaded?.message||"Etsy не принял изображение.");
+      if(!uploadResponse.ok)throw new Error("Объявление #"+listingId+" создано, но Etsy не принял фото №"+(i+1)+": "+etsyError(uploaded,"ошибка загрузки изображения."));
     }
 
     const listingUrl="https://www.etsy.com/listing/"+listingId;

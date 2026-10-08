@@ -23,7 +23,8 @@ export async function GET(request:Request) {
   try {
     const { supabase } = await requireAdmin();
     const token = await exchangeEtsyCode(code, verifier);
-    const userId = Number(String(token.access_token).split(".")[0]);
+    const tokenParts = String(token.access_token || "").split(".");
+    const userId = Number(tokenParts[0]);
     if (!Number.isFinite(userId) || userId <= 0) throw new Error("Etsy returned an invalid user id.");
 
     const apiKey = process.env.ETSY_API_KEYSTRING?.trim();

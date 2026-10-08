@@ -9,7 +9,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   const ru = locale === "ru";
   const title = ru ? "Контакты — Ольга Трихлеб" : "Contact — Olga Trikhleb";
   const description = ru ? "Связаться с Ольгой Трихлеб по вопросам о картинах, покупке работ и сотрудничестве." : "Contact Olga Trikhleb about artworks, purchases and collaborations.";
-  return { title, description, alternates: { canonical: ru ? `${SITE_URL}/contact?lang=ru` : `${SITE_URL}/contact` }, openGraph: { title, description, url: `${SITE_URL}/contact` } };
+  return { title, description, alternates: { canonical: `${SITE_URL}/contact` }, openGraph: { title, description, url: `${SITE_URL}/contact` } };
 }
 
 export default async function Contact({ params }: { params: Promise<{ locale: string }> }) {

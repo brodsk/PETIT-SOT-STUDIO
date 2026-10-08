@@ -21,7 +21,7 @@ export async function generateMetadata({
   const title = ru ? w.titleRu : w.titleEn;
   const description = (ru ? w.descriptionRu : w.descriptionEn) || `${title} — artwork by Olga Trikhleb.`;
   const image = w.imageUrl;
-  const canonical = `${SITE_URL}/works/${w.slug}${ru ? "?lang=ru" : ""}`;
+  const canonical = `${SITE_URL}/works/${w.slug}`;
 
   return {
     title,
@@ -79,7 +79,7 @@ export default async function WorkPage({
 
   const title = ru ? w.titleRu : w.titleEn;
   const description = (ru ? w.descriptionRu : w.descriptionEn) || `${title} — artwork by Olga Trikhleb.`;
-  const canonical = `${SITE_URL}/${locale}/works/${w.slug}`;
+  const canonical = `${SITE_URL}/works/${w.slug}`;
   const schema = {
     "@context": "https://schema.org",
     "@type": "Product",

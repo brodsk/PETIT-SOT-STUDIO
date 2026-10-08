@@ -1495,3 +1495,39 @@ footer{background:rgba(247,246,242,.45)}
 .ar-preview{position:relative!important;overflow:hidden!important;contain:layout paint!important}
 .ar-preview>.ar-three-canvas{position:absolute!important;inset:0!important;display:block!important;width:100%!important;height:100%!important;max-width:none!important;max-height:none!important;z-index:2!important}
 @media(max-width:700px){.ar-preview{width:100%!important;height:auto!important;min-height:0!important;aspect-ratio:3/4!important;max-height:calc(100svh - 190px)!important}.ar-preview>.ar-three-canvas{width:100%!important;height:100%!important}}
+
+
+/* Larger, reliable touch targets for navigation and controls. */
+.site-header nav a,
+.language a,
+button,
+.purchase-button,
+.arrow-link,
+.archive-card,
+.gallery-tile,
+.work-card,
+.back{
+  touch-action:manipulation;
+}
+@media(max-width:700px){
+  .site-header nav>a{
+    display:inline-flex;
+    align-items:center;
+    min-height:34px;
+    padding:8px 4px;
+    margin:-8px -4px;
+  }
+  .language a{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    min-width:28px;
+    min-height:34px;
+    padding:8px 4px;
+    margin:-8px -4px;
+  }
+  .site-header nav{gap:12px}
+  button,.purchase-button,.arrow-link{
+    -webkit-tap-highlight-color:transparent;
+  }
+}

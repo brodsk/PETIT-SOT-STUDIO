@@ -1,10 +1,18 @@
 "use client";
-import Link from "next/link";
 import {usePathname} from "next/navigation";
 
 export default function LanguageSwitcher({locale}:{locale:string}){
   const pathname=usePathname()||"/";
   const cleanPath=pathname.replace(/^\/(?:en|ru)(?=\/|$)/,"")||"/";
-  const target=(nextLocale:string)=>nextLocale+(cleanPath==="/"?"":cleanPath);
-  return <span className="language"><Link href={"/"+target("en")} className={locale==="en"?"active":""}>EN</Link><i>/</i><Link href={"/"+target("ru")} className={locale==="ru"?"active":""}>RU</Link></span>;
+  const switchLanguage=(nextLocale:string)=>{
+    document.cookie=`NEXT_LOCALE=${nextLocale}; Path=/; Max-Age=31536000; SameSite=Lax`;
+  };
+  const label=(nextLocale:string)=>nextLocale.toUpperCase();
+  return (
+    <span className="language" aria-label="Language">
+      <a href={cleanPath} onClick={()=>switchLanguage("en")} className={locale==="en"?"active":""}>{label("en")}</a>
+      <i>/</i>
+      <a href={cleanPath} onClick={()=>switchLanguage("ru")} className={locale==="ru"?"active":""}>{label("ru")}</a>
+    </span>
+  );
 }

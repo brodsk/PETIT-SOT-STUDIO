@@ -103,17 +103,25 @@ export default async function Contact({ params }: { params: Promise<{ locale: st
         }
 
         :global(.contact-form > label) {
-          display: block;
-          padding: 0 0 20px;
-          margin: 0 0 24px;
-          border-bottom: 1px solid rgba(23,23,23,.32);
+          position: relative !important;
+          display: block !important;
+          width: 100% !important;
+          min-height: 74px !important;
+          height: auto !important;
+          padding: 0 0 20px !important;
+          margin: 0 0 24px !important;
+          border-bottom: 1px solid rgba(23,23,23,.32) !important;
+          box-sizing: border-box !important;
         }
 
         :global(.contact-form > label > span) {
-          display: block;
-          margin: 0 0 10px;
+          position: static !important;
+          display: block !important;
+          width: 100% !important;
+          height: auto !important;
+          margin: 0 0 10px !important;
           font-size: 9px;
-          line-height: 1;
+          line-height: 1 !important;
           letter-spacing: .13em;
           text-transform: uppercase;
           opacity: .55;
@@ -121,12 +129,14 @@ export default async function Contact({ params }: { params: Promise<{ locale: st
 
         :global(.contact-form input),
         :global(.contact-form textarea) {
-          display: block;
-          width: 100%;
-          border: 0;
-          outline: 0;
-          padding: 0;
-          margin: 0;
+          position: relative !important;
+          display: block !important;
+          width: 100% !important;
+          max-width: 100% !important;
+          border: 0 !important;
+          outline: 0 !important;
+          padding: 0 !important;
+          margin: 0 !important;
           background: transparent;
           color: inherit;
           font: inherit;
@@ -137,11 +147,13 @@ export default async function Contact({ params }: { params: Promise<{ locale: st
         }
 
         :global(.contact-form input) {
-          height: 28px;
+          height: 28px !important;
+          min-height: 28px !important;
         }
 
         :global(.contact-form textarea) {
-          min-height: 130px;
+          height: 130px !important;
+          min-height: 130px !important;
         }
 
         :global(.contact-form input:focus),
@@ -239,8 +251,9 @@ export default async function Contact({ params }: { params: Promise<{ locale: st
           }
 
           :global(.contact-form > label) {
-            padding-bottom: 16px;
-            margin-bottom: 21px;
+            min-height: 64px !important;
+            padding-bottom: 16px !important;
+            margin-bottom: 21px !important;
           }
 
           :global(.contact-form > label > span) {
@@ -254,7 +267,8 @@ export default async function Contact({ params }: { params: Promise<{ locale: st
           }
 
           :global(.contact-form textarea) {
-            min-height: 120px;
+            height: 120px !important;
+            min-height: 120px !important;
           }
 
           :global(.contact-form > button) {

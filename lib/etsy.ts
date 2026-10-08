@@ -106,7 +106,7 @@ export async function etsyRequest(path:string, init:RequestInit={}) {
   const headers = new Headers(init.headers);
   headers.set("x-api-key", key + ":" + secret);
   headers.set("Authorization", "Bearer " + accessToken);
-  if (!headers.has("content-type") && init.body) headers.set("content-type","application/x-www-form-urlencoded");
+  if (!headers.has("content-type") && init.body && !(init.body instanceof FormData)) headers.set("content-type","application/x-www-form-urlencoded");
 
   return fetch(ETSY_API + path, {...init, headers, cache:"no-store"});
 }

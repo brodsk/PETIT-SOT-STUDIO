@@ -156,12 +156,6 @@ export async function POST(request:Request){
       if(!uploadResponse.ok)throw new Error("Объявление #"+listingId+" создано, но Etsy не принял фото №"+(i+1)+": "+etsyError(uploaded,"ошибка загрузки изображения."));
     }
 
-    const listingUrl="https://www.etsy.com/listing/"+listingId;
-    const {error:saveError}=await supabase.from("petit_sot_artworks").update({
-      etsy_listing_id:listingId,etsy_state:"draft",etsy_error:null,etsy_listing_url:listingUrl,etsy_synced_at:new Date().toISOString()
-    }).eq("id",artwork.id);
-    if(saveError)throw saveError;
-
     return NextResponse.json({ok:true,listingId,listingUrl,title:artwork.title});
   }catch(err:any){
     const message=err?.message||"Не удалось загрузить картину в Etsy.";

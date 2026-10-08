@@ -9,31 +9,36 @@
 .title { margin:0 0 52px !important; max-width:980px; font-size:clamp(64px,10vw,150px) !important; line-height:.82 !important; letter-spacing:-.07em !important; font-weight:400 !important; }
 .title em { font-family:Georgia,serif; font-style:italic; font-weight:400; }
 .intro { max-width:390px; margin:0 0 48px; font-size:13px; line-height:1.5; }
-:global(.contact-form) { width:min(620px,100%); margin:0; padding-top:4px; }
-:global(.contact-form > label) { position:relative !important; display:block !important; width:100% !important; min-height:74px !important; height:auto !important; padding:0 0 20px !important; margin:0 0 24px !important; border-bottom:1px solid rgba(23,23,23,.32) !important; box-sizing:border-box !important; }
-:global(.contact-form > label > span) { position:static !important; display:block !important; width:100% !important; height:auto !important; margin:0 0 10px !important; font-size:9px; line-height:1 !important; letter-spacing:.13em; text-transform:uppercase; opacity:.55; }
-:global(.contact-form input), :global(.contact-form textarea) { position:relative !important; display:block !important; width:100% !important; max-width:100% !important; border:0 !important; outline:0 !important; padding:0 !important; margin:0 !important; background:transparent; color:inherit; font:inherit; font-size:15px; line-height:1.45; border-radius:0; resize:vertical; }
-:global(.contact-form input) { height:28px !important; min-height:28px !important; }
-:global(.contact-form textarea) { height:130px !important; min-height:130px !important; }
-:global(.contact-form input:focus), :global(.contact-form textarea:focus) { box-shadow:none; }
-:global(.contact-form > button) { width:100%; min-height:54px; display:flex; align-items:center; justify-content:space-between; margin-top:10px; padding:0 16px; border:1px solid #171717; background:#171717; color:#f7f6f2; font:inherit; font-size:9px; letter-spacing:.13em; text-transform:uppercase; cursor:pointer; transition:opacity .2s ease; }
-:global(.contact-form > button:hover:not(:disabled)) { opacity:.78; }
-:global(.contact-form > button:disabled) { cursor:default; opacity:.5; }
-:global(.contact-form > button strong) { font-size:16px; line-height:1; font-weight:400; }
-:global(.contact-form-status) { margin:16px 0 0; font-size:10px; line-height:1.5; }
-:global(.contact-form-status.success) { opacity:.65; }
-:global(.contact-form-status.error) { opacity:.8; }
-:global(.contact-honeypot) { position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; }
+
+.page :global(.contact-form) { width:min(620px,100%); margin:0; padding-top:4px; }
+.page :global(.contact-form > label) { position:relative !important; display:block !important; width:100% !important; min-height:74px !important; height:auto !important; padding:0 0 20px !important; margin:0 0 24px !important; border-bottom:1px solid rgba(23,23,23,.32) !important; box-sizing:border-box !important; }
+.page :global(.contact-form > label > span) { position:static !important; display:block !important; width:100% !important; height:auto !important; margin:0 0 10px !important; font-size:9px; line-height:1 !important; letter-spacing:.13em; text-transform:uppercase; opacity:.55; }
+.page :global(.contact-form input),
+.page :global(.contact-form textarea) { position:relative !important; display:block !important; width:100% !important; max-width:100% !important; border:0 !important; outline:0 !important; padding:0 !important; margin:0 !important; background:transparent; color:inherit; font:inherit; font-size:15px; line-height:1.45; border-radius:0; resize:vertical; }
+.page :global(.contact-form input) { height:28px !important; min-height:28px !important; }
+.page :global(.contact-form textarea) { height:130px !important; min-height:130px !important; }
+.page :global(.contact-form input:focus),
+.page :global(.contact-form textarea:focus) { box-shadow:none; }
+.page :global(.contact-form > button) { width:100%; min-height:54px; display:flex; align-items:center; justify-content:space-between; margin-top:10px; padding:0 16px; border:1px solid #171717; background:#171717; color:#f7f6f2; font:inherit; font-size:9px; letter-spacing:.13em; text-transform:uppercase; cursor:pointer; transition:opacity .2s ease; }
+.page :global(.contact-form > button:hover:not(:disabled)) { opacity:.78; }
+.page :global(.contact-form > button:disabled) { cursor:default; opacity:.5; }
+.page :global(.contact-form > button strong) { font-size:16px; line-height:1; font-weight:400; }
+.page :global(.contact-form-status) { margin:16px 0 0; font-size:10px; line-height:1.5; }
+.page :global(.contact-form-status.success) { opacity:.65; }
+.page :global(.contact-form-status.error) { opacity:.8; }
+.page :global(.contact-honeypot) { position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; }
+
 @media (max-width:700px) {
-.page { min-height:calc(100svh - 68px); padding:54px 16px 86px; }
-.inner { max-width:none; }
-.eyebrow { margin-bottom:34px; font-size:8px; }
-.title { margin-bottom:34px !important; font-size:clamp(58px,17vw,90px) !important; line-height:.84 !important; }
-.intro { max-width:285px; margin-bottom:42px; font-size:11px; line-height:1.5; }
-:global(.contact-form) { width:100%; }
-:global(.contact-form > label) { min-height:64px !important; padding-bottom:16px !important; margin-bottom:21px !important; }
-:global(.contact-form > label > span) { font-size:8px; margin-bottom:9px; }
-:global(.contact-form input), :global(.contact-form textarea) { font-size:14px; }
-:global(.contact-form textarea) { height:120px !important; min-height:120px !important; }
-:global(.contact-form > button) { min-height:50px; }
+  .page { min-height:calc(100svh - 68px); padding:54px 16px 86px; }
+  .inner { max-width:none; }
+  .eyebrow { margin-bottom:34px; font-size:8px; }
+  .title { margin-bottom:34px !important; font-size:clamp(58px,17vw,90px) !important; line-height:.84 !important; }
+  .intro { max-width:285px; margin-bottom:42px; font-size:11px; line-height:1.5; }
+  .page :global(.contact-form) { width:100%; }
+  .page :global(.contact-form > label) { min-height:64px !important; padding-bottom:16px !important; margin-bottom:21px !important; }
+  .page :global(.contact-form > label > span) { font-size:8px; margin-bottom:9px; }
+  .page :global(.contact-form input),
+  .page :global(.contact-form textarea) { font-size:14px; }
+  .page :global(.contact-form textarea) { height:120px !important; min-height:120px !important; }
+  .page :global(.contact-form > button) { min-height:50px; }
 }

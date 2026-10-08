@@ -66,7 +66,7 @@ export default async function LocaleLayout({
       <footer>
         <span>© {new Date().getFullYear()} PETIT.SOT STUDIO</span>
         <span>Olga Trikhleb</span>
-        <a href="https://www.instagram.com/petit.sot/" target="_blank" rel="noreferrer">
+        <a href="https://www.instagram.com/petit.sot.art" target="_blank" rel="noreferrer">
           Instagram ↗
         </a>
       </footer>

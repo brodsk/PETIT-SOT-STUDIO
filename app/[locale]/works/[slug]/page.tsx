@@ -21,19 +21,14 @@ export async function generateMetadata({
   const title = ru ? w.titleRu : w.titleEn;
   const description = (ru ? w.descriptionRu : w.descriptionEn) || `${title} — artwork by Olga Trikhleb.`;
   const image = w.imageUrl;
-  const canonical = `${SITE_URL}/${locale}/works/${w.slug}`;
+  const canonical = `${SITE_URL}/works/${w.slug}${ru ? "?lang=ru" : ""}`;
 
   return {
     title,
     description,
     alternates: {
       canonical,
-      languages: {
-        en: `${SITE_URL}/en/works/${w.slug}`,
-        ru: `${SITE_URL}/ru/works/${w.slug}`,
-        "x-default": `${SITE_URL}/en/works/${w.slug}`,
       },
-    },
     openGraph: {
       type: "website",
       title: `${title} — Olga Trikhleb`,
@@ -126,7 +121,7 @@ export default async function WorkPage({
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
       />
-      <Link href={"/" + locale + "/works"} className="back">← {ru ? "Архив" : "Archive"}</Link>
+      <Link href="/works" className="back">← {ru ? "Архив" : "Archive"}</Link>
       <ArtworkViewer images={w.images.length ? w.images : w.imageUrl ? [w.imageUrl] : []} alt={title}/>
       <aside className="work-info">
         <p className="eyebrow">PETIT.SOT / {w.year}</p>
@@ -138,7 +133,7 @@ export default async function WorkPage({
         </dl>
         <InteriorShowcase interiors={interiors} ru={ru}/>
         <p className="work-description">{description}</p>
-        <div className="purchase-box">{w.available ? <><div><span className="purchase-label">{ru ? "Доступна" : "Available"}</span><strong>{w.price > 0 ? new Intl.NumberFormat(ru ? "ru-RU" : "en-GB", {style:"currency", currency:w.currency}).format(w.price) : (ru ? "Цена по запросу" : "Price on request")}</strong></div><Link className="purchase-button" href={"/" + locale + "/contact?work=" + encodeURIComponent(title)}>{ru ? "Приобрести работу" : "Acquire this work"} <span>↗</span></Link><p>{ru ? "Безопасная оплата через Stripe появится здесь. Пока отправьте запрос на приобретение." : "Secure online payment via Stripe will be available here. For now, send a purchase enquiry."}</p></> : <><span className="purchase-label">{ru ? "Статус" : "Status"}</span><strong>{ru ? "Продано / недоступно" : "Sold / unavailable"}</strong></>}</div>
+        <div className="purchase-box">{w.available ? <><div><span className="purchase-label">{ru ? "Доступна" : "Available"}</span><strong>{w.price > 0 ? new Intl.NumberFormat(ru ? "ru-RU" : "en-GB", {style:"currency", currency:w.currency}).format(w.price) : (ru ? "Цена по запросу" : "Price on request")}</strong></div><Link className="purchase-button" href={"/contact?work=" + encodeURIComponent(title)}>{ru ? "Приобрести работу" : "Acquire this work"} <span>↗</span></Link><p>{ru ? "Безопасная оплата через Stripe появится здесь. Пока отправьте запрос на приобретение." : "Secure online payment via Stripe will be available here. For now, send a purchase enquiry."}</p></> : <><span className="purchase-label">{ru ? "Статус" : "Status"}</span><strong>{ru ? "Продано / недоступно" : "Sold / unavailable"}</strong></>}</div>
       </aside>
     </main>
   );

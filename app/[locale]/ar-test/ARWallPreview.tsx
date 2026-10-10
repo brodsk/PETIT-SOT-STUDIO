@@ -70,7 +70,7 @@ function detectWallPlane(points:any[],camera:THREE.Camera,canvasWidth:number,can
   const projected=points.filter(p=>p?.position&&Number(p?.confidence??1)>=.08).map(p=>{
     const v=new THREE.Vector3(p.position.x,p.position.y,p.position.z),q=v.clone().project(camera);
     return {v,sx:(q.x*.5+.5)*canvasWidth,sy:(-q.y*.5+.5)*canvasHeight,depth:q.z};
-  }).filter(p=>p.depth>-1&&p.depth<1&&p.sx>canvasWidth*.22&&p.sx<canvasWidth*.78&&p.sy>canvasHeight*.16&&p.sy<canvasHeight*.84&&p.v.distanceTo(camera.position)>.5&&p.v.distanceTo(camera.position)<6);
+  }).filter(p=>p.depth>-1&&p.depth<1&&p.sx>canvasWidth*.08&&p.sx<canvasWidth*.92&&p.sy>canvasHeight*.06&&p.sy<canvasHeight*.94&&p.v.distanceTo(camera.position)>.35&&p.v.distanceTo(camera.position)<8);
   if(projected.length<8)return null;
   const sample=projected.length>140?projected.filter((_,i)=>i%Math.ceil(projected.length/140)===0).slice(0,140):projected;
   const center=sample.reduce((v,p)=>v.add(p.v),new THREE.Vector3()).multiplyScalar(1/sample.length);
@@ -391,6 +391,11 @@ export default function ARWallPreview({imageUrl,title,width,height,ru,artworkCho
       await loadScript('https://cdn.jsdelivr.net/npm/@8thwall/engine-binary@1/dist/xr.js',()=>!!w.XR8);
       await loadScript('https://cdn.jsdelivr.net/npm/@8thwall/xrextras@1/dist/xrextras.js',()=>!!w.XRExtras);
       if(!w.XR8)throw new Error('8th Wall engine unavailable');
+      // XR8 can expose its API before the optional SLAM chunk finishes loading.
+      // Explicitly await world tracking so the camera feed cannot run without plane tracking.
+      if(typeof w.XR8.loadChunk==='function'){
+        await w.XR8.loadChunk('slam');
+      }
 
       const canvas=document.createElement('canvas');
       canvas.className='ar-three-canvas';
@@ -465,6 +470,9 @@ export default function ARWallPreview({imageUrl,title,width,height,ru,artworkCho
             if(trackedArtwork)trackedArtwork.visible=false;
             if(trackedGuide)trackedGuide.visible=false;
             setCanPlace(false);
+            setMessage(ru
+              ?'Отслеживание стены не готово ('+(reality?.trackingStatus||'нет данных')+'). Медленно проведите камерой по стене.'
+              :'Wall tracking is not ready ('+(reality?.trackingStatus||'no data')+'). Slowly scan the wall.');
             return;
           }
           const rect=rootRef.current?.getBoundingClientRect();
@@ -479,6 +487,9 @@ export default function ARWallPreview({imageUrl,title,width,height,ru,artworkCho
             if(trackedArtwork)trackedArtwork.visible=false;
             if(trackedGuide)trackedGuide.visible=false;
             setCanPlace(false);
+            setMessage(ru
+              ?'Камера работает, ищем плоскость стены. Наведите на однотонную стену с хорошим освещением и медленно двигайте телефон.'
+              :'Camera is running; searching for a wall plane. Aim at a well-lit, mostly plain wall and move the phone slowly.');
             return;
           }
           if(stable&&stable.center.distanceTo(plane.center)<.06&&stable.normal.angleTo(plane.normal)<8*Math.PI/180){

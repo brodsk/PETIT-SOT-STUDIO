@@ -293,6 +293,9 @@ export default function ARWallPreview({ imageUrl, title, width, height, ru, artw
         onException: ({ error }: any) => say((ru ? "Ошибка AR: " : "AR error: ") + (error?.message || error?.name || "unknown")),
       };
 
+      // The 8th Wall Three.js pipeline reads THREE from the global window object.
+      // Next.js bundles the import locally, so expose the same instance before creating the pipeline module.
+      (w as any).THREE = THREE;
       w.XR8.stop?.();
       w.XR8.clearCameraPipelineModules?.();
       w.XR8.XrController.configure({ disableWorldTracking: false, enableLighting: true, enableWorldPoints: true, scale: "absolute" });

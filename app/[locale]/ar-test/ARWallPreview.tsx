@@ -390,7 +390,11 @@ export default function ARWallPreview({imageUrl,title,width,height,ru,artworkCho
 
       await loadScript('https://cdn.jsdelivr.net/npm/@8thwall/engine-binary@1/dist/xr.js',()=>!!w.XR8);
       await loadScript('https://cdn.jsdelivr.net/npm/@8thwall/xrextras@1/dist/xrextras.js',()=>!!w.XRExtras);
+      await loadScript('https://cdn.jsdelivr.net/npm/@8thwall/landing-page@1/dist/landing-page.js',()=>!!w.LandingPage);
       if(!w.XR8)throw new Error('8th Wall engine unavailable');
+      if(!w.XRExtras?.FullWindowCanvas||!w.XRExtras?.Loading||!w.XRExtras?.RuntimeError) {
+        throw new Error('8th Wall XRExtras pipeline modules unavailable');
+      }
       // XR8 can expose its API before the optional SLAM chunk finishes loading.
       // Explicitly await world tracking so the camera feed cannot run without plane tracking.
       if(typeof w.XR8.loadChunk==='function'){
@@ -421,6 +425,7 @@ export default function ARWallPreview({imageUrl,title,width,height,ru,artworkCho
       let lastCandidate:{position:THREE.Vector3;quaternion:THREE.Quaternion}|null=null;
       let stable:{center:THREE.Vector3;normal:THREE.Vector3;frames:number}|null=null;
       let updateSeen=false;
+      let started=false;
       let updateWatchdog:ReturnType<typeof setTimeout>|null=null;
 
       const initModule={
@@ -455,11 +460,12 @@ export default function ARWallPreview({imageUrl,title,width,height,ru,artworkCho
           guide.visible=false;scene.add(guide);trackedGuide=guide;
           scene.add(new THREE.HemisphereLight(0xffffff,0x333333,1.15));
           eightWallCanvasRef.current=startedCanvas;
-          setMessage(ru?'Камера запущена, ждём трекинг…':'Camera started; waiting for tracking…');
+          started=true;
           if(updateWatchdog)clearTimeout(updateWatchdog);
+          setMessage(ru?'Камера запущена, ждём трекинг…':'Camera started; waiting for tracking…');
           updateWatchdog=setTimeout(()=>{
-            if(!updateSeen)setMessage(ru?'Камера показывает изображение, но 8th Wall не отдаёт кадры трекинга. Это уже не проблема наведения на стену — проверяем запуск SLAM/сборку.':'Camera video is running, but 8th Wall is not delivering tracking frames. This is not a wall-aiming issue; the SLAM startup/build needs checking.');
-          },5000);
+            if(!updateSeen)setMessage(ru?'Камера запущена, но кадры трекинга не приходят. Проверяем запуск SLAM и pipeline 8th Wall.':'Camera started, but tracking frames are not arriving. Check the 8th Wall SLAM and pipeline startup.');
+          },7000);
         },
         onCanvasSizeChange:({canvasWidth,canvasHeight}:any)=>{
           const xr=w.XR8.Threejs.xrScene();
@@ -533,8 +539,23 @@ export default function ARWallPreview({imageUrl,title,width,height,ru,artworkCho
 
       w.XR8.stop?.();w.XR8.clearCameraPipelineModules?.();
       w.XR8.XrController.configure({disableWorldTracking:false,enableLighting:true,enableWorldPoints:true,scale:'absolute'});
-      const modules=[w.XR8.GlTextureRenderer.pipelineModule(),w.XR8.Threejs.pipelineModule(),w.XR8.XrController.pipelineModule(),initModule];
+      const modules=[
+        w.XR8.GlTextureRenderer.pipelineModule(),
+        w.XR8.Threejs.pipelineModule(),
+        w.XR8.XrController.pipelineModule(),
+        w.LandingPage.pipelineModule(),
+        w.XRExtras.FullWindowCanvas.pipelineModule(),
+        w.XRExtras.Loading.pipelineModule(),
+        w.XRExtras.RuntimeError.pipelineModule(),
+        initModule,
+      ];
       w.XR8.addCameraPipelineModules(modules);
+      // Start a watchdog before XR8.run: if onStart never fires, the old watchdog
+      // could never report the failure because it was created inside onStart.
+      if(updateWatchdog)clearTimeout(updateWatchdog);
+      updateWatchdog=setTimeout(()=>{
+        if(!started)setMessage(ru?'8th Wall загрузил камеру, но не запустил AR-сцену (onStart). Проверяем инициализацию pipeline.':'8th Wall opened the camera but did not start the AR scene (onStart). Check pipeline initialization.');
+      },8000);
       w.XR8.run({canvas,allowedDevices:w.XR8.XrConfig.device().MOBILE,cameraConfig:{direction:w.XR8.XrConfig.camera().BACK},glContextConfig:{antialias:true,alpha:true}});
       setMode('ar');setPlaced(false);setCanPlace(false);
       eightWallRef.current={stop:()=>{try{w.XR8.stop?.()}catch{}try{w.XR8.clearCameraPipelineModules?.()}catch{}try{texture.dispose()}catch{}try{canvas.remove()}catch{}eightWallArtworkRef.current=null;eightWallCanvasRef.current=null;wallCandidateRef.current=null;}};

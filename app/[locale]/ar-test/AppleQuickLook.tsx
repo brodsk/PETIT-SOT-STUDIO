@@ -23,16 +23,9 @@ export default function AppleQuickLook({ ru, artworkChoices }: { ru: boolean; ar
   }, []);
 
   useEffect(() => {
-    setUsdzUrl((old) => {
-      if (old) URL.revokeObjectURL(old);
-      return "";
-    });
+    setUsdzUrl("");
     setError("");
   }, [selected]);
-
-  useEffect(() => () => {
-    if (usdzUrl) URL.revokeObjectURL(usdzUrl);
-  }, [usdzUrl]);
 
   const createUSDZ = async () => {
     if (!artwork) return;
@@ -67,19 +60,28 @@ export default function AppleQuickLook({ ru, artworkChoices }: { ru: boolean; ar
       const exporter = new USDZExporter();
       const bytes = await exporter.parseAsync(scene, { quickLookCompatible: true, ar: { anchoring: { type: "plane" }, planeAnchoring: { alignment: "vertical" } } });
       const usdzBlob = new Blob([bytes], { type: "model/vnd.usdz+zip" });
-      const nextUrl = URL.createObjectURL(usdzBlob);
-      setUsdzUrl((old) => {
-        if (old) URL.revokeObjectURL(old);
-        return nextUrl;
+      const uploadResponse = await fetch("/api/ar-usdz", {
+        method: "POST",
+        headers: { "Content-Type": "model/vnd.usdz+zip" },
+        body: usdzBlob,
       });
+      const uploadResult = await uploadResponse.json().catch(() => ({}));
+      if (!uploadResponse.ok || !uploadResult.url) {
+        throw new Error(uploadResult.error || "Could not save the USDZ model");
+      }
+      setUsdzUrl(uploadResult.url);
       geometry.dispose();
       material.dispose();
       texture.dispose();
     } catch (e) {
       console.error("AR Quick Look USDZ generation failed", e);
-      setError(ru
-        ? "Не удалось подготовить AR-модель. Проверьте подключение и попробуйте ещё раз. Если не получится, откройте страницу в Safari."
-        : "Could not prepare the AR model. Check your connection and try again. If it still fails, open this page in Safari.");
+      setError(e instanceof Error && e.message.includes("SUPABASE_SERVICE_ROLE_KEY")
+        ? (ru
+          ? "Хранилище AR не настроено: добавьте SUPABASE_SERVICE_ROLE_KEY в переменные окружения Vercel и создайте публичный bucket ar-models в Supabase Storage."
+          : "AR storage is not configured: add SUPABASE_SERVICE_ROLE_KEY to Vercel environment variables and create a public ar-models bucket in Supabase Storage.")
+        : (ru
+          ? "Не удалось подготовить или сохранить AR-модель. Проверьте подключение и настройки хранилища, затем попробуйте ещё раз."
+          : "Could not prepare or save the AR model. Check the connection and storage setup, then try again."));
     } finally {
       setBusy(false);
     }

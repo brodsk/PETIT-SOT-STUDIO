@@ -100,6 +100,7 @@ export default function ARWallPreview({ imageUrl, title, width, height, ru, artw
   const rootRef = useRef<HTMLDivElement>(null);
   const stopRef = useRef<(() => void) | null>(null);
   const placedRef = useRef(false);
+  const wallPlaneRef = useRef<THREE.Plane | null>(null);
   const lastMessageRef = useRef("");
   const [selectedImage, setSelectedImage] = useState(imageUrl || "");
   const [selectedTitle, setSelectedTitle] = useState(title);
@@ -119,6 +120,7 @@ export default function ARWallPreview({ imageUrl, title, width, height, ru, artw
     try { stopRef.current?.(); } catch {}
     stopRef.current = null;
     placedRef.current = false;
+    wallPlaneRef.current = null;
     setRunning(false);
     setCanPlace(false);
     setPlaced(false);
@@ -225,6 +227,7 @@ export default function ARWallPreview({ imageUrl, title, width, height, ru, artw
       let stable: { center: THREE.Vector3; normal: THREE.Vector3; frames: number } | null = null;
       let updateSeen = false;
       let disposed = false;
+      let tapHandler: ((event: PointerEvent) => void) | null = null;
 
       const initModule = {
         name: "petit-sot-clean-wall-ar",
@@ -262,6 +265,33 @@ export default function ARWallPreview({ imageUrl, title, width, height, ru, artw
           artwork.add(backing, front);
           artwork.visible = false;
           scene.add(artwork);
+
+          // Tapping the live camera view places the artwork at the tapped point on the
+          // currently detected wall plane. Ignore controls so their buttons remain usable.
+          tapHandler = (event: PointerEvent) => {
+            const target = event.target;
+            if (target instanceof Element && target.closest("button, select, input, a")) return;
+            if (!camera || !artwork || !wallPlaneRef.current || placedRef.current) return;
+            const bounds = rootRef.current?.getBoundingClientRect();
+            if (!bounds || !bounds.width || !bounds.height) return;
+            const ndc = new THREE.Vector2(
+              ((event.clientX - bounds.left) / bounds.width) * 2 - 1,
+              -(((event.clientY - bounds.top) / bounds.height) * 2 - 1)
+            );
+            const raycaster = new THREE.Raycaster();
+            raycaster.setFromCamera(ndc, camera);
+            const hit = new THREE.Vector3();
+            if (!raycaster.ray.intersectPlane(wallPlaneRef.current, hit)) return;
+            const normal = wallPlaneRef.current.normal.clone().normalize();
+            artwork.position.copy(hit.add(normal.clone().multiplyScalar(thickness / 2 + 0.004)));
+            artwork.quaternion.copy(wallQuaternion(normal));
+            artwork.visible = true;
+            placedRef.current = true;
+            setPlaced(true);
+            setCanPlace(false);
+            say(ru ? "Картина закреплена в выбранном месте." : "Artwork locked at the selected spot.");
+          };
+          rootRef.current?.addEventListener("pointerdown", tapHandler);
 
           guide = new THREE.Mesh(
             new THREE.PlaneGeometry(artWidth, artHeight),
@@ -310,11 +340,13 @@ export default function ARWallPreview({ imageUrl, title, width, height, ru, artw
             say(ru ? "Авто-поиск стены не сработал. Картина показана примерно перед камерой — наведите её и нажмите «Закрепить картину»." : "Automatic wall detection is unavailable. Artwork is approximate in front of the camera—aim it and tap Place artwork.");
           };
           if (reality?.trackingStatus !== "NORMAL" || !Array.isArray(reality.worldPoints)) {
+            wallPlaneRef.current = null;
             showApproximatePlacement();
             return;
           }
           const fit = fitWall(reality.worldPoints, camera);
           if (!fit) {
+            wallPlaneRef.current = null;
             showApproximatePlacement();
             return;
           }
@@ -326,6 +358,7 @@ export default function ARWallPreview({ imageUrl, title, width, height, ru, artw
             stable = { center: fit.center.clone(), normal: fit.normal.clone(), frames: 1 };
           }
           if (stable.frames < 4) {
+            wallPlaneRef.current = null;
             artwork.visible = false;
             if (guide) guide.visible = false;
             setCanPlace(false);
@@ -333,6 +366,7 @@ export default function ARWallPreview({ imageUrl, title, width, height, ru, artw
             return;
           }
           const plane = new THREE.Plane().setFromNormalAndCoplanarPoint(stable.normal, stable.center);
+          wallPlaneRef.current = plane.clone();
           const ray = new THREE.Raycaster();
           ray.setFromCamera(new THREE.Vector2(0, 0), camera);
           const hit = new THREE.Vector3();
@@ -353,7 +387,7 @@ export default function ARWallPreview({ imageUrl, title, width, height, ru, artw
             guide.visible = true;
           }
           setCanPlace(true);
-          say(ru ? "Стена найдена. Нажмите «Закрепить картину»." : "Wall found. Tap Place artwork to lock it.");
+          say(ru ? "Стена найдена. Нажмите на стену в нужном месте или используйте кнопку закрепления." : "Wall found. Tap the wall where you want the artwork, or use Place artwork.");
         },
         onException: ({ error }: any) => say((ru ? "Ошибка AR: " : "AR error: ") + (error?.message || error?.name || "unknown")),
       };
@@ -376,6 +410,9 @@ export default function ARWallPreview({ imageUrl, title, width, height, ru, artw
       w.XR8.run({ canvas });
       stopRef.current = () => {
         disposed = true;
+        if (tapHandler) rootRef.current?.removeEventListener("pointerdown", tapHandler);
+        tapHandler = null;
+        wallPlaneRef.current = null;
         try { w.XR8.stop?.(); } catch {}
         try { w.XR8.clearCameraPipelineModules?.(); } catch {}
         try { texture.dispose(); } catch {}

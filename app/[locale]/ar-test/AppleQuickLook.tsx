@@ -65,7 +65,7 @@ export default function AppleQuickLook({ ru, artworkChoices }: { ru: boolean; ar
       scene.add(mesh);
 
       const exporter = new USDZExporter();
-      const bytes = await exporter.parseAsync(scene, { quickLookCompatible: true, ar: { planeAnchoring: { alignment: "vertical" } } });
+      const bytes = await exporter.parseAsync(scene, { quickLookCompatible: true, ar: { anchoring: { type: "plane" }, planeAnchoring: { alignment: "vertical" } } });
       const usdzBlob = new Blob([bytes], { type: "model/vnd.usdz+zip" });
       const nextUrl = URL.createObjectURL(usdzBlob);
       setUsdzUrl((old) => {

@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
+import Script from "next/script";
 
 type ArtworkChoice = { id: string | number; title: string; image: string; width: number; height: number };
 type Props = { imageUrl?: string; title: string; width: number; height: number; ru: boolean; artworkChoices?: ArtworkChoice[] };
@@ -164,8 +165,7 @@ export default function ARWallPreview({ imageUrl, title, width, height, ru, artw
         }, 20000);
         window.addEventListener("xrloaded", onLoaded);
       });
-      // xr.js may finish downloading before exposing XR8; use both xrloaded and API readiness.
-      await loadScript(XR_URL, () => true, { "data-preload-chunks": "slam" });
+      // XR8 is loaded by Next Script when this page mounts. Wait for its API to become available.
       await xrLoaded;
       await loadScript(EXTRAS_URL, () => !!w.XRExtras);
       await loadScript(LANDING_URL, () => !!w.LandingPage);
@@ -369,6 +369,12 @@ export default function ARWallPreview({ imageUrl, title, width, height, ru, artw
 
   return (
     <section className="ar-preview" ref={rootRef}>
+      <Script
+        src={XR_URL}
+        strategy="afterInteractive"
+        crossOrigin="anonymous"
+        data-preload-chunks="slam"
+      />
       <div className="ar-topbar">
         <span>{running ? "PETIT.SOT STUDIO / LIVE AR" : "PETIT.SOT STUDIO / AR TEST"}</span>
         <button type="button" onClick={resetAR} aria-label={ru ? "Перезапустить" : "Restart"}>↻</button>

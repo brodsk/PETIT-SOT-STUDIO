@@ -1682,3 +1682,9 @@ button,
  .apple-quicklook-select{margin-top:4px}
  .apple-quicklook-footnote{width:100%}
 }
+
+
+.apple-quicklook-image-link{display:block;width:100%;max-width:220px;padding:10px;border:1px solid rgba(23,23,23,.3);background:rgba(23,23,23,.025)}
+.apple-quicklook-image-link img{display:block;width:100%;height:auto;max-height:210px;aspect-ratio:4/3;object-fit:contain}
+.apple-quicklook-link-label{font-size:9px;letter-spacing:.08em;line-height:1.5}
+.apple-quicklook-ready{align-items:flex-start}

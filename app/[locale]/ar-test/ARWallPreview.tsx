@@ -282,39 +282,40 @@ export default function ARWallPreview({ imageUrl, title, width, height, ru, artw
             updateSeen = true;
             say(ru ? "Трекинг запущен — сканируем стену…" : "Tracking is active — scanning the wall…");
           }
-          if (reality?.trackingStatus !== "NORMAL" || !Array.isArray(reality.worldPoints)) {
+          const showApproximatePlacement = () => {
+            // Fallback for plain walls or weak SLAM tracking: preview a vertical plane in
+            // front of the camera so placement is never blocked by sparse world points.
+            // This is an approximate camera-facing placement, not a verified wall anchor.
             stable = null;
-            artwork.visible = false;
-            if (guide) guide.visible = false;
-            setCanPlace(false);
+            const forward = new THREE.Vector3();
+            camera!.getWorldDirection(forward);
+            const horizontalForward = new THREE.Vector3(forward.x, 0, forward.z);
+            if (horizontalForward.lengthSq() < 0.001) horizontalForward.set(0, 0, -1);
+            horizontalForward.normalize();
+            forward.normalize();
+            const fallbackCenter = camera!.position.clone().add(forward.multiplyScalar(1.5));
+            fallbackCenter.y = camera!.position.y;
+            const fallbackNormal = horizontalForward.clone().negate();
+            const fallbackPosition = fallbackCenter.clone().add(fallbackNormal.clone().multiplyScalar(thickness / 2 + 0.004));
+            const rotation = wallQuaternion(fallbackNormal);
+            artwork!.position.copy(fallbackPosition);
+            artwork!.quaternion.copy(rotation);
+            artwork!.visible = true;
+            if (guide) {
+              guide.position.copy(fallbackPosition);
+              guide.quaternion.copy(rotation);
+              guide.visible = true;
+            }
+            setCanPlace(true);
+            say(ru ? "Авто-поиск стены не сработал. Картина показана примерно перед камерой — наведите её и нажмите «Закрепить картину»." : "Automatic wall detection is unavailable. Artwork is approximate in front of the camera—aim it and tap Place artwork.");
+          };
+          if (reality?.trackingStatus !== "NORMAL" || !Array.isArray(reality.worldPoints)) {
+            showApproximatePlacement();
             return;
           }
           const fit = fitWall(reality.worldPoints, camera);
           if (!fit) {
-            // Fallback: 8th Wall can report active tracking while exposing too few usable world
-            // points for our strict plane fit. Keep placement actionable by previewing a vertical
-            // plane about 1.5 m in front of the camera; once the user taps Place, that transform
-            // stays fixed in world space. A valid detected wall plane still takes priority below.
-            stable = null;
-            const forward = new THREE.Vector3();
-            camera.getWorldDirection(forward);
-            const horizontalForward = new THREE.Vector3(forward.x, 0, forward.z);
-            if (horizontalForward.lengthSq() < 0.001) horizontalForward.set(0, 0, -1);
-            horizontalForward.normalize();
-            const fallbackCenter = camera.position.clone().add(forward.normalize().multiplyScalar(1.5));
-            fallbackCenter.y = camera.position.y;
-            const fallbackNormal = horizontalForward.clone().negate();
-            const fallbackPosition = fallbackCenter.clone().add(fallbackNormal.clone().multiplyScalar(thickness / 2 + 0.004));
-            artwork.position.copy(fallbackPosition);
-            artwork.quaternion.copy(wallQuaternion(fallbackNormal));
-            artwork.visible = true;
-            if (guide) {
-              guide.position.copy(fallbackPosition);
-              guide.quaternion.copy(wallQuaternion(fallbackNormal));
-              guide.visible = true;
-            }
-            setCanPlace(true);
-            say(ru ? "Стена не распознана точно. Наведите картину на нужное место и нажмите «Закрепить картину»." : "Wall plane is approximate. Aim the artwork where you want it and tap Place artwork.");
+            showApproximatePlacement();
             return;
           }
           if (stable && stable.center.distanceTo(fit.center) < 0.09 && stable.normal.angleTo(fit.normal) < 12 * Math.PI / 180) {

@@ -4,7 +4,7 @@ import { NextRequest, NextResponse } from "next/server";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const MAX_USDZ_BYTES = 20 * 1024 * 1024;
+const MAX_USDZ_BYTES = 4 * 1024 * 1024;
 const BUCKET = "ar-models";
 
 export async function POST(request: NextRequest) {
@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
 
   const bytes = await request.arrayBuffer();
   if (!bytes.byteLength || bytes.byteLength > MAX_USDZ_BYTES) {
-    return NextResponse.json({ error: "USDZ model is empty or exceeds 20 MB." }, { status: 413 });
+    return NextResponse.json({ error: "USDZ model is empty or exceeds 4 MB." }, { status: 413 });
   }
 
   const supabase = createClient(supabaseUrl, serviceKey, {

@@ -1531,3 +1531,82 @@ button,
     -webkit-tap-highlight-color:transparent;
   }
 }
+
+/* AR camera mode: edge-to-edge viewport with reachable controls and an explicit exit. */
+.ar-preview.is-fullscreen{
+  position:fixed!important;
+  inset:0!important;
+  z-index:99999!important;
+  width:100vw!important;
+  height:100vh!important;
+  height:100dvh!important;
+  min-height:0!important;
+  max-height:none!important;
+  max-width:none!important;
+  margin:0!important;
+  border-radius:0!important;
+  overflow:hidden!important;
+  background:#080808!important;
+  isolation:isolate!important;
+  contain:none!important;
+}
+.ar-preview.is-fullscreen .ar-three-canvas{
+  position:absolute!important;
+  inset:0!important;
+  width:100%!important;
+  height:100%!important;
+  max-width:none!important;
+  max-height:none!important;
+  pointer-events:none!important;
+}
+.ar-preview>.ar-three-canvas{pointer-events:none!important}
+.ar-preview.is-fullscreen .ar-topbar{
+  top:max(14px,env(safe-area-inset-top))!important;
+  left:max(14px,env(safe-area-inset-left))!important;
+  right:max(14px,env(safe-area-inset-right))!important;
+  z-index:100010!important;
+  pointer-events:none!important;
+}
+.ar-topbar-actions{display:flex;align-items:center;gap:9px;pointer-events:auto}
+.ar-preview .ar-topbar-actions button{pointer-events:auto;touch-action:manipulation}
+.ar-preview .ar-topbar-actions .ar-close{
+  width:40px!important;
+  height:40px!important;
+  border-color:rgba(255,255,255,.75)!important;
+  background:rgba(0,0,0,.58)!important;
+  font-size:30px!important;
+  line-height:1!important;
+  font-weight:300!important;
+}
+.ar-preview.is-fullscreen .ar-controls{
+  bottom:max(18px,env(safe-area-inset-bottom))!important;
+  z-index:100010!important;
+  width:min(440px,calc(100% - 28px))!important;
+  pointer-events:auto!important;
+  font-size:10px!important;
+  letter-spacing:.06em!important;
+  text-transform:none!important;
+}
+.ar-preview.is-fullscreen .ar-place{
+  position:relative!important;
+  z-index:100020!important;
+  min-height:48px!important;
+  font-size:11px!important;
+  letter-spacing:.1em!important;
+  touch-action:manipulation!important;
+  pointer-events:auto!important;
+}
+.ar-preview.is-fullscreen .ar-start{
+  z-index:100010!important;
+  width:min(420px,calc(100% - 40px))!important;
+}
+.ar-preview.is-fullscreen .ar-start button,
+.ar-preview.is-fullscreen .ar-start select{
+  min-height:46px!important;
+  pointer-events:auto!important;
+  touch-action:manipulation!important;
+}
+.ar-preview.is-fullscreen .ar-ar-note{
+  bottom:calc(86px + env(safe-area-inset-bottom))!important;
+  z-index:100005!important;
+}

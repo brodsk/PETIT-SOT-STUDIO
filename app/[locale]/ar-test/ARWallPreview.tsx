@@ -240,8 +240,14 @@ export default function ARWallPreview({ imageUrl, title, width, height, ru, artw
           const renderer = xr.renderer as THREE.WebGLRenderer;
           const rect = rootRef.current!.getBoundingClientRect();
           renderer.setSize(Math.max(1, Math.round(rect.width)), Math.max(1, Math.round(rect.height)), false);
+          // Keep the camera/render canvas inside the fullscreen AR surface. FullWindowCanvas
+          // can lift it out of this stacking context, where the opaque fullscreen panel hides it.
+          startedCanvas.style.position = "absolute";
+          startedCanvas.style.inset = "0";
           startedCanvas.style.width = "100%";
           startedCanvas.style.height = "100%";
+          startedCanvas.style.zIndex = "2";
+          startedCanvas.style.pointerEvents = "none";
 
           const backing = new THREE.Mesh(
             new THREE.BoxGeometry(artWidth, artHeight, thickness),
@@ -343,7 +349,6 @@ export default function ARWallPreview({ imageUrl, title, width, height, ru, artw
         w.XR8.Threejs.pipelineModule(),
         w.XR8.XrController.pipelineModule(),
         w.LandingPage.pipelineModule(),
-        w.XRExtras.FullWindowCanvas.pipelineModule(),
         w.XRExtras.Loading.pipelineModule(),
         w.XRExtras.RuntimeError.pipelineModule(),
         initModule,

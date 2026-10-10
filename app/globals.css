@@ -1610,3 +1610,44 @@ button,
   bottom:calc(86px + env(safe-area-inset-bottom))!important;
   z-index:100005!important;
 }
+
+
+/* Universal photo-based artwork placement fallback for devices without supported live AR. */
+.photo-wall-tool{max-width:1100px;margin:76px auto 0;padding-top:42px;border-top:1px solid rgba(23,23,23,.2)}
+.photo-wall-heading{max-width:650px;margin:0 0 28px}
+.photo-wall-heading h2{font-size:clamp(32px,5vw,58px);font-weight:400;letter-spacing:-.045em;line-height:.94;margin:16px 0}
+.photo-wall-heading p{max-width:520px;font-size:12px;line-height:1.6;opacity:.68}
+.photo-wall-layout{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(220px,.7fr);gap:26px;align-items:start}
+.photo-wall-stage-wrap{min-width:0}
+.photo-wall-stage{position:relative;width:100%;aspect-ratio:4/3;overflow:hidden;background:#d9d5ce;border:1px solid rgba(23,23,23,.14);touch-action:pan-y}
+.photo-wall-stage.has-room{background:#171717}
+.photo-wall-room{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;user-select:none;pointer-events:none}
+.photo-wall-empty{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:20px;color:#44413c}
+.photo-wall-empty>span{font-size:35px;font-weight:200;margin-bottom:12px}
+.photo-wall-empty strong{font-size:12px;font-weight:400}
+.photo-wall-empty small{font-size:10px;opacity:.65;margin-top:8px}
+.photo-wall-art{position:absolute;z-index:2;max-height:90%;cursor:grab;touch-action:none;user-select:none;filter:drop-shadow(0 6px 8px rgba(0,0,0,.24));border:1px solid rgba(0,0,0,.16)}
+.photo-wall-art:active{cursor:grabbing}
+.photo-wall-art img{display:block;width:100%;height:100%;object-fit:fill;pointer-events:none;user-select:none}
+.photo-wall-upload{display:flex;justify-content:center;align-items:center;margin-top:10px;min-height:44px;border:1px solid rgba(23,23,23,.3);cursor:pointer;font-size:9px;letter-spacing:.1em;text-transform:uppercase}
+.photo-wall-upload input{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
+.photo-wall-controls{display:flex;flex-direction:column;gap:20px;padding-top:2px}
+.photo-wall-controls label{display:flex;flex-direction:column;gap:9px}
+.photo-wall-controls label>span{font-size:9px;text-transform:uppercase;letter-spacing:.12em}
+.photo-wall-controls select{width:100%;padding:11px 8px;border:1px solid rgba(23,23,23,.25);border-radius:0;background:transparent;color:#171717;font:inherit;font-size:12px}
+.photo-wall-controls input[type=range]{width:100%;accent-color:#171717}
+.photo-wall-actions{display:flex;flex-direction:column;gap:8px}
+.photo-wall-actions button{min-height:42px;padding:10px;border:1px solid rgba(23,23,23,.28);background:transparent;color:inherit;font:inherit;font-size:9px;letter-spacing:.08em;text-transform:uppercase;cursor:pointer}
+.photo-wall-actions button:first-child{background:#171717;color:#eeeae3}
+.photo-wall-controls>p{font-size:10px;line-height:1.6;opacity:.65;margin:0}
+@media(max-width:700px){
+ .photo-wall-tool{margin-top:58px;padding-top:30px}
+ .photo-wall-heading h2{font-size:38px}
+ .photo-wall-layout{grid-template-columns:minmax(0,1fr);gap:22px}
+ .photo-wall-stage{aspect-ratio:3/4}
+ .photo-wall-controls{display:grid;grid-template-columns:1fr 1fr;gap:17px 14px}
+ .photo-wall-controls label:first-child,.photo-wall-controls>p,.photo-wall-actions{grid-column:1/-1}
+ .photo-wall-controls label>span{font-size:8px}
+ .photo-wall-controls select{font-size:11px}
+ .photo-wall-actions{display:grid;grid-template-columns:1fr 1fr}
+}

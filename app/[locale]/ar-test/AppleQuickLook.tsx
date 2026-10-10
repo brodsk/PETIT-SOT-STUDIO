@@ -108,7 +108,7 @@ export default function AppleQuickLook({ ru, artworkChoices }: { ru: boolean; ar
         </button>
       ) : (
         <div className="apple-quicklook-ready">
-          {supported ? (
+          {(supported || isIOS) ? (
             <>
               <a rel="ar" href={usdzUrl} className="apple-quicklook-image-link" aria-label={ru ? "Открыть картину в AR Quick Look" : "Open artwork in AR Quick Look"}>
                 <img src={artwork.image} alt={artwork.title} />
@@ -121,7 +121,7 @@ export default function AppleQuickLook({ ru, artworkChoices }: { ru: boolean; ar
               <span>{ru ? "СКАЧАТЬ AR-МОДЕЛЬ (.USDZ)" : "DOWNLOAD AR MODEL (.USDZ)"}</span>
             </a>
           )}
-          {!supported && <p>{ru ? "Откройте эту страницу в Safari на iPhone, чтобы запустить AR Quick Look. На других устройствах можно скачать USDZ." : "Open this page in Safari on iPhone to launch AR Quick Look. On other devices you can download the USDZ file."}</p>}
+          {!(supported || isIOS) && <p>{ru ? "Откройте эту страницу в Safari на iPhone, чтобы запустить AR Quick Look. На других устройствах можно скачать USDZ." : "Open this page in Safari on iPhone to launch AR Quick Look. On other devices you can download the USDZ file."}</p>}
           {isIOS && !supported && <p>{ru ? "Если вы уже в Safari, обновите страницу и попробуйте снова." : "If you're already in Safari, reload the page and try again."}</p>}
           <button type="button" className="apple-quicklook-reset" onClick={() => setUsdzUrl("")}>{ru ? "Выбрать другую работу" : "Choose another artwork"}</button>
         </div>

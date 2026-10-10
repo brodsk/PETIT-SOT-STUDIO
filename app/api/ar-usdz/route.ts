@@ -54,6 +54,6 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const { data } = supabase.storage.from(BUCKET).getPublicUrl(path);
-  return NextResponse.json({ url: data.publicUrl });
+  const url = new URL(`/api/ar-usdz/${path}`, request.url).toString();
+  return NextResponse.json({ url });
 }

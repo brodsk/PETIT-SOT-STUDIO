@@ -322,13 +322,20 @@ export default function ARWallPreview({ imageUrl, title, width, height, ru, artw
             setCanPlace(false);
             say(statusMessage);
           };
-          if (reality?.trackingStatus !== "NORMAL" || !Array.isArray(reality.worldPoints)) {
-            keepSearching(ru ? "Ищем стену… Медленно двигайте телефоном, чтобы камера увидела пространство." : "Searching for a wall… Move the phone slowly so the camera can map the space.");
+          const points = Array.isArray(reality?.worldPoints) ? reality.worldPoints : [];
+          const tracking = reality?.trackingStatus ?? "unknown";
+          const reason = reality?.trackingReason ?? "unknown";
+          if (tracking !== "NORMAL" || points.length === 0) {
+            keepSearching(ru
+              ? `Ищем стену… Трекинг: ${tracking}; причина: ${reason}; 3D-точек: ${points.length}. Медленно двигайте телефоном.`
+              : `Searching for wall… Tracking: ${tracking}; reason: ${reason}; 3D points: ${points.length}. Move the phone slowly.`);
             return;
           }
-          const fit = fitWall(reality.worldPoints, camera);
+          const fit = fitWall(points, camera);
           if (!fit) {
-            keepSearching(ru ? "Ищем плоскость стены… Медленно проведите камерой по стене." : "Searching for the wall plane… Slowly scan across the wall.");
+            keepSearching(ru
+              ? `Трекинг работает, но плоскость не вычислена (3D-точек: ${points.length}). Медленно проведите камерой по поверхности.`
+              : `Tracking is active, but no plane was fitted (${points.length} 3D points). Slowly scan across the surface.`);
             return;
           }
           if (stable && stable.center.distanceTo(fit.center) < 0.09 && stable.normal.angleTo(fit.normal) < 12 * Math.PI / 180) {

@@ -312,42 +312,23 @@ export default function ARWallPreview({ imageUrl, title, width, height, ru, artw
             updateSeen = true;
             say(ru ? "Трекинг запущен — сканируем стену…" : "Tracking is active — scanning the wall…");
           }
-          const showApproximatePlacement = () => {
-            // Fallback for plain walls or weak SLAM tracking: preview a vertical plane in
-            // front of the camera so placement is never blocked by sparse world points.
-            // This is an approximate camera-facing placement, not a verified wall anchor.
+          const keepSearching = (statusMessage: string) => {
+            // Never fake a wall by putting the artwork in front of the camera.
+            // Keep the scene empty until the tracker supplies a stable wall plane.
             stable = null;
-            const forward = new THREE.Vector3();
-            camera!.getWorldDirection(forward);
-            const horizontalForward = new THREE.Vector3(forward.x, 0, forward.z);
-            if (horizontalForward.lengthSq() < 0.001) horizontalForward.set(0, 0, -1);
-            horizontalForward.normalize();
-            forward.normalize();
-            const fallbackCenter = camera!.position.clone().add(forward.multiplyScalar(1.5));
-            fallbackCenter.y = camera!.position.y;
-            const fallbackNormal = horizontalForward.clone().negate();
-            const fallbackPosition = fallbackCenter.clone().add(fallbackNormal.clone().multiplyScalar(thickness / 2 + 0.004));
-            const rotation = wallQuaternion(fallbackNormal);
-            artwork!.position.copy(fallbackPosition);
-            artwork!.quaternion.copy(rotation);
-            artwork!.visible = true;
-            if (guide) {
-              guide.position.copy(fallbackPosition);
-              guide.quaternion.copy(rotation);
-              guide.visible = true;
-            }
-            setCanPlace(true);
-            say(ru ? "Авто-поиск стены не сработал. Картина показана примерно перед камерой — наведите её и нажмите «Закрепить картину»." : "Automatic wall detection is unavailable. Artwork is approximate in front of the camera—aim it and tap Place artwork.");
+            wallPlaneRef.current = null;
+            artwork!.visible = false;
+            if (guide) guide.visible = false;
+            setCanPlace(false);
+            say(statusMessage);
           };
           if (reality?.trackingStatus !== "NORMAL" || !Array.isArray(reality.worldPoints)) {
-            wallPlaneRef.current = null;
-            showApproximatePlacement();
+            keepSearching(ru ? "Ищем стену… Медленно двигайте телефоном, чтобы камера увидела пространство." : "Searching for a wall… Move the phone slowly so the camera can map the space.");
             return;
           }
           const fit = fitWall(reality.worldPoints, camera);
           if (!fit) {
-            wallPlaneRef.current = null;
-            showApproximatePlacement();
+            keepSearching(ru ? "Ищем плоскость стены… Медленно проведите камерой по стене." : "Searching for the wall plane… Slowly scan across the wall.");
             return;
           }
           if (stable && stable.center.distanceTo(fit.center) < 0.09 && stable.normal.angleTo(fit.normal) < 12 * Math.PI / 180) {

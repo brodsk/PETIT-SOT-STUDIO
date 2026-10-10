@@ -53,6 +53,8 @@ export default function AppleQuickLook({ ru, artworkChoices }: { ru: boolean; ar
       const geometry = new THREE.PlaneGeometry(widthMeters, heightMeters);
       const material = new THREE.MeshStandardMaterial({ map: texture, side: THREE.DoubleSide, roughness: 0.92, metalness: 0 });
       const mesh = new THREE.Mesh(geometry, material);
+      // Rotate the exported plane upright for vertical wall placement in Quick Look.
+      mesh.rotation.x = Math.PI / 2;
       mesh.name = "PETIT_SOT_Artwork";
       const scene = new THREE.Scene();
       scene.add(mesh);

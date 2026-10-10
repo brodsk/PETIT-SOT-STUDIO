@@ -218,11 +218,15 @@ export default function ARWallPreview({imageUrl,title,width,height,ru,artworkCho
     setAnalysis(true);
     try{
       const img=new Image();img.crossOrigin="anonymous";img.src=selectedImage;await img.decode();
-      imageQuadRef.current=detectArtworkQuad(img,aspect);
-      imageBoundsRef.current=quadToBounds(imageQuadRef.current);
-      cutoutUrlRef.current=createArtworkCutout(img,imageQuadRef.current,aspect);
-      setMessage(ru?"Картина вырезана из фона.":"Artwork cut out from its background.");
+      const quad=detectArtworkQuad(img,aspect);
+      imageQuadRef.current=quad;
+      imageBoundsRef.current=quadToBounds(quad);
+      cutoutUrlRef.current=quad.confidence>=.5?createArtworkCutout(img,quad,aspect):null;
+      setMessage(quad.confidence>=.5
+        ?(ru?"Картина вырезана из фона.":"Artwork cut out from its background.")
+        :(ru?"Границы картины не найдены — сохраняем пропорции изображения.":"Artwork edges not found — preserving the image proportions."));
     }catch{
+      cutoutUrlRef.current=null;
       imageBoundsRef.current={x:0,y:0,width:1,height:1};
       setMessage(ru?"Использован исходный кадр.":"Using the original image bounds.");
     }finally{setAnalysis(false);}
@@ -395,43 +399,22 @@ export default function ARWallPreview({imageUrl,title,width,height,ru,artworkCho
       eightWallCanvasRef.current=canvas;
       rootRef.current?.appendChild(canvas);
 
+      await analyzeSource();
       const image=new Image();image.crossOrigin='anonymous';image.src=selectedImage;await image.decode();
-      const texture=new THREE.Texture(image);texture.needsUpdate=true;texture.colorSpace=THREE.SRGBColorSpace;
+      let textureSource:HTMLImageElement|HTMLCanvasElement=image;
+      if(cutoutUrlRef.current&&imageQuadRef.current.confidence>=.5){
+        const corrected=new Image();corrected.src=cutoutUrlRef.current;await corrected.decode();textureSource=corrected;
+      }else{
+        textureSource=makeArtworkTextureCanvas(image,aspect) as HTMLImageElement|HTMLCanvasElement;
+      }
+      const texture=textureSource instanceof HTMLCanvasElement?new THREE.CanvasTexture(textureSource):new THREE.Texture(textureSource);
+      texture.needsUpdate=true;texture.colorSpace=THREE.SRGBColorSpace;
       const artW=Math.max(.01,activeWidth/100),artH=Math.max(.01,activeHeight/100),thickness=.018;
       let trackedCamera:THREE.Camera|null=null;
       let trackedArtwork:THREE.Group|null=null;
       let trackedGuide:THREE.Mesh|null=null;
       let lastCandidate:{position:THREE.Vector3;quaternion:THREE.Quaternion}|null=null;
       let stable:{center:THREE.Vector3;normal:THREE.Vector3;frames:number}|null=null;
-
-      const fitWorldPlane=(points:any[],camera:THREE.Camera)=>{
-        const valid=points.filter(p=>p?.position&&Number(p?.confidence??1)>=.05)
-          .map(p=>new THREE.Vector3(Number(p.position.x),Number(p.position.y),Number(p.position.z)))
-          .filter(p=>p.distanceTo(camera.position)>.35&&p.distanceTo(camera.position)<8);
-        if(valid.length<12)return null;
-        const sample=valid.length>180?valid.filter((_,i)=>i%Math.ceil(valid.length/180)===0).slice(0,180):valid;
-        const center=sample.reduce((v,p)=>v.add(p),new THREE.Vector3()).multiplyScalar(1/sample.length);
-        const cov=[[0,0,0],[0,0,0],[0,0,0]];
-        for(const p of sample){const d=p.clone().sub(center);cov[0][0]+=d.x*d.x;cov[0][1]+=d.x*d.y;cov[0][2]+=d.x*d.z;cov[1][0]+=d.y*d.x;cov[1][1]+=d.y*d.y;cov[1][2]+=d.y*d.z;cov[2][0]+=d.z*d.x;cov[2][1]+=d.z*d.y;cov[2][2]+=d.z*d.z;}
-        const m=cov.map(r=>r.slice()),v=[[1,0,0],[0,1,0],[0,0,1]];
-        for(let iter=0;iter<16;iter++){
-          let p=0,q=1,max=Math.abs(m[0][1]);
-          if(Math.abs(m[0][2])>max){p=0;q=2;max=Math.abs(m[0][2]);}
-          if(Math.abs(m[1][2])>max){p=1;q=2;max=Math.abs(m[1][2]);}
-          if(max<1e-9)break;
-          const phi=.5*Math.atan2(2*m[p][q],m[q][q]-m[p][p]),c=Math.cos(phi),ss=Math.sin(phi);
-          for(let k=0;k<3;k++){const ap=m[k][p],aq=m[k][q];m[k][p]=c*ap-ss*aq;m[k][q]=ss*ap+c*aq;}
-          for(let k=0;k<3;k++){const ap=m[p][k],aq=m[q][k];m[p][k]=c*ap-ss*aq;m[q][k]=ss*ap+c*aq;}
-          for(let k=0;k<3;k++){const ap=v[k][p],aq=v[k][q];v[k][p]=c*ap-ss*aq;v[k][q]=ss*ap+c*aq;}
-        }
-        let si=0;if(m[1][1]<m[si][si])si=1;if(m[2][2]<m[si][si])si=2;
-        const normal=new THREE.Vector3(v[0][si],v[1][si],v[2][si]).normalize();
-        if(Math.abs(normal.y)>.34)return null;
-        const residual=sample.map(p=>Math.abs(normal.dot(p.clone().sub(center)))).sort((a,b)=>a-b);
-        if((residual[Math.floor(residual.length*.5)]||1)>.13)return null;
-        if(normal.dot(new THREE.Vector3().subVectors(camera.position,center))<0)normal.negate();
-        return {center,normal};
-      };
 
       const initModule={
         name:'petitsot-wall-ar',
@@ -477,17 +460,46 @@ export default function ARWallPreview({imageUrl,title,width,height,ru,artworkCho
           // It becomes visible only after a real vertical wall plane is detected.
           if(trackedArtwork&&!wallCandidateRef.current)trackedArtwork.visible=false;
           const reality=processCpuResult?.reality;
-          if(reality?.trackingStatus!=='NORMAL'||!Array.isArray(reality.worldPoints))return;
-          const plane=fitWorldPlane(reality.worldPoints,trackedCamera);
-          if(!plane){stable=null;if(trackedGuide)trackedGuide.visible=false;setCanPlace(false);return;}
+          if(reality?.trackingStatus!=='NORMAL'||!Array.isArray(reality.worldPoints)){
+            stable=null;lastCandidate=null;wallCandidateRef.current=null;
+            if(trackedArtwork)trackedArtwork.visible=false;
+            if(trackedGuide)trackedGuide.visible=false;
+            setCanPlace(false);
+            return;
+          }
+          const rect=rootRef.current?.getBoundingClientRect();
+          const plane=detectWallPlane(
+            reality.worldPoints,
+            trackedCamera,
+            Math.max(1,rect?.width||window.innerWidth),
+            Math.max(1,rect?.height||window.innerHeight)
+          );
+          if(!plane){
+            stable=null;lastCandidate=null;wallCandidateRef.current=null;
+            if(trackedArtwork)trackedArtwork.visible=false;
+            if(trackedGuide)trackedGuide.visible=false;
+            setCanPlace(false);
+            return;
+          }
           if(stable&&stable.center.distanceTo(plane.center)<.06&&stable.normal.angleTo(plane.normal)<8*Math.PI/180){
             stable.frames=Math.min(30,stable.frames+1);stable.center.lerp(plane.center,.18);stable.normal.lerp(plane.normal,.18).normalize();
           }else stable={center:plane.center.clone(),normal:plane.normal.clone(),frames:1};
-          if(stable.frames<5){setCanPlace(false);setMessage(ru?'Стабилизируем стену…':'Stabilizing the wall…');return;}
+          if(stable.frames<5){
+            lastCandidate=null;wallCandidateRef.current=null;
+            if(trackedArtwork)trackedArtwork.visible=false;
+            if(trackedGuide)trackedGuide.visible=false;
+            setCanPlace(false);setMessage(ru?'Стабилизируем стену…':'Stabilizing the wall…');return;
+          }
           const wallPlane=new THREE.Plane().setFromNormalAndCoplanarPoint(stable.normal,stable.center);
           const ray=new THREE.Raycaster();ray.setFromCamera(new THREE.Vector2(0,0),trackedCamera);
           const hit=new THREE.Vector3();const hitOk=ray.ray.intersectPlane(wallPlane,hit);
-          if(!hitOk)return;
+          if(!hitOk){
+            lastCandidate=null;wallCandidateRef.current=null;
+            if(trackedArtwork)trackedArtwork.visible=false;
+            if(trackedGuide)trackedGuide.visible=false;
+            setCanPlace(false);
+            return;
+          }
           // Put the artwork a few millimetres in front of the physical wall.
           // The artwork's local +Z points toward the viewer.
           const candidatePosition=hit.clone().add(stable.normal.clone().multiplyScalar(thickness/2+.003));

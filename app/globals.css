@@ -1651,3 +1651,8 @@ button,
  .photo-wall-controls select{font-size:11px}
  .photo-wall-actions{display:grid;grid-template-columns:1fr 1fr}
 }
+
+
+.ar-live-experimental{margin-top:80px;padding-top:35px;border-top:1px solid rgba(23,23,23,.2)}
+.ar-live-experimental>p{font-size:11px;line-height:1.6;opacity:.65;max-width:540px;margin:14px 0 24px}
+@media(max-width:700px){.ar-live-experimental{margin-top:55px;padding-top:28px}}

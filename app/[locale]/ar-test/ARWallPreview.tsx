@@ -70,7 +70,7 @@ function detectWallPlane(points:any[],camera:THREE.Camera,canvasWidth:number,can
   const projected=points.filter(p=>p?.position&&Number(p?.confidence??1)>=.08).map(p=>{
     const v=new THREE.Vector3(p.position.x,p.position.y,p.position.z),q=v.clone().project(camera);
     return {v,sx:(q.x*.5+.5)*canvasWidth,sy:(-q.y*.5+.5)*canvasHeight,depth:q.z};
-  }).filter(p=>p.depth>-1&&p.depth<1&&p.sx>canvasWidth*.22&&p.sx<canvasWidth*.78&&p.sy>canvasHeight*.16&&p.sy<canvasHeight*.84&&p.v.distanceTo(camera.position)>.5&&p.v.distanceTo(camera.position)<6);
+  }).filter(p=>p.depth>-1&&p.depth<1&&p.sx>canvasWidth*.08&&p.sx<canvasWidth*.92&&p.sy>canvasHeight*.06&&p.sy<canvasHeight*.94&&p.v.distanceTo(camera.position)>.35&&p.v.distanceTo(camera.position)<8);
   if(projected.length<8)return null;
   const sample=projected.length>140?projected.filter((_,i)=>i%Math.ceil(projected.length/140)===0).slice(0,140):projected;
   const center=sample.reduce((v,p)=>v.add(p.v),new THREE.Vector3()).multiplyScalar(1/sample.length);
@@ -218,11 +218,15 @@ export default function ARWallPreview({imageUrl,title,width,height,ru,artworkCho
     setAnalysis(true);
     try{
       const img=new Image();img.crossOrigin="anonymous";img.src=selectedImage;await img.decode();
-      imageQuadRef.current=detectArtworkQuad(img,aspect);
-      imageBoundsRef.current=quadToBounds(imageQuadRef.current);
-      cutoutUrlRef.current=createArtworkCutout(img,imageQuadRef.current,aspect);
-      setMessage(ru?"Картина вырезана из фона.":"Artwork cut out from its background.");
+      const quad=detectArtworkQuad(img,aspect);
+      imageQuadRef.current=quad;
+      imageBoundsRef.current=quadToBounds(quad);
+      cutoutUrlRef.current=quad.confidence>=.5?createArtworkCutout(img,quad,aspect):null;
+      setMessage(quad.confidence>=.5
+        ?(ru?"Картина вырезана из фона.":"Artwork cut out from its background.")
+        :(ru?"Границы картины не найдены — сохраняем пропорции изображения.":"Artwork edges not found — preserving the image proportions."));
     }catch{
+      cutoutUrlRef.current=null;
       imageBoundsRef.current={x:0,y:0,width:1,height:1};
       setMessage(ru?"Использован исходный кадр.":"Using the original image bounds.");
     }finally{setAnalysis(false);}
@@ -251,21 +255,7 @@ export default function ARWallPreview({imageUrl,title,width,height,ru,artworkCho
     setSelectedImage(imageUrl||"");
     setSelectedDimensions({width,height});
     setSelectedTitle(title);
-    preload8thWall();
   },[imageUrl,width,height,title]);
-
-  const preload8thWall=()=>{
-    if(typeof window==='undefined')return;
-    const w=window as any;
-    if(w.XR8||document.querySelector('script[data-preload-petit-sot-8th-wall]'))return;
-    const script=document.createElement('script');
-    script.src='https://cdn.jsdelivr.net/npm/@8thwall/engine-binary@1/dist/xr.js';script.async=true;script.crossOrigin='anonymous';
-    script.dataset.preloadPetitSot8thWall='true';script.setAttribute('data-preload-chunks','slam');
-    document.head.appendChild(script);
-    const extras=document.createElement('script');
-    extras.src='https://cdn.jsdelivr.net/npm/@8thwall/xrextras@1/dist/xrextras.js';extras.async=false;extras.crossOrigin='anonymous';
-    document.head.appendChild(extras);
-  };
 
   const openSceneViewer=async()=>{
     if(!selectedImage||!isAndroidDevice())return;
@@ -373,20 +363,40 @@ export default function ARWallPreview({imageUrl,title,width,height,ru,artworkCho
       const w=window as any;
       w.THREE=THREE;
 
-      const loadScript=(src:string,ready:()=>boolean)=>new Promise<void>((resolve,reject)=>{
+      const loadScript=(src:string,ready:()=>boolean,attrs:Record<string,string>={})=>new Promise<void>((resolve,reject)=>{
         if(ready()){resolve();return;}
         const existing=document.querySelector('script[src="'+src+'"]') as HTMLScriptElement|null;
         const finish=()=>ready()?resolve():reject(new Error('Script loaded but API is unavailable: '+src));
-        if(existing){existing.addEventListener('load',finish,{once:true});setTimeout(finish,12000);return;}
-        const script=document.createElement('script');
-        script.src=src;script.async=true;script.crossOrigin='anonymous';
-        script.onload=finish;script.onerror=()=>reject(new Error('Could not load '+src));
+        if(existing){
+          if((existing as any).dataset?.loaded==='true'){finish();return;}
+          existing.addEventListener('load',()=>{(existing as any).dataset.loaded='true';finish();},{once:true});
+          existing.addEventListener('error',()=>reject(new Error('Could not load '+src)),{once:true});
+          return;
+        }
+        const script=document.createElement('script');script.src=src;script.async=true;script.crossOrigin='anonymous';
+        Object.entries(attrs).forEach(([key,value])=>script.setAttribute(key,value));
+        script.onload=()=>{(script as any).dataset.loaded='true';finish();};
+        script.onerror=()=>reject(new Error('Could not load '+src));
         document.head.appendChild(script);
       });
 
-      await loadScript('https://cdn.jsdelivr.net/npm/@8thwall/engine-binary@1/dist/xr.js',()=>!!w.XR8);
+      // Follow the reference app's boot sequence: preload SLAM and wait for xrloaded.
+      let onXrLoaded: (()=>void)|null=null;
+      const xrLoadedPromise=new Promise<void>((resolve,reject)=>{
+        if(w.XR8?.Threejs?.pipelineModule&&w.XR8?.XrController?.pipelineModule){resolve();return;}
+        const timeout=setTimeout(()=>{
+          if(onXrLoaded)window.removeEventListener('xrloaded',onXrLoaded);
+          reject(new Error('8th Wall engine loaded, but xrloaded was not emitted within 20 seconds'));
+        },20000);
+        onXrLoaded=()=>{clearTimeout(timeout);resolve();};
+        window.addEventListener('xrloaded',onXrLoaded,{once:true});
+      });
+      await loadScript('https://cdn.jsdelivr.net/npm/@8thwall/engine-binary@1/dist/xr.js',()=>!!w.XR8,{'data-preload-chunks':'slam'});
+      await xrLoadedPromise;
       await loadScript('https://cdn.jsdelivr.net/npm/@8thwall/xrextras@1/dist/xrextras.js',()=>!!w.XRExtras);
-      if(!w.XR8)throw new Error('8th Wall engine unavailable');
+      await loadScript('https://cdn.jsdelivr.net/npm/@8thwall/landing-page@1/dist/landing-page.js',()=>!!w.LandingPage);
+      if(!w.XR8?.Threejs?.pipelineModule||!w.XR8?.XrController?.pipelineModule)throw new Error('8th Wall engine is not ready after xrloaded');
+      if(!w.XRExtras?.FullWindowCanvas||!w.XRExtras?.Loading||!w.XRExtras?.RuntimeError)throw new Error('8th Wall XRExtras pipeline modules unavailable');
 
       const canvas=document.createElement('canvas');
       canvas.className='ar-three-canvas';
@@ -395,43 +405,25 @@ export default function ARWallPreview({imageUrl,title,width,height,ru,artworkCho
       eightWallCanvasRef.current=canvas;
       rootRef.current?.appendChild(canvas);
 
+      await analyzeSource();
       const image=new Image();image.crossOrigin='anonymous';image.src=selectedImage;await image.decode();
-      const texture=new THREE.Texture(image);texture.needsUpdate=true;texture.colorSpace=THREE.SRGBColorSpace;
+      let textureSource:HTMLImageElement|HTMLCanvasElement=image;
+      if(cutoutUrlRef.current&&imageQuadRef.current.confidence>=.5){
+        const corrected=new Image();corrected.src=cutoutUrlRef.current;await corrected.decode();textureSource=corrected;
+      }else{
+        textureSource=makeArtworkTextureCanvas(image,aspect) as HTMLImageElement|HTMLCanvasElement;
+      }
+      const texture=textureSource instanceof HTMLCanvasElement?new THREE.CanvasTexture(textureSource):new THREE.Texture(textureSource);
+      texture.needsUpdate=true;texture.colorSpace=THREE.SRGBColorSpace;
       const artW=Math.max(.01,activeWidth/100),artH=Math.max(.01,activeHeight/100),thickness=.018;
       let trackedCamera:THREE.Camera|null=null;
       let trackedArtwork:THREE.Group|null=null;
       let trackedGuide:THREE.Mesh|null=null;
       let lastCandidate:{position:THREE.Vector3;quaternion:THREE.Quaternion}|null=null;
       let stable:{center:THREE.Vector3;normal:THREE.Vector3;frames:number}|null=null;
-
-      const fitWorldPlane=(points:any[],camera:THREE.Camera)=>{
-        const valid=points.filter(p=>p?.position&&Number(p?.confidence??1)>=.05)
-          .map(p=>new THREE.Vector3(Number(p.position.x),Number(p.position.y),Number(p.position.z)))
-          .filter(p=>p.distanceTo(camera.position)>.35&&p.distanceTo(camera.position)<8);
-        if(valid.length<12)return null;
-        const sample=valid.length>180?valid.filter((_,i)=>i%Math.ceil(valid.length/180)===0).slice(0,180):valid;
-        const center=sample.reduce((v,p)=>v.add(p),new THREE.Vector3()).multiplyScalar(1/sample.length);
-        const cov=[[0,0,0],[0,0,0],[0,0,0]];
-        for(const p of sample){const d=p.clone().sub(center);cov[0][0]+=d.x*d.x;cov[0][1]+=d.x*d.y;cov[0][2]+=d.x*d.z;cov[1][0]+=d.y*d.x;cov[1][1]+=d.y*d.y;cov[1][2]+=d.y*d.z;cov[2][0]+=d.z*d.x;cov[2][1]+=d.z*d.y;cov[2][2]+=d.z*d.z;}
-        const m=cov.map(r=>r.slice()),v=[[1,0,0],[0,1,0],[0,0,1]];
-        for(let iter=0;iter<16;iter++){
-          let p=0,q=1,max=Math.abs(m[0][1]);
-          if(Math.abs(m[0][2])>max){p=0;q=2;max=Math.abs(m[0][2]);}
-          if(Math.abs(m[1][2])>max){p=1;q=2;max=Math.abs(m[1][2]);}
-          if(max<1e-9)break;
-          const phi=.5*Math.atan2(2*m[p][q],m[q][q]-m[p][p]),c=Math.cos(phi),ss=Math.sin(phi);
-          for(let k=0;k<3;k++){const ap=m[k][p],aq=m[k][q];m[k][p]=c*ap-ss*aq;m[k][q]=ss*ap+c*aq;}
-          for(let k=0;k<3;k++){const ap=m[p][k],aq=m[q][k];m[p][k]=c*ap-ss*aq;m[q][k]=ss*ap+c*aq;}
-          for(let k=0;k<3;k++){const ap=v[k][p],aq=v[k][q];v[k][p]=c*ap-ss*aq;v[k][q]=ss*ap+c*aq;}
-        }
-        let si=0;if(m[1][1]<m[si][si])si=1;if(m[2][2]<m[si][si])si=2;
-        const normal=new THREE.Vector3(v[0][si],v[1][si],v[2][si]).normalize();
-        if(Math.abs(normal.y)>.34)return null;
-        const residual=sample.map(p=>Math.abs(normal.dot(p.clone().sub(center)))).sort((a,b)=>a-b);
-        if((residual[Math.floor(residual.length*.5)]||1)>.13)return null;
-        if(normal.dot(new THREE.Vector3().subVectors(camera.position,center))<0)normal.negate();
-        return {center,normal};
-      };
+      let updateSeen=false;
+      let started=false;
+      let updateWatchdog:ReturnType<typeof setTimeout>|null=null;
 
       const initModule={
         name:'petitsot-wall-ar',
@@ -465,29 +457,70 @@ export default function ARWallPreview({imageUrl,title,width,height,ru,artworkCho
           guide.visible=false;scene.add(guide);trackedGuide=guide;
           scene.add(new THREE.HemisphereLight(0xffffff,0x333333,1.15));
           eightWallCanvasRef.current=startedCanvas;
-          setMessage(ru?'Наведите камеру на стену и медленно двигайте телефон.':'Point at a wall and move the phone slowly.');
+          started=true;
+          if(updateWatchdog)clearTimeout(updateWatchdog);
+          setMessage(ru?'Камера запущена, ждём трекинг…':'Camera started; waiting for tracking…');
+          updateWatchdog=setTimeout(()=>{
+            if(!updateSeen)setMessage(ru?'Камера запущена, но кадры трекинга не приходят. Проверяем запуск SLAM и pipeline 8th Wall.':'Camera started, but tracking frames are not arriving. Check the 8th Wall SLAM and pipeline startup.');
+          },7000);
         },
         onCanvasSizeChange:({canvasWidth,canvasHeight}:any)=>{
           const xr=w.XR8.Threejs.xrScene();
           try{(xr.renderer as THREE.WebGLRenderer).setSize(canvasWidth,canvasHeight,false);}catch{}
         },
         onUpdate:({processCpuResult}:any)=>{
+          if(!updateSeen){updateSeen=true;if(updateWatchdog)clearTimeout(updateWatchdog);setMessage(ru?'Трекинг работает, ищем плоскость стены…':'Tracking is running; searching for the wall plane…');}
           if(!trackedCamera||trackedArtwork?.userData.locked)return;
           // Never float the artwork in front of the camera.
           // It becomes visible only after a real vertical wall plane is detected.
           if(trackedArtwork&&!wallCandidateRef.current)trackedArtwork.visible=false;
           const reality=processCpuResult?.reality;
-          if(reality?.trackingStatus!=='NORMAL'||!Array.isArray(reality.worldPoints))return;
-          const plane=fitWorldPlane(reality.worldPoints,trackedCamera);
-          if(!plane){stable=null;if(trackedGuide)trackedGuide.visible=false;setCanPlace(false);return;}
+          if(reality?.trackingStatus!=='NORMAL'||!Array.isArray(reality.worldPoints)){
+            stable=null;lastCandidate=null;wallCandidateRef.current=null;
+            if(trackedArtwork)trackedArtwork.visible=false;
+            if(trackedGuide)trackedGuide.visible=false;
+            setCanPlace(false);
+            setMessage(ru
+              ?'Отслеживание стены не готово ('+(reality?.trackingStatus||'нет данных')+'). Медленно проведите камерой по стене.'
+              :'Wall tracking is not ready ('+(reality?.trackingStatus||'no data')+'). Slowly scan the wall.');
+            return;
+          }
+          const rect=rootRef.current?.getBoundingClientRect();
+          const plane=detectWallPlane(
+            reality.worldPoints,
+            trackedCamera,
+            Math.max(1,rect?.width||window.innerWidth),
+            Math.max(1,rect?.height||window.innerHeight)
+          );
+          if(!plane){
+            stable=null;lastCandidate=null;wallCandidateRef.current=null;
+            if(trackedArtwork)trackedArtwork.visible=false;
+            if(trackedGuide)trackedGuide.visible=false;
+            setCanPlace(false);
+            setMessage(ru
+              ?'Камера работает, ищем плоскость стены. Наведите на однотонную стену с хорошим освещением и медленно двигайте телефон.'
+              :'Camera is running; searching for a wall plane. Aim at a well-lit, mostly plain wall and move the phone slowly.');
+            return;
+          }
           if(stable&&stable.center.distanceTo(plane.center)<.06&&stable.normal.angleTo(plane.normal)<8*Math.PI/180){
             stable.frames=Math.min(30,stable.frames+1);stable.center.lerp(plane.center,.18);stable.normal.lerp(plane.normal,.18).normalize();
           }else stable={center:plane.center.clone(),normal:plane.normal.clone(),frames:1};
-          if(stable.frames<5){setCanPlace(false);setMessage(ru?'Стабилизируем стену…':'Stabilizing the wall…');return;}
+          if(stable.frames<5){
+            lastCandidate=null;wallCandidateRef.current=null;
+            if(trackedArtwork)trackedArtwork.visible=false;
+            if(trackedGuide)trackedGuide.visible=false;
+            setCanPlace(false);setMessage(ru?'Стабилизируем стену…':'Stabilizing the wall…');return;
+          }
           const wallPlane=new THREE.Plane().setFromNormalAndCoplanarPoint(stable.normal,stable.center);
           const ray=new THREE.Raycaster();ray.setFromCamera(new THREE.Vector2(0,0),trackedCamera);
           const hit=new THREE.Vector3();const hitOk=ray.ray.intersectPlane(wallPlane,hit);
-          if(!hitOk)return;
+          if(!hitOk){
+            lastCandidate=null;wallCandidateRef.current=null;
+            if(trackedArtwork)trackedArtwork.visible=false;
+            if(trackedGuide)trackedGuide.visible=false;
+            setCanPlace(false);
+            return;
+          }
           // Put the artwork a few millimetres in front of the physical wall.
           // The artwork's local +Z points toward the viewer.
           const candidatePosition=hit.clone().add(stable.normal.clone().multiplyScalar(thickness/2+.003));
@@ -503,9 +536,25 @@ export default function ARWallPreview({imageUrl,title,width,height,ru,artworkCho
 
       w.XR8.stop?.();w.XR8.clearCameraPipelineModules?.();
       w.XR8.XrController.configure({disableWorldTracking:false,enableLighting:true,enableWorldPoints:true,scale:'absolute'});
-      const modules=[w.XR8.GlTextureRenderer.pipelineModule(),w.XR8.Threejs.pipelineModule(),w.XR8.XrController.pipelineModule(),initModule];
+      const modules=[
+        w.XR8.GlTextureRenderer.pipelineModule(),
+        w.XR8.Threejs.pipelineModule(),
+        w.XR8.XrController.pipelineModule(),
+        w.LandingPage.pipelineModule(),
+        w.XRExtras.FullWindowCanvas.pipelineModule(),
+        w.XRExtras.Loading.pipelineModule(),
+        w.XRExtras.RuntimeError.pipelineModule(),
+        initModule,
+      ];
       w.XR8.addCameraPipelineModules(modules);
-      w.XR8.run({canvas,allowedDevices:w.XR8.XrConfig.device().MOBILE,cameraConfig:{direction:w.XR8.XrConfig.camera().BACK},glContextConfig:{antialias:true,alpha:true}});
+      // Start a watchdog before XR8.run: if onStart never fires, the old watchdog
+      // could never report the failure because it was created inside onStart.
+      if(updateWatchdog)clearTimeout(updateWatchdog);
+      updateWatchdog=setTimeout(()=>{
+        if(!started)setMessage(ru?'8th Wall загрузил камеру, но не запустил AR-сцену (onStart). Проверяем инициализацию pipeline.':'8th Wall opened the camera but did not start the AR scene (onStart). Check pipeline initialization.');
+      },8000);
+      // Match the reference project's minimal XR8 startup; standard modules manage camera/canvas.
+      w.XR8.run({canvas});
       setMode('ar');setPlaced(false);setCanPlace(false);
       eightWallRef.current={stop:()=>{try{w.XR8.stop?.()}catch{}try{w.XR8.clearCameraPipelineModules?.()}catch{}try{texture.dispose()}catch{}try{canvas.remove()}catch{}eightWallArtworkRef.current=null;eightWallCanvasRef.current=null;wallCandidateRef.current=null;}};
     }catch(error){

@@ -1,6 +1,7 @@
 import {getWorks} from "../../../lib/works";
 import ARWallPreview from "./ARWallPreview";
 import PhotoWallPreview from "./PhotoWallPreview";
+import AppleQuickLook from "./AppleQuickLook";
 
 function getDimensions(size:string){
   const match=(size||"").match(/([\d.,]+)\s*×\s*([\d.,]+)/);
@@ -28,6 +29,6 @@ export default async function ARTest({params}:{params:Promise<{locale:string}>})
   });
   return <main className="ar-page">
     <div className="ar-page-head"><span className="eyebrow">AR / TEST</span><h1>{ru?"Картина на вашей стене":"Your wall, your artwork"}</h1><p>{ru?"Сначала примерьте работу на фото комнаты. Живой AR доступен только на совместимых устройствах и пока работает экспериментально.":"First preview the artwork on a room photo. Live AR is experimental and only works on compatible devices."}</p></div>
-    {work?<><PhotoWallPreview ru={ru} artworkChoices={artworkChoices}/><div className="ar-live-experimental"><span className="eyebrow">{ru?"ЭКСПЕРИМЕНТАЛЬНЫЙ РЕЖИМ":"EXPERIMENTAL MODE"}</span><p>{ru?"Живой AR зависит от возможностей телефона и может не обнаруживать вертикальные поверхности.":"Live AR depends on device support and may not detect vertical surfaces."}</p><ARWallPreview imageUrl={work.imageUrl} title={ru?work.titleRu:work.titleEn} width={width} height={height} ru={ru} artworkChoices={artworkChoices}/></div></>:<p>{ru?"Нет доступных работ.":"No artwork available."}</p>}
+    {work?<><AppleQuickLook ru={ru} artworkChoices={artworkChoices}/><PhotoWallPreview ru={ru} artworkChoices={artworkChoices}/><div className="ar-live-experimental"><span className="eyebrow">{ru?"ЭКСПЕРИМЕНТАЛЬНЫЙ РЕЖИМ":"EXPERIMENTAL MODE"}</span><p>{ru?"Живой AR зависит от возможностей телефона и может не обнаруживать вертикальные поверхности.":"Live AR depends on device support and may not detect vertical surfaces."}</p><ARWallPreview imageUrl={work.imageUrl} title={ru?work.titleRu:work.titleEn} width={width} height={height} ru={ru} artworkChoices={artworkChoices}/></div></>:<p>{ru?"Нет доступных работ.":"No artwork available."}</p>}
   </main>;
 }

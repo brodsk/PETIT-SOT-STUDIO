@@ -377,29 +377,40 @@ export default function ARWallPreview({imageUrl,title,width,height,ru,artworkCho
       const w=window as any;
       w.THREE=THREE;
 
-      const loadScript=(src:string,ready:()=>boolean)=>new Promise<void>((resolve,reject)=>{
+      const loadScript=(src:string,ready:()=>boolean,attrs:Record<string,string>={})=>new Promise<void>((resolve,reject)=>{
         if(ready()){resolve();return;}
         const existing=document.querySelector('script[src="'+src+'"]') as HTMLScriptElement|null;
         const finish=()=>ready()?resolve():reject(new Error('Script loaded but API is unavailable: '+src));
-        if(existing){existing.addEventListener('load',finish,{once:true});setTimeout(finish,12000);return;}
-        const script=document.createElement('script');
-        script.src=src;script.async=true;script.crossOrigin='anonymous';
-        script.onload=finish;script.onerror=()=>reject(new Error('Could not load '+src));
+        if(existing){
+          if((existing as any).dataset?.loaded==='true'){finish();return;}
+          existing.addEventListener('load',()=>{(existing as any).dataset.loaded='true';finish();},{once:true});
+          existing.addEventListener('error',()=>reject(new Error('Could not load '+src)),{once:true});
+          return;
+        }
+        const script=document.createElement('script');script.src=src;script.async=true;script.crossOrigin='anonymous';
+        Object.entries(attrs).forEach(([key,value])=>script.setAttribute(key,value));
+        script.onload=()=>{(script as any).dataset.loaded='true';finish();};
+        script.onerror=()=>reject(new Error('Could not load '+src));
         document.head.appendChild(script);
       });
 
-      await loadScript('https://cdn.jsdelivr.net/npm/@8thwall/engine-binary@1/dist/xr.js',()=>!!w.XR8);
+      // Follow the reference app's boot sequence: preload SLAM and wait for xrloaded.
+      let onXrLoaded: (()=>void)|null=null;
+      const xrLoadedPromise=new Promise<void>((resolve,reject)=>{
+        if(w.XR8?.Threejs?.pipelineModule&&w.XR8?.XrController?.pipelineModule){resolve();return;}
+        const timeout=setTimeout(()=>{
+          if(onXrLoaded)window.removeEventListener('xrloaded',onXrLoaded);
+          reject(new Error('8th Wall engine loaded, but xrloaded was not emitted within 20 seconds'));
+        },20000);
+        onXrLoaded=()=>{clearTimeout(timeout);resolve();};
+        window.addEventListener('xrloaded',onXrLoaded,{once:true});
+      });
+      await loadScript('https://cdn.jsdelivr.net/npm/@8thwall/engine-binary@1/dist/xr.js',()=>!!w.XR8,{'data-preload-chunks':'slam'});
+      await xrLoadedPromise;
       await loadScript('https://cdn.jsdelivr.net/npm/@8thwall/xrextras@1/dist/xrextras.js',()=>!!w.XRExtras);
       await loadScript('https://cdn.jsdelivr.net/npm/@8thwall/landing-page@1/dist/landing-page.js',()=>!!w.LandingPage);
-      if(!w.XR8)throw new Error('8th Wall engine unavailable');
-      if(!w.XRExtras?.FullWindowCanvas||!w.XRExtras?.Loading||!w.XRExtras?.RuntimeError) {
-        throw new Error('8th Wall XRExtras pipeline modules unavailable');
-      }
-      // XR8 can expose its API before the optional SLAM chunk finishes loading.
-      // Explicitly await world tracking so the camera feed cannot run without plane tracking.
-      if(typeof w.XR8.loadChunk==='function'){
-        await w.XR8.loadChunk('slam');
-      }
+      if(!w.XR8?.Threejs?.pipelineModule||!w.XR8?.XrController?.pipelineModule)throw new Error('8th Wall engine is not ready after xrloaded');
+      if(!w.XRExtras?.FullWindowCanvas||!w.XRExtras?.Loading||!w.XRExtras?.RuntimeError)throw new Error('8th Wall XRExtras pipeline modules unavailable');
 
       const canvas=document.createElement('canvas');
       canvas.className='ar-three-canvas';
@@ -556,7 +567,8 @@ export default function ARWallPreview({imageUrl,title,width,height,ru,artworkCho
       updateWatchdog=setTimeout(()=>{
         if(!started)setMessage(ru?'8th Wall загрузил камеру, но не запустил AR-сцену (onStart). Проверяем инициализацию pipeline.':'8th Wall opened the camera but did not start the AR scene (onStart). Check pipeline initialization.');
       },8000);
-      w.XR8.run({canvas,allowedDevices:w.XR8.XrConfig.device().MOBILE,cameraConfig:{direction:w.XR8.XrConfig.camera().BACK},glContextConfig:{antialias:true,alpha:true}});
+      // Match the reference project's minimal XR8 startup; standard modules manage camera/canvas.
+      w.XR8.run({canvas});
       setMode('ar');setPlaced(false);setCanPlace(false);
       eightWallRef.current={stop:()=>{try{w.XR8.stop?.()}catch{}try{w.XR8.clearCameraPipelineModules?.()}catch{}try{texture.dispose()}catch{}try{canvas.remove()}catch{}eightWallArtworkRef.current=null;eightWallCanvasRef.current=null;wallCandidateRef.current=null;}};
     }catch(error){

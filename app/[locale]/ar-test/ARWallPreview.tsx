@@ -148,7 +148,8 @@ export default function ARWallPreview({ imageUrl, title, width, height, ru, artw
         const onLoaded = () => { window.clearTimeout(timer); resolve(); };
         window.addEventListener("xrloaded", onLoaded, { once: true });
       });
-      await loadScript(XR_URL, () => !!w.XR8, { "data-preload-chunks": "slam" });
+      // xr.js may finish downloading before it exposes XR8. Its xrloaded event is the readiness signal.
+      await loadScript(XR_URL, () => true, { "data-preload-chunks": "slam" });
       await xrLoaded;
       await loadScript(EXTRAS_URL, () => !!w.XRExtras);
       await loadScript(LANDING_URL, () => !!w.LandingPage);

@@ -58,14 +58,14 @@ export default function AppleQuickLook({ ru, artworkChoices }: { ru: boolean; ar
       const widthMeters = Math.max(0.05, (artwork.width || 30) / 100);
       const heightMeters = Math.max(0.05, (artwork.height || 30) / 100);
       const geometry = new THREE.PlaneGeometry(widthMeters, heightMeters);
-      const material = new THREE.MeshBasicMaterial({ map: texture, side: THREE.DoubleSide });
+      const material = new THREE.MeshStandardMaterial({ map: texture, side: THREE.DoubleSide, roughness: 0.92, metalness: 0 });
       const mesh = new THREE.Mesh(geometry, material);
       mesh.name = "PETIT_SOT_Artwork";
       const scene = new THREE.Scene();
       scene.add(mesh);
 
       const exporter = new USDZExporter();
-      const bytes = await exporter.parseAsync(scene);
+      const bytes = await exporter.parseAsync(scene, { quickLookCompatible: true, ar: { planeAnchoring: { alignment: "vertical" } } });
       const usdzBlob = new Blob([bytes], { type: "model/vnd.usdz+zip" });
       const nextUrl = URL.createObjectURL(usdzBlob);
       setUsdzUrl((old) => {
@@ -109,10 +109,10 @@ export default function AppleQuickLook({ ru, artworkChoices }: { ru: boolean; ar
       ) : (
         <div className="apple-quicklook-ready">
           {supported ? (
-            <a rel="ar" href={usdzUrl} className="apple-quicklook-link">
+            <a rel="ar" href={usdzUrl} className="apple-quicklook-image-link" aria-label={ru ? "Открыть картину в AR Quick Look" : "Open artwork in AR Quick Look"}>
               <img src={artwork.image} alt={artwork.title} />
-              <span>{ru ? "ОТКРЫТЬ В AR QUICK LOOK ↗" : "OPEN IN AR QUICK LOOK ↗"}</span>
             </a>
+            <span className="apple-quicklook-link-label">{ru ? "ОТКРЫТЬ В AR QUICK LOOK ↗" : "OPEN IN AR QUICK LOOK ↗"}</span>
           ) : (
             <a className="apple-quicklook-link" href={usdzUrl} download="petit-sot-artwork.usdz">
               <img src={artwork.image} alt={artwork.title} />

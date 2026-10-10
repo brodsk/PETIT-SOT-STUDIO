@@ -255,21 +255,7 @@ export default function ARWallPreview({imageUrl,title,width,height,ru,artworkCho
     setSelectedImage(imageUrl||"");
     setSelectedDimensions({width,height});
     setSelectedTitle(title);
-    preload8thWall();
   },[imageUrl,width,height,title]);
-
-  const preload8thWall=()=>{
-    if(typeof window==='undefined')return;
-    const w=window as any;
-    if(w.XR8||document.querySelector('script[data-preload-petit-sot-8th-wall]'))return;
-    const script=document.createElement('script');
-    script.src='https://cdn.jsdelivr.net/npm/@8thwall/engine-binary@1/dist/xr.js';script.async=true;script.crossOrigin='anonymous';
-    script.dataset.preloadPetitSot8thWall='true';script.setAttribute('data-preload-chunks','slam');
-    document.head.appendChild(script);
-    const extras=document.createElement('script');
-    extras.src='https://cdn.jsdelivr.net/npm/@8thwall/xrextras@1/dist/xrextras.js';extras.async=false;extras.crossOrigin='anonymous';
-    document.head.appendChild(extras);
-  };
 
   const openSceneViewer=async()=>{
     if(!selectedImage||!isAndroidDevice())return;

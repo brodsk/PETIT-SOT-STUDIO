@@ -140,15 +140,31 @@ export default function ARWallPreview({ imageUrl, title, width, height, ru, artw
       stopAR();
       const w = window;
       const xrLoaded = new Promise<void>((resolve, reject) => {
-        if (w.XR8?.Threejs?.pipelineModule && w.XR8?.XrController?.pipelineModule) { resolve(); return; }
-        const timer = window.setTimeout(() => {
+        const isReady = () => !!w.XR8?.Threejs?.pipelineModule && !!w.XR8?.XrController?.pipelineModule;
+        if (isReady()) { resolve(); return; }
+
+        // The event can fire before a later retry attaches its listener, so also poll the public API.
+        let settled = false;
+        const finish = (error?: Error) => {
+          if (settled) return;
+          settled = true;
+          window.clearTimeout(timer);
+          window.clearInterval(poll);
           window.removeEventListener("xrloaded", onLoaded);
-          reject(new Error("8th Wall did not emit xrloaded within 20 seconds"));
+          error ? reject(error) : resolve();
+        };
+        const onLoaded = () => {
+          if (isReady()) finish();
+        };
+        const poll = window.setInterval(() => {
+          if (isReady()) finish();
+        }, 100);
+        const timer = window.setTimeout(() => {
+          finish(new Error("8th Wall loaded, but its XR8 APIs did not become ready within 20 seconds"));
         }, 20000);
-        const onLoaded = () => { window.clearTimeout(timer); resolve(); };
-        window.addEventListener("xrloaded", onLoaded, { once: true });
+        window.addEventListener("xrloaded", onLoaded);
       });
-      // xr.js may finish downloading before it exposes XR8. Its xrloaded event is the readiness signal.
+      // xr.js may finish downloading before exposing XR8; use both xrloaded and API readiness.
       await loadScript(XR_URL, () => true, { "data-preload-chunks": "slam" });
       await xrLoaded;
       await loadScript(EXTRAS_URL, () => !!w.XRExtras);

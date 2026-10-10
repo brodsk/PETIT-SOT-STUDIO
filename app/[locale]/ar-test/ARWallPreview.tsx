@@ -105,6 +105,7 @@ export default function ARWallPreview({ imageUrl, title, width, height, ru, artw
   const [selectedTitle, setSelectedTitle] = useState(title);
   const [selectedDimensions, setSelectedDimensions] = useState({ width, height });
   const [running, setRunning] = useState(false);
+  const [fullscreen, setFullscreen] = useState(false);
   const [canPlace, setCanPlace] = useState(false);
   const [placed, setPlaced] = useState(false);
   const [message, setMessage] = useState(ru ? "Нажмите «Запустить AR» и наведите камеру на хорошо освещённую стену." : "Tap Start AR and scan a well-lit wall.");
@@ -133,8 +134,29 @@ export default function ARWallPreview({ imageUrl, title, width, height, ru, artw
     try { stopRef.current?.(); } catch {}
   }, []);
 
+  const enterFullscreen = () => {
+    setFullscreen(true);
+    // Use native fullscreen where supported; CSS viewport mode is the fallback (including iOS Safari).
+    try {
+      const result = rootRef.current?.requestFullscreen?.();
+      result?.catch(() => {});
+    } catch {}
+  };
+
+  const closeAR = () => {
+    stopAR();
+    setFullscreen(false);
+    try {
+      if (document.fullscreenElement) {
+        const result = document.exitFullscreen?.();
+        result?.catch(() => {});
+      }
+    } catch {}
+  };
+
   const startAR = async () => {
     if (!selectedImage || busy) return;
+    enterFullscreen();
     setBusy(true);
     say(ru ? "Загружаем AR-движок и камеру…" : "Loading the AR engine and camera…");
     try {
@@ -368,7 +390,7 @@ export default function ARWallPreview({ imageUrl, title, width, height, ru, artw
   };
 
   return (
-    <section className="ar-preview" ref={rootRef}>
+    <section className={`ar-preview${fullscreen ? " is-fullscreen" : ""}`} ref={rootRef}>
       <Script
         src={XR_URL}
         strategy="afterInteractive"
@@ -377,7 +399,10 @@ export default function ARWallPreview({ imageUrl, title, width, height, ru, artw
       />
       <div className="ar-topbar">
         <span>{running ? "PETIT.SOT STUDIO / LIVE AR" : "PETIT.SOT STUDIO / AR TEST"}</span>
-        <button type="button" onClick={resetAR} aria-label={ru ? "Перезапустить" : "Restart"}>↻</button>
+        <div className="ar-topbar-actions">
+          <button type="button" onClick={resetAR} aria-label={ru ? "Перезапустить" : "Restart"}>↻</button>
+          {fullscreen && <button className="ar-close" type="button" onClick={closeAR} aria-label={ru ? "Закрыть камеру" : "Close camera"} title={ru ? "Закрыть" : "Close"}>×</button>}
+        </div>
       </div>
       {!running && (
         <div className="ar-start">

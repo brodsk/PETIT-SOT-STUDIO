@@ -109,10 +109,12 @@ export default function AppleQuickLook({ ru, artworkChoices }: { ru: boolean; ar
       ) : (
         <div className="apple-quicklook-ready">
           {supported ? (
-            <a rel="ar" href={usdzUrl} className="apple-quicklook-image-link" aria-label={ru ? "Открыть картину в AR Quick Look" : "Open artwork in AR Quick Look"}>
-              <img src={artwork.image} alt={artwork.title} />
-            </a>
-            <span className="apple-quicklook-link-label">{ru ? "ОТКРЫТЬ В AR QUICK LOOK ↗" : "OPEN IN AR QUICK LOOK ↗"}</span>
+            <>
+              <a rel="ar" href={usdzUrl} className="apple-quicklook-image-link" aria-label={ru ? "Открыть картину в AR Quick Look" : "Open artwork in AR Quick Look"}>
+                <img src={artwork.image} alt={artwork.title} />
+              </a>
+              <span className="apple-quicklook-link-label">{ru ? "ОТКРЫТЬ В AR QUICK LOOK ↗" : "OPEN IN AR QUICK LOOK ↗"}</span>
+            </>
           ) : (
             <a className="apple-quicklook-link" href={usdzUrl} download="petit-sot-artwork.usdz">
               <img src={artwork.image} alt={artwork.title} />

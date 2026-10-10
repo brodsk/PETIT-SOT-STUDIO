@@ -1656,3 +1656,29 @@ button,
 .ar-live-experimental{margin-top:80px;padding-top:35px;border-top:1px solid rgba(23,23,23,.2)}
 .ar-live-experimental>p{font-size:11px;line-height:1.6;opacity:.65;max-width:540px;margin:14px 0 24px}
 @media(max-width:700px){.ar-live-experimental{margin-top:55px;padding-top:28px}}
+
+
+/* Apple AR Quick Look artwork placement. */
+.apple-quicklook{max-width:1100px;margin:0 auto 74px;padding:30px 0 38px;border-bottom:1px solid rgba(23,23,23,.2);display:grid;grid-template-columns:minmax(0,1fr) minmax(230px,.55fr);gap:18px 34px;align-items:start}
+.apple-quicklook-copy{max-width:650px}
+.apple-quicklook-copy h2{font-size:clamp(32px,5vw,58px);font-weight:400;letter-spacing:-.045em;line-height:.94;margin:15px 0}
+.apple-quicklook-copy p{max-width:540px;font-size:12px;line-height:1.6;opacity:.68;margin:0}
+.apple-quicklook-select{display:flex;flex-direction:column;gap:9px;grid-column:2;grid-row:1;align-self:end}
+.apple-quicklook-select span{font-size:9px;text-transform:uppercase;letter-spacing:.12em}
+.apple-quicklook-select select{width:100%;padding:12px 8px;border:1px solid rgba(23,23,23,.25);border-radius:0;background:transparent;color:#171717;font:inherit;font-size:12px}
+.apple-quicklook-button{grid-column:2;grid-row:2;width:100%;min-height:48px;padding:13px 15px;border:1px solid #171717;background:#171717;color:#eeeae3;font:inherit;font-size:9px;letter-spacing:.12em;text-transform:uppercase;cursor:pointer}
+.apple-quicklook-button:disabled{opacity:.55;cursor:wait}
+.apple-quicklook-ready{grid-column:2;grid-row:2;display:flex;flex-direction:column;gap:10px}
+.apple-quicklook-link{display:flex;align-items:center;gap:14px;min-height:70px;padding:10px;border:1px solid rgba(23,23,23,.3);color:inherit;text-decoration:none;font-size:9px;letter-spacing:.08em;line-height:1.5}
+.apple-quicklook-link img{width:54px;height:54px;object-fit:contain;background:rgba(23,23,23,.04)}
+.apple-quicklook-ready>p,.apple-quicklook-footnote,.apple-quicklook-error{font-size:10px;line-height:1.6;opacity:.65;margin:0}
+.apple-quicklook-reset{align-self:flex-start;padding:5px 0;border:0;border-bottom:1px solid rgba(23,23,23,.3);background:transparent;color:inherit;font:inherit;font-size:9px;cursor:pointer}
+.apple-quicklook-footnote{grid-column:1/-1}
+.apple-quicklook-error{grid-column:1/-1;color:#9b2c20;opacity:1}
+@media(max-width:700px){
+ .apple-quicklook{display:flex;flex-direction:column;gap:17px;margin-bottom:55px;padding-top:24px}
+ .apple-quicklook-copy h2{font-size:38px}
+ .apple-quicklook-select,.apple-quicklook-button,.apple-quicklook-ready{width:100%}
+ .apple-quicklook-select{margin-top:4px}
+ .apple-quicklook-footnote{width:100%}
+}

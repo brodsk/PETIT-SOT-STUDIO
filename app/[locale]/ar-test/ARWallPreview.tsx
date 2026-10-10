@@ -420,6 +420,8 @@ export default function ARWallPreview({imageUrl,title,width,height,ru,artworkCho
       let trackedGuide:THREE.Mesh|null=null;
       let lastCandidate:{position:THREE.Vector3;quaternion:THREE.Quaternion}|null=null;
       let stable:{center:THREE.Vector3;normal:THREE.Vector3;frames:number}|null=null;
+      let updateSeen=false;
+      let updateWatchdog:ReturnType<typeof setTimeout>|null=null;
 
       const initModule={
         name:'petitsot-wall-ar',
@@ -453,13 +455,18 @@ export default function ARWallPreview({imageUrl,title,width,height,ru,artworkCho
           guide.visible=false;scene.add(guide);trackedGuide=guide;
           scene.add(new THREE.HemisphereLight(0xffffff,0x333333,1.15));
           eightWallCanvasRef.current=startedCanvas;
-          setMessage(ru?'Наведите камеру на стену и медленно двигайте телефон.':'Point at a wall and move the phone slowly.');
+          setMessage(ru?'Камера запущена, ждём трекинг…':'Camera started; waiting for tracking…');
+          if(updateWatchdog)clearTimeout(updateWatchdog);
+          updateWatchdog=setTimeout(()=>{
+            if(!updateSeen)setMessage(ru?'Камера показывает изображение, но 8th Wall не отдаёт кадры трекинга. Это уже не проблема наведения на стену — проверяем запуск SLAM/сборку.':'Camera video is running, but 8th Wall is not delivering tracking frames. This is not a wall-aiming issue; the SLAM startup/build needs checking.');
+          },5000);
         },
         onCanvasSizeChange:({canvasWidth,canvasHeight}:any)=>{
           const xr=w.XR8.Threejs.xrScene();
           try{(xr.renderer as THREE.WebGLRenderer).setSize(canvasWidth,canvasHeight,false);}catch{}
         },
         onUpdate:({processCpuResult}:any)=>{
+          if(!updateSeen){updateSeen=true;if(updateWatchdog)clearTimeout(updateWatchdog);setMessage(ru?'Трекинг работает, ищем плоскость стены…':'Tracking is running; searching for the wall plane…');}
           if(!trackedCamera||trackedArtwork?.userData.locked)return;
           // Never float the artwork in front of the camera.
           // It becomes visible only after a real vertical wall plane is detected.

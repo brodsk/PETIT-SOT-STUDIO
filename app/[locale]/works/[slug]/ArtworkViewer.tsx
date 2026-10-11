@@ -34,7 +34,7 @@ export default function ArtworkViewer({images,alt,slug}:{images:string[];alt:str
  const next=(e?:React.MouseEvent)=>{e?.stopPropagation();setActive(i=>(i+1)%items.length)};
  return <div ref={viewerRef} className="artwork-viewer">
   <div className={`single-art artwork-viewer-main${slug==="sunset"&&active===0?" artwork-viewer-sunset-first":""}`} onClick={()=>setOpen(true)}>
-   <img ref={imageRef} src={items[active]} alt={alt} onLoad={(e)=>{const img=e.currentTarget;if(img.naturalWidth&&img.naturalHeight){img.parentElement?.style.setProperty("aspect-ratio",`${img.naturalWidth} / ${img.naturalHeight}`);}}}/>
+   <img ref={imageRef} src={items[active]} alt={alt} onLoad={(e)=>{const img=e.currentTarget;const frame=img.parentElement;if(img.naturalWidth&&img.naturalHeight&&frame){frame.style.setProperty("aspect-ratio",`${img.naturalWidth} / ${img.naturalHeight}`);if(slug==="sunset"&&active===0&&window.matchMedia("(max-width: 700px)").matches){frame.style.setProperty("height",`${frame.clientWidth*img.naturalHeight/img.naturalWidth}px`,"important");frame.style.setProperty("min-height","0","important");}}}}/>
    {items.length>1&&<>
     <button className="artwork-zone artwork-zone-left" onClick={prev} aria-label="Previous photo"/>
     <button className="artwork-zone artwork-zone-right" onClick={next} aria-label="Next photo"/>

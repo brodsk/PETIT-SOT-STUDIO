@@ -34,7 +34,7 @@ export default function ArtworkViewer({images,alt}:{images:string[];alt:string})
  const next=(e?:React.MouseEvent)=>{e?.stopPropagation();setActive(i=>(i+1)%items.length)};
  return <div ref={viewerRef} className="artwork-viewer">
   <div className="single-art artwork-viewer-main" onClick={()=>setOpen(true)}>
-   <img ref={imageRef} src={items[active]} alt={alt}/>
+   <img ref={imageRef} src={items[active]} alt={alt} onLoad={(e)=>{const img=e.currentTarget;if(img.naturalWidth&&img.naturalHeight){img.parentElement?.style.setProperty("aspect-ratio",`${img.naturalWidth} / ${img.naturalHeight}`);}}}/>
    {items.length>1&&<>
     <button className="artwork-zone artwork-zone-left" onClick={prev} aria-label="Previous photo"/>
     <button className="artwork-zone artwork-zone-right" onClick={next} aria-label="Next photo"/>

@@ -103,7 +103,7 @@ export default async function WorkPage({
       w.price > 0
         ? {
             "@type": "Offer",
-            url: canonical,
+            url: w.etsyListingUrl || canonical,
             priceCurrency: w.currency,
             price: w.price,
             availability: w.available
@@ -131,7 +131,7 @@ export default async function WorkPage({
         </dl>
         <InteriorShowcase interiors={interiors} ru={ru}/>
         <p className="work-description">{description}</p>
-        <div className="purchase-box">{w.available ? <><div><span className="purchase-label">{ru ? "Доступна" : "Available"}</span><strong>{w.price > 0 ? new Intl.NumberFormat(ru ? "ru-RU" : "en-GB", {style:"currency", currency:w.currency}).format(w.price) : (ru ? "Цена по запросу" : "Price on request")}</strong></div><Link className="purchase-button" href={"/contact?work=" + encodeURIComponent(title)}>{ru ? "Приобрести работу" : "Acquire this work"} <span>↗</span></Link><p>{ru ? "Безопасная оплата через Stripe появится здесь. Пока отправьте запрос на приобретение." : "Secure online payment via Stripe will be available here. For now, send a purchase enquiry."}</p></> : <><span className="purchase-label">{ru ? "Статус" : "Status"}</span><strong>{ru ? "Продано / недоступно" : "Sold / unavailable"}</strong></>}</div>
+        <div className="purchase-box">{w.available ? <><div><span className="purchase-label">{ru ? "Доступна" : "Available"}</span><strong>{w.price > 0 ? new Intl.NumberFormat(ru ? "ru-RU" : "en-GB", {style:"currency", currency:w.currency}).format(w.price) : (ru ? "Цена по запросу" : "Price on request")}</strong></div>{w.etsyListingUrl ? <a className="purchase-button" href={w.etsyListingUrl} target="_blank" rel="noopener noreferrer">{ru ? "Купить на Etsy" : "Buy on Etsy"} <span>↗</span></a> : <Link className="purchase-button" href={"/contact?work=" + encodeURIComponent(title)}>{ru ? "Приобрести работу" : "Acquire this work"} <span>↗</span></Link>}<p>{w.etsyListingUrl ? (ru ? "Вы перейдёте на Etsy для оформления покупки." : "You’ll continue to Etsy to complete your purchase.") : (ru ? "Ссылка на Etsy пока не добавлена. Отправьте запрос на приобретение." : "The Etsy link isn’t available yet. Send a purchase enquiry.")}</p></> : <><span className="purchase-label">{ru ? "Статус" : "Status"}</span><strong>{ru ? "Продано / недоступно" : "Sold / unavailable"}</strong></>}</div>
       </aside>
     </main>
   );

@@ -17,9 +17,6 @@ export const metadata: Metadata = {
   authors: [{ name: "Olga Trikhleb", url: "https://www.instagram.com/petit.sot/" }],
   creator: "Olga Trikhleb",
   publisher: "PETIT.SOT STUDIO",
-  icons: {
-    icon: "/favicon.svg",
-  },
   robots: {
     index: true,
     follow: true,

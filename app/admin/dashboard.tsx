@@ -238,11 +238,11 @@ export default function AdminDashboard({initialArtworks}:Props){
     setBusy(false);
   }
 
-  async function importArtworkToEtsy(artwork:Artwork){
+  async function importArtworkToEtsy(artwork:Artwork,forceNewListing=false){
     if(!etsy?.connected){setMessage("Сначала подключите Etsy.");return false;}
     setBusy(true);setMessage("");
     try{
-      const response=await fetch("/api/admin/etsy/import",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({artworkId:artwork.id})});
+      const response=await fetch("/api/admin/etsy/import",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({artworkId:artwork.id,forceNewListing})});
       const data=await response.json().catch(()=>({}));
       if(!response.ok)throw new Error(data.error||"Ошибка Etsy");
       if(!data.listingId)throw new Error("Сервер не подтвердил ID объявления Etsy.");
@@ -265,18 +265,15 @@ export default function AdminDashboard({initialArtworks}:Props){
     if(!form.id){setMessage("Сначала сохраните картину.");return;}
     const artwork=artworks.find(x=>x.id===form.id)||form as Artwork;
     if(!etsy?.connected){setMessage("Сначала подключите Etsy.");return;}
-    const action=artwork.etsy_listing_id&&!artwork.etsy_error
-      ?"Картина уже есть в Etsy. Повторно загрузить и добавить фотографии?"
-      :"Загрузить эту картину в Etsy как черновик?";
-    if(!window.confirm(action))return;
-    await importArtworkToEtsy(artwork);
+    if(!window.confirm("Создать для картины «"+artwork.title+"» новый черновик Etsy с актуальными фотографиями? Старый сохранённый ID будет заменён."))return;
+    await importArtworkToEtsy(artwork,true);
   }
 
   async function importAllToEtsy(){
     if(!etsy?.connected){setMessage("Сначала подключите Etsy.");return;}
-    const pending=artworks.filter(x=>!x.etsy_listing_id||x.etsy_error);
-    if(!pending.length){setMessage("Все картины уже загружены в Etsy.");return;}
-    if(!window.confirm("Загрузить "+pending.length+" картин в Etsy как черновики?"))return;
+    const pending=artworks;
+    if(!pending.length){setMessage("В админке пока нет картин для загрузки.");return;}
+    if(!window.confirm("Создать заново "+pending.length+" черновиков Etsy для ВСЕХ картин, используя актуальные фотографии? Сохранённые Etsy ID будут заменены новыми."))return;
     setEtsyImporting(true);setBusy(true);setMessage("");
     let ok=0;let failed=0;
     const failures:string[]=[];
@@ -284,7 +281,7 @@ export default function AdminDashboard({initialArtworks}:Props){
       const artwork=pending[i];
       setEtsyProgress((i+1)+"/"+pending.length+" · "+artwork.title);
       try{
-        const response=await fetch("/api/admin/etsy/import",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({artworkId:artwork.id})});
+        const response=await fetch("/api/admin/etsy/import",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({artworkId:artwork.id,forceNewListing:true})});
         const data=await response.json().catch(()=>({}));
         if(!response.ok)throw new Error(data.error||"Ошибка Etsy");
         if(!data.listingId)throw new Error("Сервер не подтвердил ID объявления Etsy.");
@@ -305,7 +302,7 @@ export default function AdminDashboard({initialArtworks}:Props){
   async function logout(){await supabase.auth.signOut();location.href="/admin/login";}
 
   return <main className="admin-page">
-    <header className="admin-top"><div className="admin-brand"><span className="eyebrow"><a href="/admin">PETIT.SOT</a> / АРХИВ</span><h1>Картины</h1></div><nav><a href="/admin/orders">Заказы</a>{etsy?.connected?<><span className="eyebrow">ETSY · {etsy.shop_name||"подключён"}</span><button type="button" onClick={importAllToEtsy} disabled={etsyImporting||busy}>{etsyImporting?etsyProgress:"Загрузить всё в Etsy ↗"}</button></>:<a href="/api/admin/etsy/connect">Подключить Etsy ↗</a>}<button onClick={logout}>Выйти</button></nav></header>
+    <header className="admin-top"><div className="admin-brand"><span className="eyebrow"><a href="/admin">PETIT.SOT</a> / АРХИВ</span><h1>Картины</h1></div><nav><a href="/admin/orders">Заказы</a>{etsy?.connected?<><span className="eyebrow">ETSY · {etsy.shop_name||"подключён"}</span><button type="button" onClick={importAllToEtsy} disabled={etsyImporting||busy}>{etsyImporting?etsyProgress:"Заново загрузить всё в Etsy ↗"}</button></>:<a href="/api/admin/etsy/connect">Подключить Etsy ↗</a>}<button onClick={logout}>Выйти</button></nav></header>
     <section className="admin-layout">
       <aside className="admin-list"><button className="admin-new" onClick={()=>{setSelected(null);setImage(null);setImagePreview("");setGalleryImages([]);setNewImages([]);setMessage("");}}>+ Новая картина</button>{artworks.map(w=><button key={w.id} className={"admin-list-row "+(form.id===w.id?"active":"")} onClick={()=>{setSelected(w);setImage(null);setImagePreview("");setNewImages([]);setMessage("");}}><span>{w.title||"Без названия"}</span><small>{({draft:"Черновик",available:"В продаже",sold:"Продана",archived:"Архив"} as Record<string,string>)[w.status]||w.status}{w.etsy_listing_id?" · Etsy #"+w.etsy_listing_id:""}</small>{w.etsy_error&&<small style={{color:"#b45309",whiteSpace:"normal"}}>Etsy: {w.etsy_error}</small>}</button>)}</aside>
       <section className="admin-editor"><form onSubmit={save}>
@@ -314,7 +311,7 @@ export default function AdminDashboard({initialArtworks}:Props){
         <div className="admin-form-grid"><label>Название<input value={form.title} onChange={e=>patch("title",e.target.value)} required/></label><label>Адрес страницы (Slug)<input value={form.slug} onChange={e=>patch("slug",e.target.value)} placeholder="например, untitled-i" required/></label><label>Год<input type="number" value={form.year??""} onChange={e=>patch("year",Number(e.target.value)||null)}/></label><label>Материал / техника<input value={form.medium??""} onChange={e=>patch("medium",e.target.value)} placeholder="например, масло на холсте"/></label><label>Ширина / см<input type="number" step="0.1" value={form.width_cm??""} onChange={e=>patch("width_cm",Number(e.target.value)||null)}/></label><label>Высота / см<input type="number" step="0.1" value={form.height_cm??""} onChange={e=>patch("height_cm",Number(e.target.value)||null)}/></label><label>Глубина / см<input type="number" step="0.1" value={form.depth_cm??""} onChange={e=>patch("depth_cm",Number(e.target.value)||null)}/></label><label>Цена / EUR<input type="number" step="0.01" min="0" value={form.price_eur===0?"":form.price_eur} onChange={e=>patch("price_eur",e.target.value===""?0:Number(e.target.value))}/></label></div>
         <div className="admin-description-head"><label>Описание (русский)<textarea value={form.description} onChange={e=>patch("description",e.target.value)} rows={8}/></label><div><button type="button" className="ai-button" onClick={generateDescription} disabled={aiBusy}>{aiBusy?"Анализирую картину…":"✦ Создать описание с ИИ"}</button><p>ИИ анализирует изображение и создаёт описание на русском и английском. Фактические данные не выдумываются.</p></div></div>
         {message&&<p className="admin-message">{message}</p>}
-        <div className="admin-actions"><button type="button" onClick={publish} disabled={busy||!form.id}>Опубликовать ↗</button>{etsy?.connected&&form.id&&<button type="button" className="secondary" onClick={importSelectedToEtsy} disabled={busy||etsyImporting}>{form.etsy_listing_id&&!form.etsy_error?"Повторно загрузить в Etsy ↗":"Загрузить в Etsy ↗"}</button>}<button type="submit" disabled={busy}>{busy?"Сохраняю…":"Сохранить картину"} <span>↗</span></button>{form.id&&<><button type="button" className="secondary" onClick={passport} disabled={busy}>Создать паспорт PDF</button><button type="button" className="secondary" onClick={removeArtwork} disabled={busy}>Удалить картину</button></>}</div>
+        <div className="admin-actions"><button type="button" onClick={publish} disabled={busy||!form.id}>Опубликовать ↗</button>{etsy?.connected&&form.id&&<button type="button" className="secondary" onClick={importSelectedToEtsy} disabled={busy||etsyImporting}>{"Создать новый черновик в Etsy ↗"}</button>}<button type="submit" disabled={busy}>{busy?"Сохраняю…":"Сохранить картину"} <span>↗</span></button>{form.id&&<><button type="button" className="secondary" onClick={passport} disabled={busy}>Создать паспорт PDF</button><button type="button" className="secondary" onClick={removeArtwork} disabled={busy}>Удалить картину</button></>}</div>
       </form></section>
     </section>
   </main>

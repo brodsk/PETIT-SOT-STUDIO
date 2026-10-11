@@ -1,7 +1,7 @@
 "use client";
 import {useEffect,useRef,useState} from "react";
 
-export default function ArtworkViewer({images,alt}:{images:string[];alt:string}){
+export default function ArtworkViewer({images,alt,slug}:{images:string[];alt:string;slug:string}){
  const items=images.filter(Boolean), [active,setActive]=useState(0), [open,setOpen]=useState(false);
  const viewerRef=useRef<HTMLDivElement>(null);
  const imageRef=useRef<HTMLImageElement>(null);
@@ -33,7 +33,7 @@ export default function ArtworkViewer({images,alt}:{images:string[];alt:string})
  const prev=(e?:React.MouseEvent)=>{e?.stopPropagation();setActive(i=>(i-1+items.length)%items.length)};
  const next=(e?:React.MouseEvent)=>{e?.stopPropagation();setActive(i=>(i+1)%items.length)};
  return <div ref={viewerRef} className="artwork-viewer">
-  <div className="single-art artwork-viewer-main" onClick={()=>setOpen(true)}>
+  <div className={`single-art artwork-viewer-main${slug==="sunset"&&active===0?" artwork-viewer-sunset-first":""}`} onClick={()=>setOpen(true)}>
    <img ref={imageRef} src={items[active]} alt={alt} onLoad={(e)=>{const img=e.currentTarget;if(img.naturalWidth&&img.naturalHeight){img.parentElement?.style.setProperty("aspect-ratio",`${img.naturalWidth} / ${img.naturalHeight}`);}}}/>
    {items.length>1&&<>
     <button className="artwork-zone artwork-zone-left" onClick={prev} aria-label="Previous photo"/>

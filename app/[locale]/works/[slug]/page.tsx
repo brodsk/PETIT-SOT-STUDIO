@@ -120,7 +120,7 @@ export default async function WorkPage({
         dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
       />
       <Link href="/works" className="back">← {ru ? "Архив" : "Archive"}</Link>
-      <ArtworkViewer images={w.images.length ? w.images : w.imageUrl ? [w.imageUrl] : []} alt={title}/>
+      <ArtworkViewer images={w.images.length ? w.images : w.imageUrl ? [w.imageUrl] : []} alt={title} slug={w.slug}/>
       <aside className="work-info">
         <p className="eyebrow">PETIT.SOT / {w.year}</p>
         <h1>{title}</h1>

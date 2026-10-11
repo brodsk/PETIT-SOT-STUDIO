@@ -89,10 +89,8 @@ export default async function WorkPage({
     url: canonical,
     sku: w.slug,
     brand: {
-      "@type": "Person",
-      name: "Olga Trikhleb",
-      url: SITE_URL,
-      sameAs: ["https://www.instagram.com/petit.sot/"],
+      "@type": "Brand",
+      name: "PETIT.SOT STUDIO",
     },
     creator: {
       "@type": "Person",

@@ -18,10 +18,7 @@ export const metadata: Metadata = {
   creator: "Olga Trikhleb",
   publisher: "PETIT.SOT STUDIO",
   icons: {
-    icon: [
-      { url: "/favicon.png", type: "image/png", sizes: "92x128" },
-      { url: "/favicon.svg", type: "image/svg+xml" },
-    ],
+    icon: "/favicon.svg",
   },
   robots: {
     index: true,

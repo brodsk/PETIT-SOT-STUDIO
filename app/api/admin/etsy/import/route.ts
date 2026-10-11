@@ -66,6 +66,7 @@ export async function POST(request:Request){
   const {supabase}=await requireAdmin();
   const body=await request.json().catch(()=>({}));
   const artworkId=String(body?.artworkId||"");
+  const forceNewListing=body?.forceNewListing===true;
   if(!artworkId)return fail("Не указана картина.");
 
   const {data:artwork,error:artworkError}=await supabase.from("petit_sot_artworks")
@@ -124,7 +125,10 @@ export async function POST(request:Request){
     for(const tag of ["original art","contemporary art","wall art","abstract painting"])form.append("tags",tag);
     if(artwork.medium)form.append("materials",String(artwork.medium).replace(/[^\p{L}\p{Nd}\p{Zs}]/gu," ").replace(/\s+/g," ").trim().slice(0,45));
 
-    let listingId=Number(artwork.etsy_listing_id||0);
+    // A deleted Etsy draft can leave a stale ID in Supabase. When forceNewListing
+    // is requested, create a fresh draft and replace the stored ID instead of trying
+    // to upload images to the deleted listing.
+    let listingId=forceNewListing?0:Number(artwork.etsy_listing_id||0);
     if(!listingId){
       const createResponse=await etsyRequest("/application/shops/"+shopId+"/listings?legacy=false",{method:"POST",body:form});
       const created=await json(createResponse);

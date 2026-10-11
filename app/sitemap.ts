@@ -17,6 +17,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     url: `${SITE_URL}/works/${work.slug}`,
     changeFrequency: "monthly",
     priority: 0.8,
+    ...(work.images.length > 0 ? { images: [...new Set(work.images)] } : {}),
   }));
 
   return [...staticPages, ...artworkPages];

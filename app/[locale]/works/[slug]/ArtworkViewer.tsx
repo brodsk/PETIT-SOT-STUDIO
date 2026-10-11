@@ -6,8 +6,22 @@ export default function ArtworkViewer({images,alt,slug}:{images:string[];alt:str
  const viewerRef=useRef<HTMLDivElement>(null);
  const imageRef=useRef<HTMLImageElement>(null);
  useEffect(()=>{
-  if(slug==="sunset"&&window.matchMedia("(max-width: 700px)").matches){const frame=imageRef.current?.parentElement;frame?.style.setProperty("height","auto","important");}
-  if(items.length<2)return;
+  const fixSunsetFrame=()=>{
+   if(slug!=="sunset"||!window.matchMedia("(max-width: 700px)").matches)return;
+   const image=imageRef.current,frame=image?.parentElement;
+   if(!image||!frame||!image.naturalWidth||!image.naturalHeight)return;
+   const width=frame.getBoundingClientRect().width;
+   if(!width)return;
+   frame.style.setProperty("aspect-ratio",`${image.naturalWidth} / ${image.naturalHeight}`,"important");
+   frame.style.setProperty("height",`${width*image.naturalHeight/image.naturalWidth}px`,"important");
+   frame.style.setProperty("min-height","0","important");
+  };
+  const imageForSizing=imageRef.current;
+  imageForSizing?.addEventListener("load",fixSunsetFrame);
+  const sizingObserver=imageForSizing&&"ResizeObserver" in window?new ResizeObserver(fixSunsetFrame):null;
+  if(sizingObserver&&imageForSizing?.parentElement)sizingObserver.observe(imageForSizing.parentElement);
+  requestAnimationFrame(()=>requestAnimationFrame(fixSunsetFrame));
+  if(items.length<2)return ()=>{imageForSizing?.removeEventListener("load",fixSunsetFrame);sizingObserver?.disconnect()};
   const positionThumbs=()=>{
    const viewer=viewerRef.current, image=imageRef.current;
    if(!viewer||!image)return;
@@ -27,8 +41,8 @@ export default function ArtworkViewer({images,alt,slug}:{images:string[];alt:str
   if(ro&&image)ro.observe(image);
   window.addEventListener("resize",positionThumbs);
   positionThumbs();
-  return()=>{image?.removeEventListener("load",positionThumbs);ro?.disconnect();window.removeEventListener("resize",positionThumbs)};
- },[active,items.length]);
+  return()=>{image?.removeEventListener("load",positionThumbs);ro?.disconnect();window.removeEventListener("resize",positionThumbs);imageForSizing?.removeEventListener("load",fixSunsetFrame);sizingObserver?.disconnect()};
+ },[active,items.length,slug]);
  useEffect(()=>{if(!open)return; const onKey=(e:KeyboardEvent)=>{if(e.key==="Escape")setOpen(false);if(e.key==="ArrowLeft")setActive(i=>(i-1+items.length)%items.length);if(e.key==="ArrowRight")setActive(i=>(i+1)%items.length)};window.addEventListener("keydown",onKey);return()=>window.removeEventListener("keydown",onKey)},[open,items.length]);
  if(!items.length)return <div className="single-art"><span>IMAGE PLACEHOLDER</span></div>;
  const prev=(e?:React.MouseEvent)=>{e?.stopPropagation();setActive(i=>(i-1+items.length)%items.length)};

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, type CSSProperties, type FormEvent } from "react";
 
 type Props = {
   title: string;
@@ -25,7 +25,7 @@ export default function ArtworkPurchase({ title, slug, priceLabel, etsyUrl, ru }
     }
   }, []);
 
-  async function submit(event: React.FormEvent<HTMLFormElement>) {
+  async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setStatus("sending");
     const workUrl = `${window.location.origin}/works/${encodeURIComponent(slug)}`;
@@ -53,7 +53,7 @@ export default function ArtworkPurchase({ title, slug, priceLabel, etsyUrl, ru }
     }
   }
 
-  const inputStyle: React.CSSProperties = {
+  const inputStyle: CSSProperties = {
     width: "100%",
     boxSizing: "border-box",
     border: "1px solid #c8c4bc",

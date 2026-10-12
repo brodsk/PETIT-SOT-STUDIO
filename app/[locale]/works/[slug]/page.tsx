@@ -5,7 +5,6 @@ import { createClient } from "../../../../lib/supabase/server";
 import Link from "next/link";
 import ArtworkViewer from "./ArtworkViewer";
 import InteriorShowcase from "./InteriorShowcase";
-import ArtworkPurchase from "./ArtworkPurchase";
 
 const SITE_URL = "https://petitsot.com";
 
@@ -80,9 +79,6 @@ export default async function WorkPage({
 
   const title = ru ? w.titleRu : w.titleEn;
   const description = (ru ? w.descriptionRu : w.descriptionEn) || `${title} — artwork by Olga Trikhleb.`;
-  const priceLabel = w.price > 0
-    ? new Intl.NumberFormat(ru ? "ru-RU" : "en-GB", { style: "currency", currency: w.currency }).format(w.price)
-    : (ru ? "Цена по запросу" : "Price on request");
   const canonical = `${SITE_URL}/works/${w.slug}`;
   const schema = {
     "@context": "https://schema.org",
@@ -135,7 +131,7 @@ export default async function WorkPage({
         </dl>
         <InteriorShowcase interiors={interiors} ru={ru}/>
         <p className="work-description">{description}</p>
-        {w.available ? <ArtworkPurchase title={title} slug={w.slug} priceLabel={priceLabel} etsyUrl={w.etsyListingUrl} ru={ru} /> : <div className="purchase-box"><span className="purchase-label">{ru ? "Статус" : "Status"}</span><strong>{ru ? "Продано / недоступно" : "Sold / unavailable"}</strong></div>}
+        <div className="purchase-box">{w.available ? <><div><span className="purchase-label">{ru ? "Доступна" : "Available"}</span><strong>{w.price > 0 ? new Intl.NumberFormat(ru ? "ru-RU" : "en-GB", {style:"currency", currency:w.currency}).format(w.price) : (ru ? "Цена по запросу" : "Price on request")}</strong></div>{w.etsyListingUrl ? <a className="purchase-button" href={w.etsyListingUrl} target="_blank" rel="noopener noreferrer">{ru ? "Купить на Etsy" : "Buy on Etsy"} <span>↗</span></a> : <Link className="purchase-button" href={"/contact?work=" + encodeURIComponent(title)}>{ru ? "Приобрести работу" : "Acquire this work"} <span>↗</span></Link>}<p>{w.etsyListingUrl ? (ru ? "Вы перейдёте на Etsy для оформления покупки." : "You’ll continue to Etsy to complete your purchase.") : (ru ? "Ссылка на Etsy пока не добавлена. Отправьте запрос на приобретение." : "The Etsy link isn’t available yet. Send a purchase enquiry.")}</p></> : <><span className="purchase-label">{ru ? "Статус" : "Status"}</span><strong>{ru ? "Продано / недоступно" : "Sold / unavailable"}</strong></>}</div>
       </aside>
     </main>
   );

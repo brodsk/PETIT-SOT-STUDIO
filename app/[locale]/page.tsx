@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { getWorks } from "../../lib/works";
 
-const SITE_URL = "https://petitsot.com";
+const SITE_URL = "https://www.petitsot.com";
 
 export async function generateMetadata({
   params,
@@ -22,12 +22,7 @@ export async function generateMetadata({
     title,
     description,
     alternates: {
-      canonical: `${SITE_URL}/${locale}`,
-      languages: {
-        en: `${SITE_URL}/en`,
-        ru: `${SITE_URL}/ru`,
-        "x-default": `${SITE_URL}/en`,
-      },
+      canonical: SITE_URL,
     },
     openGraph: {
       type: "website",

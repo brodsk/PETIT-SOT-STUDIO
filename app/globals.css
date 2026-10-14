@@ -1821,3 +1821,67 @@ button,
   .admin-editor-head { align-items: center; }
   .admin-description-head { grid-template-columns: minmax(0, 1fr) minmax(180px, .6fr); }
 }
+
+
+/* Keep artwork and description aligned together in narrow desktop windows. */
+@media (max-width: 850px) and (min-width: 701px) {
+  .work-page {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) minmax(230px, 38%) !important;
+    column-gap: 0 !important;
+    row-gap: 0 !important;
+    padding: 18px 24px 70px !important;
+    align-items: start !important;
+  }
+  .work-page > .back {
+    grid-column: 1 / -1 !important;
+    grid-row: 1 !important;
+  }
+  .work-page > .artwork-viewer {
+    grid-column: 1 !important;
+    grid-row: 2 !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    padding: 0 18px 0 0 !important;
+  }
+  .work-page > .artwork-viewer .artwork-viewer-main {
+    width: 100% !important;
+    height: min(64vh, 560px) !important;
+    min-height: 360px !important;
+  }
+  .work-page > .work-info {
+    grid-column: 2 !important;
+    grid-row: 2 !important;
+    align-self: start !important;
+    position: relative !important;
+    inset: auto !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 8px 0 0 18px !important;
+    border-left: 1px solid rgba(23,23,23,.28) !important;
+    border-right: 0 !important;
+    border-top: 0 !important;
+    transform: none !important;
+  }
+  .work-page > .work-info h1 {
+    font-size: clamp(34px, 4.4vw, 48px) !important;
+    line-height: .9 !important;
+    margin: 12px 0 28px !important;
+  }
+  .work-page > .work-info dl div {
+    gap: 10px !important;
+    flex-wrap: wrap;
+  }
+  .work-page > .work-info dd {
+    text-align: right !important;
+    overflow-wrap: anywhere !important;
+  }
+  .work-page > .work-info .work-description,
+  .work-page > .work-info .purchase-box {
+    max-width: 100% !important;
+    overflow-wrap: anywhere !important;
+  }
+}

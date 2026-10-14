@@ -1722,3 +1722,50 @@ button,
 .admin-back-gallery:hover{color:#171717}
 @media(max-width:1100px){.admin-artwork-cards{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media(max-width:720px){.admin-artwork-grid{padding-top:18px}.admin-gallery-toolbar{align-items:flex-start;flex-direction:column}.admin-artwork-cards{grid-template-columns:repeat(2,minmax(0,1fr));gap:24px 12px}.admin-artwork-status{top:7px;left:7px;padding:6px 7px;font-size:8px}.admin-artwork-card-meta{gap:6px}.admin-artwork-card-meta>div strong{font-size:12px}.admin-artwork-card-meta>div span{font-size:9px}.admin-artwork-price{font-size:11px}.admin-artwork-open{opacity:1;transform:none;right:7px;bottom:7px;padding:7px 8px}.admin-new-artwork{padding:12px 14px}}
+
+/* Reference-led admin shell: persistent side navigation + artwork cards */
+.admin-shell{min-height:100vh;display:grid;grid-template-columns:248px minmax(0,1fr);background:#f5f4f0;color:#22221f}
+.admin-sidebar{position:sticky;top:0;height:100vh;min-height:600px;padding:26px 18px 18px;background:#ebe9e2;border-right:1px solid #d7d4cb;display:flex;flex-direction:column;z-index:10}
+.admin-sidebar-brand{display:flex;align-items:center;gap:12px;padding:2px 10px 30px;color:inherit;text-decoration:none;border-bottom:1px solid #d3d0c7}
+.admin-sidebar-mark{width:38px;height:38px;display:grid;place-items:center;background:#22221f;color:#f7f6f1;font-family:Georgia,serif;font-size:23px}
+.admin-sidebar-brand>span:last-child{display:flex;flex-direction:column;gap:4px}
+.admin-sidebar-brand strong{font-size:12px;letter-spacing:.12em;font-weight:600}
+.admin-sidebar-brand small{font-size:8px;letter-spacing:.16em;color:#858178}
+.admin-sidebar-label{padding:30px 10px 12px;font-size:8px;letter-spacing:.14em;color:#89857c}
+.admin-sidebar-nav{display:grid;gap:5px}
+.admin-sidebar-nav a,.admin-sidebar-bottom>a,.admin-sidebar-bottom>button{display:flex;align-items:center;gap:12px;min-height:44px;padding:0 11px;color:#68665f;text-decoration:none;font:inherit;font-size:12px;text-align:left;border:0;background:transparent;cursor:pointer}
+.admin-sidebar-nav a.active{background:#dcd9d0;color:#1d1d1a}
+.admin-sidebar-nav a:hover,.admin-sidebar-bottom>a:hover,.admin-sidebar-bottom>button:hover{background:#e1ded6;color:#171715}
+.admin-nav-icon{display:inline-flex;width:18px;justify-content:center;align-items:center;font-size:16px;color:#6f6b62}
+.admin-sidebar-nav em{font-style:normal;margin-left:auto;font-size:10px;color:#77736c}
+.admin-connection-dot{margin-left:auto;width:7px;height:7px;border-radius:50%;background:#b9a078}
+.admin-connection-dot.connected{background:#667e61}
+.admin-sidebar-bottom{margin-top:auto;display:grid;gap:4px}
+.admin-sidebar-footer{display:flex;justify-content:space-between;margin:20px 10px 0;padding-top:15px;border-top:1px solid #d3d0c7;font-size:8px;letter-spacing:.1em;color:#858178}
+.admin-sidebar-footer span{letter-spacing:0}
+.admin-main{min-width:0}
+.admin-main .admin-page{max-width:1800px;margin:0 auto;padding:38px clamp(22px,3vw,54px) 80px;background:transparent}
+.admin-main .admin-top{align-items:center;margin-bottom:25px;padding-bottom:24px;border-color:#d9d6ce}
+.admin-main .admin-top h1{font-size:clamp(40px,4vw,66px);letter-spacing:-.055em;line-height:1;margin-top:10px}
+.admin-main .admin-top nav{gap:12px;flex-wrap:wrap}
+.admin-main .admin-top nav button,.admin-main .admin-top nav a{padding:10px 12px;border:1px solid #d4d0c7;font-size:9px}
+.admin-main .admin-top nav button:last-child{border-color:transparent}
+.admin-main .admin-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:34px}
+.admin-main .admin-stat-card{background:#ebe9e2;border:1px solid #e2dfd7;padding:17px 18px;min-height:112px;display:flex;flex-direction:column;align-items:flex-start;gap:6px}
+.admin-main .admin-stat-card span{font-size:10px;color:#6d6a62}
+.admin-main .admin-stat-card strong{font-size:30px;line-height:1;font-weight:400;letter-spacing:-.04em}
+.admin-main .admin-stat-card small{font-size:9px;color:#8c887f}
+.admin-main .admin-gallery-toolbar{align-items:center;margin-bottom:20px}
+.admin-main .admin-gallery-toolbar h2{font-size:clamp(28px,3vw,42px);margin:7px 0}
+.admin-main .admin-gallery-toolbar p{font-size:12px}
+.admin-main .admin-new-artwork{border-radius:2px}
+.admin-main .admin-artwork-cards{grid-template-columns:repeat(3,minmax(0,1fr));gap:26px 16px}
+.admin-main .admin-artwork-card-image{aspect-ratio:1/1;background:#eae8e1}
+.admin-main .admin-artwork-card-meta>div strong{font-size:13px}
+.admin-main .admin-artwork-status{top:10px;left:10px}
+.admin-main .admin-layout{grid-template-columns:minmax(0,1fr);gap:0}
+.admin-main .admin-editor{max-width:none}
+.admin-main .admin-image-field{grid-template-columns:minmax(0,1fr) 160px}
+@media(min-width:1500px){.admin-main .admin-artwork-cards{grid-template-columns:repeat(4,minmax(0,1fr))}}
+@media(max-width:1050px){.admin-shell{grid-template-columns:210px minmax(0,1fr)}.admin-sidebar{padding:20px 12px}.admin-main .admin-stats{grid-template-columns:repeat(2,minmax(0,1fr))}.admin-main .admin-artwork-cards{grid-template-columns:repeat(2,minmax(0,1fr))}.admin-main .admin-top nav{gap:6px}}
+@media(max-width:700px){.admin-shell{display:block}.admin-sidebar{position:relative;height:auto;min-height:0;padding:12px 16px;border-right:0;border-bottom:1px solid #d7d4cb}.admin-sidebar-brand{padding:0 0 12px;border-bottom:0}.admin-sidebar-mark{width:32px;height:32px;font-size:19px}.admin-sidebar-label,.admin-sidebar-bottom,.admin-sidebar-footer{display:none}.admin-sidebar-nav{display:flex;gap:5px;overflow-x:auto;padding-top:10px;border-top:1px solid #d3d0c7}.admin-sidebar-nav a{flex:0 0 auto;min-height:38px;padding:0 10px;font-size:11px}.admin-main .admin-page{padding:22px 16px 60px}.admin-main .admin-top{display:block}.admin-main .admin-top nav{margin-top:15px;justify-content:flex-start}.admin-main .admin-stats{gap:8px}.admin-main .admin-stat-card{padding:13px;min-height:95px}.admin-main .admin-stat-card strong{font-size:25px}.admin-main .admin-gallery-toolbar{align-items:flex-start;flex-direction:column}.admin-main .admin-artwork-cards{grid-template-columns:repeat(2,minmax(0,1fr));gap:22px 10px}}

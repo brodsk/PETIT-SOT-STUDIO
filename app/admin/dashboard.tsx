@@ -301,8 +301,14 @@ export default function AdminDashboard({initialArtworks}:Props){
 
   async function logout(){await supabase.auth.signOut();location.href="/admin/login";}
 
+  const total=artworks.length;
+  const available=artworks.filter(w=>w.status==="available").length;
+  const sold=artworks.filter(w=>w.status==="sold").length;
+  const drafts=artworks.filter(w=>w.status==="draft").length;
+
   return <main className="admin-page">
     <header className="admin-top"><div className="admin-brand"><span className="eyebrow"><a href="/admin">PETIT.SOT</a> / АРХИВ</span><h1>Картины</h1></div><nav><a href="/admin/orders">Заказы</a>{etsy?.connected?<><span className="eyebrow">ETSY · {etsy.shop_name||"подключён"}</span><button type="button" onClick={importAllToEtsy} disabled={etsyImporting||busy}>{etsyImporting?etsyProgress:"Заново загрузить всё в Etsy ↗"}</button></>:<a href="/api/admin/etsy/connect">Подключить Etsy ↗</a>}<button onClick={logout}>Выйти</button></nav></header>
+    <section className="admin-stats" aria-label="Сводка по картинам"><div className="admin-stat-card"><span>Всего работ</span><strong>{total}</strong><small>В архиве студии</small></div><div className="admin-stat-card"><span>В продаже</span><strong>{available}</strong><small>Опубликованные работы</small></div><div className="admin-stat-card"><span>Продано</span><strong>{sold}</strong><small>Завершённые продажи</small></div><div className="admin-stat-card"><span>Черновики</span><strong>{drafts}</strong><small>Ожидают публикации</small></div></section>
     <section className="admin-layout">
       <aside className="admin-list"><button className="admin-new" onClick={()=>{setSelected(null);setImage(null);setImagePreview("");setGalleryImages([]);setNewImages([]);setMessage("");}}>+ Новая картина</button>{artworks.map(w=><button key={w.id} className={"admin-list-row "+(form.id===w.id?"active":"")} onClick={()=>{setSelected(w);setImage(null);setImagePreview("");setNewImages([]);setMessage("");}}><span>{w.title||"Без названия"}</span><small>{({draft:"Черновик",available:"В продаже",sold:"Продана",archived:"Архив"} as Record<string,string>)[w.status]||w.status}{w.etsy_listing_id?" · Etsy #"+w.etsy_listing_id:""}</small>{w.etsy_error&&<small style={{color:"#b45309",whiteSpace:"normal"}}>Etsy: {w.etsy_error}</small>}</button>)}</aside>
       <section className="admin-editor"><form onSubmit={save}>

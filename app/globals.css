@@ -2092,3 +2092,84 @@ button,
     height: 34px !important;
   }
 }
+
+
+/* PETIT.SOT back-to-top — precise, balanced studio-mark arrow. */
+.back-to-top {
+  position: fixed !important;
+  width: 34px !important;
+  height: 48px !important;
+  right: 28px !important;
+  bottom: 24px !important;
+  display: block !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  color: #171717 !important;
+  transform: none !important;
+  transition: opacity .25s ease, visibility .25s ease, color .2s ease !important;
+}
+.back-to-top > span {
+  display: none !important;
+}
+.back-to-top::before {
+  content: "" !important;
+  position: absolute !important;
+  left: 11px !important;
+  top: 3px !important;
+  width: 12px !important;
+  height: 12px !important;
+  box-sizing: border-box !important;
+  border: 0 !important;
+  border-top: 1.25px solid currentColor !important;
+  border-left: 1.25px solid currentColor !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  transform: rotate(45deg) !important;
+  transform-origin: center !important;
+}
+.back-to-top::after {
+  content: "" !important;
+  position: absolute !important;
+  left: 16.5px !important;
+  top: 10px !important;
+  width: 1px !important;
+  height: 36px !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: currentColor !important;
+  transform: none !important;
+}
+.back-to-top:hover {
+  color: #77736c !important;
+  background: transparent !important;
+  border: 0 !important;
+  transform: translateY(-2px) !important;
+}
+.back-to-top:hover::before {
+  transform: translateY(-1px) rotate(45deg) !important;
+}
+.back-to-top:hover::after {
+  height: 36px !important;
+}
+@media (max-width: 700px) {
+  .back-to-top {
+    width: 28px !important;
+    height: 40px !important;
+    right: 13px !important;
+    bottom: 12px !important;
+  }
+  .back-to-top::before {
+    left: 9px !important;
+    top: 3px !important;
+    width: 10px !important;
+    height: 10px !important;
+  }
+  .back-to-top::after {
+    left: 13.5px !important;
+    top: 9px !important;
+    height: 29px !important;
+  }
+}

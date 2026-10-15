@@ -29,38 +29,48 @@
 .page :global(.contact-honeypot) { position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; }
 
 .socialLinks {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  display: flex;
+  flex-direction: column;
   width: min(620px, 100%);
-  margin-top: 54px;
-  border-top: 1px solid rgba(23, 23, 23, .28);
+  margin-top: 58px;
+  border-top: 1px solid rgba(23, 23, 23, .3);
 }
 .socialLinks a {
-  display: flex;
+  display: grid;
+  grid-template-columns: 112px minmax(0, 1fr) 24px;
+  align-items: center;
+  gap: 16px;
   min-width: 0;
-  flex-direction: column;
-  gap: 12px;
-  padding: 20px 18px 18px 0;
+  padding: 19px 2px 19px 0;
   color: inherit;
   text-decoration: none;
-}
-.socialLinks a + a {
-  padding-left: 18px;
-  border-left: 1px solid rgba(23, 23, 23, .18);
+  border-bottom: 1px solid rgba(23, 23, 23, .2);
+  transition: padding .22s ease, background-color .22s ease;
 }
 .socialLinks a span {
   font-size: 9px;
-  line-height: 1;
+  line-height: 1.4;
   letter-spacing: .13em;
+  text-transform: uppercase;
   opacity: .55;
 }
 .socialLinks a strong {
-  font-size: 14px;
+  min-width: 0;
+  font-size: 15px;
   line-height: 1.3;
   font-weight: 400;
-  transition: opacity .2s ease;
+  overflow-wrap: anywhere;
 }
-.socialLinks a:hover strong { opacity: .55; }
+.socialLinks a i {
+  justify-self: end;
+  font-size: 18px;
+  line-height: 1;
+  font-style: normal;
+  transition: transform .22s ease, opacity .22s ease;
+}
+.socialLinks a:hover { padding-left: 7px; }
+.socialLinks a:hover i { transform: translate(2px, -2px); }
+.socialLinks a:focus-visible { outline: 1px solid currentColor; outline-offset: 4px; }
 
 @media (max-width:700px) {
   .page { min-height:calc(100svh - 68px); padding:54px 16px 86px; }
@@ -75,9 +85,10 @@
   .page :global(.contact-form textarea) { font-size:14px; }
   .page :global(.contact-form textarea) { height:120px !important; min-height:120px !important; }
   .page :global(.contact-form > button) { min-height:50px; }
-  .socialLinks { margin-top: 42px; }
-  .socialLinks a { gap: 10px; padding: 17px 12px 15px 0; }
-  .socialLinks a + a { padding-left: 12px; }
-  .socialLinks a span { font-size: 8px; }
-  .socialLinks a strong { font-size: 12px; overflow-wrap: anywhere; }
+  .socialLinks { margin-top: 44px; }
+  .socialLinks a { grid-template-columns: 86px minmax(0, 1fr) 20px; gap: 10px; padding: 17px 0; }
+  .socialLinks a span { font-size: 8px; letter-spacing: .1em; }
+  .socialLinks a strong { font-size: 13px; }
+  .socialLinks a i { font-size: 17px; }
+  .socialLinks a:hover { padding-left: 3px; }
 }

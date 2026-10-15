@@ -2222,3 +2222,11 @@ button,
  .about-originals-statement{font-size:clamp(40px,11vw,58px);line-height:1;margin:60px 0 65px}
  .about-originals-bottom{align-items:flex-start;flex-direction:column;gap:22px;padding-top:15px}
 }
+
+
+/* About page body copy: justified paragraphs in both EN and RU. */
+.about-section-copy p {
+  text-align: justify !important;
+  text-justify: inter-word;
+  hyphens: auto;
+}

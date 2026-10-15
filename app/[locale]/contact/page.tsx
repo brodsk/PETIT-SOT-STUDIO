@@ -3,7 +3,8 @@ import ContactForm from "./ContactForm";
 import styles from "./contact.module.css";
 
 const SITE_URL = "https://petitsot.com";
-const INSTAGRAM_URL = "https://www.instagram.com/petit.sot/";
+const INSTAGRAM_URL = "https://www.instagram.com/petit.sot.art";
+const ETSY_URL = "https://petitsot.etsy.com";
 const SASHE_URL = "https://www.sashe.sk/petitsot";
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
@@ -24,10 +25,14 @@ export default async function Contact({ params }: { params: Promise<{ locale: st
         <h1 className={styles.title}>{ru ? <>Давайте поговорим<br /><em>об искусстве.</em></> : <>Let’s talk<br /><em>about art.</em></>}</h1>
         <p className={styles.intro}>{ru ? "По вопросам о картинах, покупке или сотрудничестве оставьте сообщение." : "For artwork enquiries, purchases or collaborations, leave us a message."}</p>
         <ContactForm ru={ru} />
-        <nav className={styles.socialLinks} aria-label={ru ? "Социальные сети и магазин" : "Social media and shop"}>
+        <nav className={styles.socialLinks} aria-label={ru ? "Социальные сети и магазины" : "Social media and shops"}>
           <a href={INSTAGRAM_URL} target="_blank" rel="noopener noreferrer">
             <span>INSTAGRAM</span>
-            <strong>@petit.sot ↗</strong>
+            <strong>@petit.sot.art ↗</strong>
+          </a>
+          <a href={ETSY_URL} target="_blank" rel="noopener noreferrer">
+            <span>ETSY SHOP</span>
+            <strong>PETITSOT ↗</strong>
           </a>
           <a href={SASHE_URL} target="_blank" rel="noopener noreferrer">
             <span>{ru ? "МАГАЗИН SAShE" : "SAShE SHOP"}</span>

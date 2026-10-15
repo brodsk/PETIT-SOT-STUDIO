@@ -2263,3 +2263,23 @@ button,
   text-align: left !important;
   text-justify: auto !important;
 }
+
+
+/* About lead: retain justified alignment while reducing gaps by fitting more words per line. */
+.about-lead p {
+  text-align: justify !important;
+  text-align-last: left !important;
+  text-justify: inter-word !important;
+  font-size: clamp(18px, 2.1vw, 27px) !important;
+  letter-spacing: -0.015em !important;
+  hyphens: none !important;
+  overflow-wrap: normal !important;
+  word-break: normal !important;
+}
+@media (max-width: 700px) {
+  .about-lead p {
+    font-size: 19px !important;
+    line-height: 1.35 !important;
+    letter-spacing: -0.01em !important;
+  }
+}

@@ -28,15 +28,18 @@ export default async function Contact({ params }: { params: Promise<{ locale: st
         <nav className={styles.socialLinks} aria-label={ru ? "Социальные сети и магазины" : "Social media and shops"}>
           <a href={INSTAGRAM_URL} target="_blank" rel="noopener noreferrer">
             <span>INSTAGRAM</span>
-            <strong>@petit.sot.art ↗</strong>
+            <strong>@petit.sot.art</strong>
+            <i aria-hidden="true">↗</i>
           </a>
           <a href={ETSY_URL} target="_blank" rel="noopener noreferrer">
             <span>ETSY SHOP</span>
-            <strong>PETITSOT ↗</strong>
+            <strong>PETITSOT</strong>
+            <i aria-hidden="true">↗</i>
           </a>
           <a href={SASHE_URL} target="_blank" rel="noopener noreferrer">
             <span>{ru ? "МАГАЗИН SAShE" : "SAShE SHOP"}</span>
-            <strong>PETITSOT ↗</strong>
+            <strong>PETITSOT</strong>
+            <i aria-hidden="true">↗</i>
           </a>
         </nav>
       </div>

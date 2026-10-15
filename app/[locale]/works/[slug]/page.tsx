@@ -6,7 +6,7 @@ import Link from "next/link";
 import ArtworkViewer from "./ArtworkViewer";
 import InteriorShowcase from "./InteriorShowcase";
 
-const SITE_URL = "https://petitsot.com";
+const SITE_URL = "https://www.petitsot.com";
 
 export async function generateMetadata({
   params,

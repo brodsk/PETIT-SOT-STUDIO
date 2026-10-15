@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { getWorks, localizeMedium } from "../../../lib/works";
 
-const SITE_URL = "https://petitsot.com";
+const SITE_URL = "https://www.petitsot.com";
 
 export async function generateMetadata({
   params,
@@ -20,12 +20,7 @@ export async function generateMetadata({
     title,
     description,
     alternates: {
-      canonical: `${SITE_URL}/${locale}/works`,
-      languages: {
-        en: `${SITE_URL}/en/works`,
-        ru: `${SITE_URL}/ru/works`,
-        "x-default": `${SITE_URL}/en/works`,
-      },
+      canonical: `${SITE_URL}/works`,
     },
     openGraph: { title, description, url: `${SITE_URL}/works` },
   };

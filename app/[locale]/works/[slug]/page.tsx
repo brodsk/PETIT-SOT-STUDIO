@@ -7,7 +7,6 @@ import ArtworkViewer from "./ArtworkViewer";
 import InteriorShowcase from "./InteriorShowcase";
 
 const SITE_URL = "https://petitsot.com";
-const SASHE_SHOP_URL = "https://www.sashe.sk/petitsot";
 
 export async function generateMetadata({
   params,
@@ -132,7 +131,7 @@ export default async function WorkPage({
         </dl>
         <InteriorShowcase interiors={interiors} ru={ru}/>
         <p className="work-description">{description}</p>
-        <div className="purchase-box">{w.available ? <><div><span className="purchase-label">{ru ? "Доступна" : "Available"}</span><strong>{w.price > 0 ? new Intl.NumberFormat(ru ? "ru-RU" : "en-GB", {style:"currency", currency:w.currency}).format(w.price) : (ru ? "Цена по запросу" : "Price on request")}</strong></div>{w.etsyListingUrl ? <a className="purchase-button" href={w.etsyListingUrl} target="_blank" rel="noopener noreferrer">{ru ? "Купить на Etsy" : "Buy on Etsy"} <span>↗</span></a> : <Link className="purchase-button" href={"/contact?work=" + encodeURIComponent(title)}>{ru ? "Приобрести работу" : "Acquire this work"} <span>↗</span></Link>}<a className="purchase-button purchase-button-sashe" href={SASHE_SHOP_URL} target="_blank" rel="noopener noreferrer">{ru ? "Посмотреть на SAShE" : "Buy on SAShE"} <span>↗</span></a><p>{w.etsyListingUrl ? (ru ? "Выберите площадку, чтобы оформить покупку." : "Choose a marketplace to complete your purchase.") : (ru ? "Ссылка на Etsy пока не добавлена. Можно посмотреть работы в магазине SAShE или отправить запрос." : "The Etsy listing link isn’t available yet. You can visit our SAShE shop or send a purchase enquiry.")}</p></> : <><span className="purchase-label">{ru ? "Статус" : "Status"}</span><strong>{ru ? "Продано / недоступно" : "Sold / unavailable"}</strong></>}</div>
+        <div className="purchase-box">{w.available ? <><div><span className="purchase-label">{ru ? "Доступна" : "Available"}</span><strong>{w.price > 0 ? new Intl.NumberFormat(ru ? "ru-RU" : "en-GB", {style:"currency", currency:w.currency}).format(w.price) : (ru ? "Цена по запросу" : "Price on request")}</strong></div>{w.etsyListingUrl ? <a className="purchase-button" href={w.etsyListingUrl} target="_blank" rel="noopener noreferrer">{ru ? "Купить на Etsy" : "Buy on Etsy"} <span>↗</span></a> : <Link className="purchase-button" href={"/contact?work=" + encodeURIComponent(title)}>{ru ? "Приобрести работу" : "Acquire this work"} <span>↗</span></Link>}{w.sasheListingUrl && <a className="purchase-button purchase-button-sashe" href={w.sasheListingUrl} target="_blank" rel="noopener noreferrer">{ru ? "Купить на SAShE" : "Buy on SAShE"} <span>↗</span></a>}<p>{w.etsyListingUrl ? (ru ? "Выберите площадку, чтобы оформить покупку." : "Choose a marketplace to complete your purchase.") : (ru ? "Ссылка на Etsy пока не добавлена. Можно посмотреть работы в магазине SAShE или отправить запрос." : "The Etsy listing link isn’t available yet. You can visit our SAShE shop or send a purchase enquiry.")}</p></> : <><span className="purchase-label">{ru ? "Статус" : "Status"}</span><strong>{ru ? "Продано / недоступно" : "Sold / unavailable"}</strong></>}</div>
       </aside>
     </main>
   );

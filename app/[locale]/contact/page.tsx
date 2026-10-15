@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import ContactForm from "./ContactForm";
 import styles from "./contact.module.css";
 
-const SITE_URL = "https://petitsot.com";
+const SITE_URL = "https://www.petitsot.com";
 const INSTAGRAM_URL = "https://www.instagram.com/petit.sot.art";
 const ETSY_URL = "https://petitsot.etsy.com";
 const SASHE_URL = "https://www.sashe.sk/petitsot";

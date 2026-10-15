@@ -2230,3 +2230,18 @@ button,
   text-justify: inter-word;
   hyphens: auto;
 }
+
+
+/* About lead paragraph: justified without splitting words across lines. */
+.about-lead p {
+  text-align: justify !important;
+  text-justify: inter-word;
+  hyphens: none !important;
+  overflow-wrap: normal !important;
+  word-break: normal !important;
+}
+.about-section-copy p {
+  hyphens: none !important;
+  overflow-wrap: normal !important;
+  word-break: normal !important;
+}

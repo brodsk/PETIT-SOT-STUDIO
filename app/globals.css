@@ -2173,3 +2173,18 @@ button,
     height: 29px !important;
   }
 }
+
+
+/* Secondary marketplace action on artwork pages. */
+.purchase-button-sashe {
+  margin-top: 9px;
+  border: 1px solid rgba(23, 23, 23, .65);
+  background: transparent;
+  color: #171717;
+  transition: background .2s ease, color .2s ease, opacity .2s ease;
+}
+.purchase-button-sashe:hover {
+  opacity: 1;
+  background: #171717;
+  color: #eeeae3;
+}

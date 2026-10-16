@@ -19,6 +19,11 @@ export async function generateMetadata({
     : "Discover original paintings by contemporary artist Olga Trikhleb, from city scenes to landscapes. Explore each work and purchase options.";
 
   const canonical = ru ? `${SITE_URL}/ru` : SITE_URL;
+  const works = await getWorks();
+  const previewImage = works.find((work) => work.imageUrl)?.imageUrl;
+  const previewAlt = ru
+    ? "Оригинальная картина Ольги Трихлеб — PETIT.SOT STUDIO"
+    : "Original painting by Olga Trikhleb — PETIT.SOT STUDIO";
 
   return {
     title,
@@ -38,6 +43,13 @@ export async function generateMetadata({
       url: canonical,
       siteName: "PETIT.SOT STUDIO",
       locale: ru ? "ru_RU" : "en_GB",
+      ...(previewImage ? { images: [{ url: previewImage, alt: previewAlt }] } : {}),
+    },
+    twitter: {
+      card: previewImage ? "summary_large_image" : "summary",
+      title,
+      description,
+      ...(previewImage ? { images: [previewImage] } : {}),
     },
   };
 }

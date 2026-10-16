@@ -77,7 +77,7 @@ export default async function Works({ params }: { params: Promise<{ locale: stri
   };
   return <main className="archive gallery-archive">
     <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
-    <div className="archive-mast"><span className="eyebrow">{ru ? "Архив" : "Archive"}</span><h1>{ru ? "Работы" : "Works"}</h1><p>{ru ? "Картины и визуальные исследования Ольги Трихлеб." : "Paintings and visual research by Olga Trikhleb."}</p></div>
+    <div className="archive-mast"><span className="eyebrow">{ru ? "Архив" : "Archive"}</span><h1>{ru ? "Работы" : "Works"}</h1><p>{ru ? "Оригинальные картины Ольги Трихлеб: городские сцены, пейзажи и повседневные сюжеты. У каждой работы указаны техника, размер, год и доступность." : "Explore original paintings by Olga Trikhleb, from city scenes and landscapes to everyday moments. Each work includes its medium, size, year and availability."}</p></div>
     <div className="archive-grid archive-grid-even">
       {works.map((w, i) => <Link className="archive-card" href={"/works/" + w.slug} key={w.slug}>
         <div className="archive-image art-placeholder">{w.imageUrl ? <img src={w.imageUrl} alt={(ru ? w.titleRu : w.titleEn) + " — " + localizeMedium(w.medium, ru ? "ru" : "en") + ", " + w.year + (ru ? ", оригинальная картина Ольги Трихлеб" : ", original painting by Olga Trikhleb")} loading="lazy" decoding="async" /> : <><span>{String(i + 1).padStart(2, "0")}</span><small>IMAGE</small></>}</div>

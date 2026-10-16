@@ -14,18 +14,27 @@ export async function generateMetadata({
   const { locale } = await params;
   const ru = locale === "ru";
 
+  const canonical = ru ? `${SITE_URL}/ru` : SITE_URL;
+
   return {
     title: ru ? "Ольга Трихлеб — художница" : "Olga Trikhleb — Contemporary Artist",
     description: ru
       ? "Официальный сайт художницы Ольги Трихлеб: живопись, визуальные исследования и доступные работы."
       : "Official portfolio of contemporary artist Olga Trikhleb: paintings, visual research and selected available works.",
-    alternates: { canonical: SITE_URL },
+    alternates: {
+      canonical,
+      languages: {
+        en: SITE_URL,
+        ru: `${SITE_URL}/ru`,
+        "x-default": SITE_URL,
+      },
+    },
     openGraph: {
       title: ru ? "Ольга Трихлеб — художница" : "Olga Trikhleb — Contemporary Artist",
       description: ru
         ? "Живопись, визуальные исследования и работы Ольги Трихлеб."
         : "Paintings, visual research and selected works by Olga Trikhleb.",
-      url: SITE_URL,
+      url: canonical,
       locale: ru ? "ru_RU" : "en_GB",
     },
   };

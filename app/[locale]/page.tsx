@@ -18,17 +18,24 @@ export async function generateMetadata({
     ? "Официальный сайт Ольги Трихлеб. Живопись, визуальные исследования и доступные работы."
     : "Official portfolio of Olga Trikhleb. Contemporary paintings, visual research and available works.";
 
+  const canonical = ru ? `${SITE_URL}/ru` : SITE_URL;
+
   return {
     title,
     description,
     alternates: {
-      canonical: SITE_URL,
+      canonical,
+      languages: {
+        en: SITE_URL,
+        ru: `${SITE_URL}/ru`,
+        "x-default": SITE_URL,
+      },
     },
     openGraph: {
       type: "website",
       title,
       description,
-      url: SITE_URL,
+      url: canonical,
       siteName: "PETIT.SOT STUDIO",
       locale: ru ? "ru_RU" : "en_GB",
     },

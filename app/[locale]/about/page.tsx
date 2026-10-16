@@ -10,11 +10,19 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   const description = ru
     ? "Ольга Трихлеб — художница, работающая с живописью, цветом и повседневными сюжетами. Оригинальные картины PETITSOT."
     : "Meet Olga Trikhleb, an artist exploring painting, colour and everyday scenes. Discover original paintings by PETITSOT.";
+  const canonical = `${SITE_URL}${ru ? "/ru" : ""}/about`;
   return {
     title,
     description,
-    alternates: { canonical: `${SITE_URL}/about` },
-    openGraph: { title, description, url: `${SITE_URL}/about` },
+    alternates: {
+      canonical,
+      languages: {
+        en: `${SITE_URL}/about`,
+        ru: `${SITE_URL}/ru/about`,
+        "x-default": `${SITE_URL}/about`,
+      },
+    },
+    openGraph: { title, description, url: canonical },
   };
 }
 

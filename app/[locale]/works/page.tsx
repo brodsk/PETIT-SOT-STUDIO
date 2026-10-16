@@ -16,13 +16,20 @@ export async function generateMetadata({
     ? "Архив картин и визуальных исследований художницы Ольги Трихлеб."
     : "Archive of paintings and visual research by contemporary artist Olga Trikhleb.";
 
+  const canonical = `${SITE_URL}${ru ? "/ru" : ""}/works`;
+
   return {
     title,
     description,
     alternates: {
-      canonical: `${SITE_URL}/works`,
+      canonical,
+      languages: {
+        en: `${SITE_URL}/works`,
+        ru: `${SITE_URL}/ru/works`,
+        "x-default": `${SITE_URL}/works`,
+      },
     },
-    openGraph: { title, description, url: `${SITE_URL}/works` },
+    openGraph: { title, description, url: canonical },
   };
 }
 

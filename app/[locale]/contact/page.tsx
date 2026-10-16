@@ -12,7 +12,20 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   const ru = locale === "ru";
   const title = ru ? "Контакты — Ольга Трихлеб" : "Contact — Olga Trikhleb";
   const description = ru ? "Связаться с Ольгой Трихлеб по вопросам о картинах, покупке работ и сотрудничестве." : "Contact Olga Trikhleb about artworks, purchases and collaborations.";
-  return { title, description, alternates: { canonical: `${SITE_URL}/contact` }, openGraph: { title, description, url: `${SITE_URL}/contact` } };
+  const canonical = `${SITE_URL}${ru ? "/ru" : ""}/contact`;
+  return {
+    title,
+    description,
+    alternates: {
+      canonical,
+      languages: {
+        en: `${SITE_URL}/contact`,
+        ru: `${SITE_URL}/ru/contact`,
+        "x-default": `${SITE_URL}/contact`,
+      },
+    },
+    openGraph: { title, description, url: canonical },
+  };
 }
 
 export default async function Contact({ params }: { params: Promise<{ locale: string }> }) {

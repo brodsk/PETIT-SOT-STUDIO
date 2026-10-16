@@ -37,7 +37,26 @@ export default async function Works({ params }: { params: Promise<{ locale: stri
   const { locale } = await params;
   const ru = locale === "ru";
   const works = await getWorks();
+  const breadcrumbSchema = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      {
+        "@type": "ListItem",
+        position: 1,
+        name: ru ? "Главная" : "Home",
+        item: `${SITE_URL}${ru ? "/ru" : ""}`,
+      },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: ru ? "Работы" : "Works",
+        item: `${SITE_URL}${ru ? "/ru" : ""}/works`,
+      },
+    ],
+  };
   return <main className="archive gallery-archive">
+    <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
     <div className="archive-mast"><span className="eyebrow">{ru ? "Архив" : "Archive"}</span><h1>{ru ? "Работы" : "Works"}</h1><p>{ru ? "Картины и визуальные исследования Ольги Трихлеб." : "Paintings and visual research by Olga Trikhleb."}</p></div>
     <div className="archive-grid archive-grid-even">
       {works.map((w, i) => <Link className="archive-card" href={"/works/" + w.slug} key={w.slug}>

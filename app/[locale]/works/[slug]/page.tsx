@@ -120,9 +120,36 @@ export default async function WorkPage({
     ],
   };
 
+  const primaryImage = w.imageUrl || w.images[0];
+  const webPageSchema = {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    "@id": `${canonical}#webpage`,
+    url: canonical,
+    name: title,
+    description,
+    inLanguage: ru ? "ru" : "en",
+    ...(primaryImage
+      ? {
+          primaryImageOfPage: {
+            "@type": "ImageObject",
+            url: primaryImage,
+            contentUrl: primaryImage,
+            caption: title,
+            creator: {
+              "@type": "Person",
+              name: "Olga Trikhleb",
+            },
+          },
+        }
+      : {}),
+    mainEntity: { "@id": `${canonical}#product` },
+  };
   const schema = {
     "@context": "https://schema.org",
     "@type": "Product",
+    "@id": `${canonical}#product`,
+    mainEntityOfPage: { "@id": `${canonical}#webpage` },
     name: title,
     description,
     image: w.images.length ? w.images : w.imageUrl ? [w.imageUrl] : [],
@@ -156,6 +183,10 @@ export default async function WorkPage({
 
   return (
     <main className="work-page">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(webPageSchema) }}
+      />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}

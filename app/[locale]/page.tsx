@@ -58,9 +58,36 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
   const { locale } = await params;
   const ru = locale === "ru";
   const works = await getWorks();
+  const primaryWork = works.find((work) => work.imageUrl);
+  const primaryImage = primaryWork?.imageUrl;
+  const primaryImageAlt = primaryWork
+    ? `${ru ? primaryWork.titleRu : primaryWork.titleEn} — ${ru ? "оригинальная картина Ольги Трихлеб" : "original painting by Olga Trikhleb"}`
+    : (ru ? "Оригинальная картина Ольги Трихлеб" : "Original painting by Olga Trikhleb");
+  const pageUrl = `${SITE_URL}${ru ? "/ru" : ""}`;
   const schema = {
     "@context": "https://schema.org",
     "@graph": [
+      {
+        "@type": "WebPage",
+        "@id": `${pageUrl}#webpage`,
+        url: pageUrl,
+        name: ru ? "Оригинальные картины Ольги Трихлеб" : "Original Paintings by Olga Trikhleb",
+        inLanguage: ru ? "ru" : "en",
+        ...(primaryImage
+          ? {
+              primaryImageOfPage: {
+                "@type": "ImageObject",
+                url: primaryImage,
+                contentUrl: primaryImage,
+                caption: primaryImageAlt,
+                creator: {
+                  "@type": "Person",
+                  name: "Olga Trikhleb",
+                },
+              },
+            }
+          : {}),
+      },
       {
         "@type": "WebSite",
         "@id": `${SITE_URL}/#website`,

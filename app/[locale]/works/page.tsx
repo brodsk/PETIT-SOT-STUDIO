@@ -17,6 +17,12 @@ export async function generateMetadata({
     : "Explore original paintings by Olga Trikhleb, from city scenes to landscapes. View each artwork’s medium, size and purchase options.";
 
   const canonical = `${SITE_URL}${ru ? "/ru" : ""}/works`;
+  const works = await getWorks();
+  const previewWork = works.find((work) => work.imageUrl);
+  const previewImage = previewWork?.imageUrl;
+  const previewAlt = previewWork
+    ? `${ru ? previewWork.titleRu : previewWork.titleEn} — ${ru ? "оригинальная картина Ольги Трихлеб" : "original painting by Olga Trikhleb"}`
+    : (ru ? "Оригинальные картины Ольги Трихлеб" : "Original paintings by Olga Trikhleb");
 
   return {
     title,
@@ -29,7 +35,21 @@ export async function generateMetadata({
         "x-default": `${SITE_URL}/works`,
       },
     },
-    openGraph: { title, description, url: canonical },
+    openGraph: {
+      type: "website",
+      title,
+      description,
+      url: canonical,
+      siteName: "PETIT.SOT STUDIO",
+      locale: ru ? "ru_RU" : "en_GB",
+      ...(previewImage ? { images: [{ url: previewImage, alt: previewAlt }] } : {}),
+    },
+    twitter: {
+      card: previewImage ? "summary_large_image" : "summary",
+      title,
+      description,
+      ...(previewImage ? { images: [previewImage] } : {}),
+    },
   };
 }
 

@@ -14,7 +14,7 @@ export const metadata: Metadata = {
   description:
     "PETIT.SOT STUDIO is the official portfolio of contemporary artist Olga Trikhleb — paintings, visual research and selected works.",
   applicationName: "PETIT.SOT STUDIO",
-  authors: [{ name: "Olga Trikhleb", url: "https://www.instagram.com/petit.sot/" }],
+  authors: [{ name: "Olga Trikhleb", url: "https://www.instagram.com/petit.sot.art" }],
   creator: "Olga Trikhleb",
   publisher: "PETIT.SOT STUDIO",
   icons: {

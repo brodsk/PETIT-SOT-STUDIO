@@ -136,7 +136,7 @@ export default async function WorkPage({
     creator: {
       "@type": "Person",
       name: "Olga Trikhleb",
-      sameAs: ["https://www.instagram.com/petit.sot/"],
+      sameAs: ["https://www.instagram.com/petit.sot.art"],
     },
     category: "Contemporary artwork",
     material: localizeMedium(w.medium, ru ? "ru" : "en"),

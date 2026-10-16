@@ -12,11 +12,11 @@ export async function generateMetadata({
   const { locale } = await params;
   const ru = locale === "ru";
   const title = ru
-    ? "Ольга Трихлеб — художница | PETIT.SOT STUDIO"
-    : "Olga Trikhleb — Contemporary Artist | PETIT.SOT STUDIO";
+    ? "Оригинальные картины Ольги Трихлеб"
+    : "Original Paintings by Olga Trikhleb";
   const description = ru
-    ? "Официальный сайт Ольги Трихлеб. Живопись, визуальные исследования и доступные работы."
-    : "Official portfolio of Olga Trikhleb. Contemporary paintings, visual research and available works.";
+    ? "Оригинальные картины Ольги Трихлеб: городские сцены, пейзажи и повседневные сюжеты. Изучите работы и варианты покупки."
+    : "Discover original paintings by contemporary artist Olga Trikhleb, from city scenes to landscapes. Explore each work and purchase options.";
 
   const canonical = ru ? `${SITE_URL}/ru` : SITE_URL;
 

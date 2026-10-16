@@ -11,10 +11,10 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale } = await params;
   const ru = locale === "ru";
-  const title = ru ? "Работы — Ольга Трихлеб" : "Works — Olga Trikhleb";
+  const title = ru ? "Оригинальные картины — Ольга Трихлеб" : "Original Paintings by Olga Trikhleb";
   const description = ru
-    ? "Архив картин и визуальных исследований художницы Ольги Трихлеб."
-    : "Archive of paintings and visual research by contemporary artist Olga Trikhleb.";
+    ? "Оригинальные картины Ольги Трихлеб: городские сцены, пейзажи и повседневные сюжеты. Посмотрите размеры, технику и варианты покупки."
+    : "Explore original paintings by Olga Trikhleb, from city scenes to landscapes. View each artwork’s medium, size and purchase options.";
 
   const canonical = `${SITE_URL}${ru ? "/ru" : ""}/works`;
 

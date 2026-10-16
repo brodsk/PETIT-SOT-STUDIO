@@ -5,10 +5,7 @@ const LOCALES = ["en", "ru"] as const;
 type Locale = (typeof LOCALES)[number];
 
 function getPreferredLocale(request: NextRequest): Locale {
-  const cookie = request.cookies.get("NEXT_LOCALE")?.value;
-  if (cookie === "ru" || cookie === "en") return cookie;
-  const accept = request.headers.get("accept-language")?.toLowerCase() || "";
-  return accept.includes("ru") ? "ru" : "en";
+  return request.cookies.get("NEXT_LOCALE")?.value === "ru" ? "ru" : "en";
 }
 
 async function withSupabase(request: NextRequest) {
@@ -35,17 +32,23 @@ export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const first = pathname.split("/").filter(Boolean)[0];
 
-  if (first === "en" || first === "ru") {
-    const locale = first as Locale;
-    const cleanPath = pathname.replace(/^\/(?:en|ru)(?=\/|$)/, "") || "/";
+  // English keeps clean URLs. Russian has explicit /ru URLs so search engines
+  // can index both language versions independently.
+  if (first === "en") {
+    const cleanPath = pathname.replace(/^\/en(?=\/|$)/, "") || "/";
     const url = request.nextUrl.clone();
     url.pathname = cleanPath;
-
     const response = NextResponse.redirect(url, 308);
-    response.cookies.set("NEXT_LOCALE", locale, {
-      path: "/",
-      maxAge: 60 * 60 * 24 * 365,
-      sameSite: "lax",
+    response.cookies.set("NEXT_LOCALE", "en", {
+      path: "/", maxAge: 60 * 60 * 24 * 365, sameSite: "lax",
+    });
+    return response;
+  }
+
+  if (first === "ru") {
+    const response = NextResponse.next();
+    response.cookies.set("NEXT_LOCALE", "ru", {
+      path: "/", maxAge: 60 * 60 * 24 * 365, sameSite: "lax",
     });
     return response;
   }
@@ -55,8 +58,14 @@ export async function middleware(request: NextRequest) {
   }
 
   const locale = getPreferredLocale(request);
+  if (locale === "ru") {
+    const url = request.nextUrl.clone();
+    url.pathname = `/ru${pathname === "/" ? "" : pathname}`;
+    return NextResponse.redirect(url, 307);
+  }
+
   const url = request.nextUrl.clone();
-  url.pathname = `/${locale}${pathname === "/" ? "" : pathname}`;
+  url.pathname = `/en${pathname === "/" ? "" : pathname}`;
   return NextResponse.rewrite(url);
 }
 

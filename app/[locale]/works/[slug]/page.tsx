@@ -21,14 +21,19 @@ export async function generateMetadata({
   const title = ru ? w.titleRu : w.titleEn;
   const description = (ru ? w.descriptionRu : w.descriptionEn) || `${title} — artwork by Olga Trikhleb.`;
   const image = w.imageUrl;
-  const canonical = `${SITE_URL}/works/${w.slug}`;
+  const canonical = `${SITE_URL}${ru ? "/ru" : ""}/works/${w.slug}`;
 
   return {
     title,
     description,
     alternates: {
       canonical,
+      languages: {
+        en: `${SITE_URL}/works/${w.slug}`,
+        ru: `${SITE_URL}/ru/works/${w.slug}`,
+        "x-default": `${SITE_URL}/works/${w.slug}`,
       },
+    },
     openGraph: {
       type: "website",
       title: `${title} — Olga Trikhleb`,
@@ -79,7 +84,7 @@ export default async function WorkPage({
 
   const title = ru ? w.titleRu : w.titleEn;
   const description = (ru ? w.descriptionRu : w.descriptionEn) || `${title} — artwork by Olga Trikhleb.`;
-  const canonical = `${SITE_URL}/works/${w.slug}`;
+  const canonical = `${SITE_URL}${ru ? "/ru" : ""}/works/${w.slug}`;
   const schema = {
     "@context": "https://schema.org",
     "@type": "Product",
@@ -87,6 +92,7 @@ export default async function WorkPage({
     description,
     image: w.images.length ? w.images : w.imageUrl ? [w.imageUrl] : [],
     url: canonical,
+    inLanguage: ru ? "ru" : "en",
     sku: w.slug,
     brand: {
       "@type": "Brand",

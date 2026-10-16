@@ -75,7 +75,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
         name: "Olga Trikhleb",
         url: `${SITE_URL}/about`,
         jobTitle: ru ? "Художница" : "Visual artist",
-        sameAs: ["https://www.instagram.com/petit.sot/"],
+        sameAs: ["https://www.instagram.com/petit.sot.art"],
         knowsAbout: ["Painting", "Contemporary art"],
       },
     ],

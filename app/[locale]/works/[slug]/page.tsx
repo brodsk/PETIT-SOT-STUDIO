@@ -171,7 +171,7 @@ export default async function WorkPage({
       w.price > 0
         ? {
             "@type": "Offer",
-            url: w.etsyListingUrl || canonical,
+            url: w.etsyListingUrl || w.sasheListingUrl || canonical,
             priceCurrency: w.currency,
             price: w.price,
             availability: w.available

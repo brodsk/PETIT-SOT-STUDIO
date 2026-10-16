@@ -95,6 +95,31 @@ export default async function WorkPage({
   const title = ru ? w.titleRu : w.titleEn;
   const description = (ru ? w.descriptionRu : w.descriptionEn) || `${title} — artwork by Olga Trikhleb.`;
   const canonical = `${SITE_URL}${ru ? "/ru" : ""}/works/${w.slug}`;
+  const breadcrumbSchema = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      {
+        "@type": "ListItem",
+        position: 1,
+        name: ru ? "Главная" : "Home",
+        item: `${SITE_URL}${ru ? "/ru" : ""}`,
+      },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: ru ? "Работы" : "Works",
+        item: `${SITE_URL}${ru ? "/ru" : ""}/works`,
+      },
+      {
+        "@type": "ListItem",
+        position: 3,
+        name: title,
+        item: canonical,
+      },
+    ],
+  };
+
   const schema = {
     "@context": "https://schema.org",
     "@type": "Product",
@@ -134,6 +159,10 @@ export default async function WorkPage({
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
       />
       <Link href="/works" className="back">← {ru ? "Архив" : "Archive"}</Link>
       <ArtworkViewer images={w.images.length ? w.images : w.imageUrl ? [w.imageUrl] : []} alt={title + (ru ? " — оригинальная картина Ольги Трихлеб" : " — original painting by Olga Trikhleb")} slug={w.slug}/>

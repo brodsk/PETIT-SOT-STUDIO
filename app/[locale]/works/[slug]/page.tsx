@@ -19,12 +19,22 @@ export async function generateMetadata({
   if (!w) return {};
 
   const title = ru ? w.titleRu : w.titleEn;
-  const description = (ru ? w.descriptionRu : w.descriptionEn) || `${title} — artwork by Olga Trikhleb.`;
+  const rawMedium = (w.medium || "").toLowerCase();
+  const isOil = /oil|масл/.test(rawMedium);
+  const isAcrylic = /acrylic|акрил/.test(rawMedium);
+  const workTypeEn = isOil ? "Original Oil Painting" : isAcrylic ? "Original Acrylic Painting" : "Original Artwork";
+  const workTypeRu = isOil ? "оригинальная картина маслом" : isAcrylic ? "оригинальная акриловая картина" : "оригинальная работа";
+  const seoTitle = ru
+    ? `${title} — ${isOil ? "картина маслом" : isAcrylic ? "акриловая картина" : "оригинальная работа"}`
+    : `${title} — ${workTypeEn}`;
+  const description = ru
+    ? `${workTypeRu.charAt(0).toUpperCase() + workTypeRu.slice(1)} «${title}» Ольги Трихлеб, ${w.year}, ${w.size}. Посмотрите детали работы и варианты покупки.`
+    : `${workTypeEn} “${title}” by Olga Trikhleb, ${w.year}, ${w.size}. View artwork details and purchase options.`;
   const image = w.imageUrl;
   const canonical = `${SITE_URL}${ru ? "/ru" : ""}/works/${w.slug}`;
 
   return {
-    title,
+    title: seoTitle,
     description,
     alternates: {
       canonical,

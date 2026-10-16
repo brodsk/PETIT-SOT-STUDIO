@@ -117,7 +117,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
           <div className="hero-wordmark">PETIT.SOT <span className="wordmark-divider">|</span> <span>STUDIO</span></div>
           <span className="hero-orbit hero-orbit-a"></span><span className="hero-orbit hero-orbit-b"></span>
         </div>
-        <div className="hero-bottom"><p>{ru ? "Живопись, исследования и визуальные фрагменты." : "Painting, studies and visual fragments."}</p><Link className="arrow-link" href="/works">{ru ? "Смотреть работы" : "View works"} <span>↗</span></Link></div>
+        <div className="hero-bottom"><p>{ru ? "Оригинальные картины Ольги Трихлеб: городские сцены и пейзажи." : "Original paintings by Olga Trikhleb — city scenes and landscapes."}</p><Link className="arrow-link" href="/works">{ru ? "Смотреть работы" : "View works"} <span>↗</span></Link></div>
       </section>
 
       <section className="gallery-tiles gallery-tiles-all">

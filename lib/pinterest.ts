@@ -4,12 +4,7 @@ const PINTEREST_API = "https://api.pinterest.com/v5";
 const PINTEREST_OAUTH = "https://www.pinterest.com/oauth/";
 const PINTEREST_TOKEN = "https://api.pinterest.com/v5/oauth/token";
 
-const BOARD_NAMES = [
-  "Original Oil Paintings",
-  "Contemporary Art",
-  "Landscape Paintings",
-  "Cityscape Paintings",
-];
+const BOARD_NAMES = ["Original Oil Paintings by Olga Trikhleb"];
 
 function appConfig() {
   const clientId = process.env.PINTEREST_APP_ID?.trim();
@@ -186,18 +181,8 @@ export async function ensurePinterestBoards(supabase: any) {
   return boardList;
 }
 
-function chooseBoard(artwork: any, boards: { name: string; id: string }[]) {
-  const text = [artwork.slug, artwork.title_en, artwork.title, artwork.description_en, artwork.description]
-    .filter(Boolean).join(" ").toLowerCase();
-  let name = "Original Oil Paintings";
-  if (/\b(rain|city|cityscape|urban|street|traffic|buildings)\b/.test(text)) {
-    name = "Cityscape Paintings";
-  } else if (/\b(landscape|meadow|fog|sunset|village|road|evening|sea|coast|forest|field)\b/.test(text)) {
-    name = "Landscape Paintings";
-  } else if (/\b(abstract|angel|contemporary|modern)\b/.test(text)) {
-    name = "Contemporary Art";
-  }
-  return boards.find((board) => board.name === name)?.id || boards[0]?.id;
+function chooseBoard(_artwork: any, boards: { name: string; id: string }[]) {
+  return boards[0]?.id;
 }
 
 export async function publishArtworkPin(supabase: any, artworkId: string) {

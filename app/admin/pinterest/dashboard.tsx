@@ -78,17 +78,17 @@ export default function PinterestDashboard() {
       </header>
       <section className="admin-stats" aria-label="Pinterest status">
         <div className="admin-stat-card"><span>Подключение</span><strong>{status?.connected ? "Активно" : "Не подключено"}</strong><small>{status?.connected ? "OAuth авторизация сохранена" : "Нужно связать аккаунт"}</small></div>
-        <div className="admin-stat-card"><span>Доски</span><strong>{boards.length || "—"}</strong><small>Создаются автоматически при подключении</small></div>
+        <div className="admin-stat-card"><span>Доски</span><strong>{boards.length || "—"}</strong><small>Одна общая доска для всех картин</small></div>
         <div className="admin-stat-card"><span>Публикация</span><strong>Авто</strong><small>При публикации новой картины</small></div>
         <div className="admin-stat-card"><span>Переходы</span><strong>Сайт</strong><small>Каждый пин ведёт на страницу картины</small></div>
       </section>
 
       {!status?.appConfigured && <section className="admin-artwork-empty"><span>Нужно зарегистрировать приложение Pinterest</span><p>Откройте Pinterest Developers, подключите приложение и добавьте в Vercel переменные PINTEREST_APP_ID и PINTEREST_APP_SECRET. Redirect URI должен быть ровно таким:</p><code>https://petitsot.com/api/admin/pinterest/callback</code><p><a href="https://developers.pinterest.com/apps/" target="_blank" rel="noreferrer">Открыть Pinterest Developers ↗</a></p></section>}
 
-      {status?.appConfigured && !status.connected && <section className="admin-artwork-empty"><span>Подключите бизнес-аккаунт</span><p>После подключения мы создадим тематические доски и сможем публиковать картины из админки.</p><a className="admin-new-artwork" href="/api/admin/pinterest/connect">Подключить Pinterest ↗</a></section>}
+      {status?.appConfigured && !status.connected && <section className="admin-artwork-empty"><span>Подключите бизнес-аккаунт</span><p>После подключения публикации будут попадать на одну общую доску бренда.</p><a className="admin-new-artwork" href="/api/admin/pinterest/connect">Подключить Pinterest ↗</a></section>}
 
       {status?.connected && <section className="admin-artwork-grid">
-        <div className="admin-gallery-toolbar"><div><span className="eyebrow">PETITSOT / PINTEREST</span><h2>Доски бренда</h2><p>Новые картины будут направляться на подходящую тематическую доску автоматически.</p></div><button className="admin-new-artwork" onClick={publishAll} disabled={busy}>{busy ? "Публикую…" : "Опубликовать существующие картины ↗"}</button></div>
+        <div className="admin-gallery-toolbar"><div><span className="eyebrow">PETITSOT / PINTEREST</span><h2>Доска бренда</h2><p>Все картины публикуются на одной доске, чтобы собрать коллекцию в одном месте. Тематические доски добавим позже, когда работ станет больше.</p></div><button className="admin-new-artwork" onClick={publishAll} disabled={busy}>{busy ? "Публикую…" : "Опубликовать существующие картины ↗"}</button></div>
         <div className="admin-artwork-cards">{boards.map((board) => <div className="admin-artwork-card" key={board.id}><div className="admin-artwork-card-meta"><div><strong>{board.name}</strong><span>Доска Pinterest</span></div></div></div>)}</div>
         <p>Публикуются только работы со статусом «В продаже». Каждый пин создаётся один раз и ведёт на соответствующую страницу картины на petitsot.com.</p>
       </section>}

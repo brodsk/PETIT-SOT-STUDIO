@@ -74,7 +74,6 @@ export default function AdminDashboard({initialArtworks}:Props){
   }
 
   async function save(e:FormEvent){
-    const previousStatus = form.id ? (artworks.find(x=>x.id===form.id)?.status ?? null) : null;
     e.preventDefault();setBusy(true);setMessage("");
     try{
       let imagePath=form.image_path;
@@ -111,17 +110,7 @@ export default function AdminDashboard({initialArtworks}:Props){
       if(galleryError)throw galleryError;
       setGalleryImages(gallery||[]);
       setArtworks(prev=>form.id?prev.map(x=>x.id===form.id?saved:x):[saved,...prev]);setSelected(saved);setImage(null);setImagePreview("");setNewImages([]);
-      let saveMessage="Сохранено. Английская версия обновлена.";
-      if(saved.status==="available"&&previousStatus!=="available"){
-        try{
-          const pinResponse=await fetch("/api/admin/pinterest/publish",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({artworkId:saved.id})});
-          const pinData=await pinResponse.json().catch(()=>({}));
-          if(pinResponse.ok&&pinData.status==="published")saveMessage+=" Пин Pinterest опубликован.";
-          else if(pinResponse.ok&&pinData.status==="skipped")saveMessage+=" Пин Pinterest уже существует.";
-          else saveMessage+=" Pinterest: "+(pinData.error||"пока не подключён")+".";
-        }catch{saveMessage+=" Pinterest пока не подключён.";}
-      }
-      setMessage(saveMessage);
+      setMessage("Сохранено. Английская версия обновлена.");
     }catch(err:any){setMessage(err?.message||"Не удалось сохранить.");}
     setBusy(false);
   }
@@ -175,15 +164,23 @@ export default function AdminDashboard({initialArtworks}:Props){
       const {data,error}=await supabase.from("petit_sot_artworks").update({status:"available",published_at:new Date().toISOString()}).eq("id",form.id).select().single();
       if(error)throw error;
       setArtworks(prev=>prev.map(x=>x.id===form.id?data:x));setSelected(data);
-      try{
-        const pinResponse=await fetch("/api/admin/pinterest/publish",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({artworkId:form.id})});
-        const pinData=await pinResponse.json().catch(()=>({}));
-        if(pinResponse.ok&&pinData.status==="published")setMessage("Картина опубликована на сайте и в Pinterest.");
-        else if(pinResponse.ok&&pinData.status==="skipped")setMessage("Картина опубликована на сайте. Пин Pinterest уже существует.");
-        else setMessage("Картина опубликована на сайте. Pinterest: "+(pinData.error||"пока не подключён")+".");
-      }catch{setMessage("Картина опубликована на сайте. Pinterest пока не подключён.");}
-    }
-    catch(err:any){setMessage(err?.message||"Не удалось опубликовать.");}
+      setMessage("Картина опубликована на сайте. Для Pinterest нажмите отдельную кнопку.");
+    }catch(err:any){setMessage(err?.message||"Не удалось опубликовать.");}
+    setBusy(false);
+  }
+
+  async function publishToPinterest(){
+    if(!form.id){setMessage("Сначала сохраните картину.");return;}
+    if(form.status!=="available"){setMessage("Сначала опубликуйте картину на сайте.");return;}
+    setBusy(true);setMessage("");
+    try{
+      const response=await fetch("/api/admin/pinterest/publish",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({artworkId:form.id})});
+      const data=await response.json().catch(()=>({}));
+      if(!response.ok)throw new Error(data.error||"Не удалось опубликовать пин.");
+      if(data.status==="published")setMessage("Пин этой картины опубликован в Pinterest.");
+      else if(data.status==="skipped")setMessage("Пин этой картины уже существует в Pinterest.");
+      else setMessage("Pinterest: "+(data.error||"публикация не выполнена")+".");
+    }catch(err:any){setMessage(err?.message||"Ошибка публикации в Pinterest.");}
     setBusy(false);
   }
 
@@ -347,7 +344,7 @@ export default function AdminDashboard({initialArtworks}:Props){
         <div className="admin-form-grid"><label>Название<input value={form.title} onChange={e=>patch("title",e.target.value)} required/></label><label>Адрес страницы (Slug)<input value={form.slug} onChange={e=>patch("slug",e.target.value)} placeholder="например, untitled-i" required/></label><label>Год<input type="number" value={form.year??""} onChange={e=>patch("year",Number(e.target.value)||null)}/></label><label>Материал / техника<input value={form.medium??""} onChange={e=>patch("medium",e.target.value)} placeholder="например, масло на холсте"/></label><label>Ширина / см<input type="number" step="0.1" value={form.width_cm??""} onChange={e=>patch("width_cm",Number(e.target.value)||null)}/></label><label>Высота / см<input type="number" step="0.1" value={form.height_cm??""} onChange={e=>patch("height_cm",Number(e.target.value)||null)}/></label><label>Глубина / см<input type="number" step="0.1" value={form.depth_cm??""} onChange={e=>patch("depth_cm",Number(e.target.value)||null)}/></label><label>Цена / EUR<input type="number" step="0.01" min="0" value={form.price_eur===0?"":form.price_eur} onChange={e=>patch("price_eur",e.target.value===""?0:Number(e.target.value))}/></label></div>
         <div className="admin-description-head"><label>Описание (русский)<textarea value={form.description} onChange={e=>patch("description",e.target.value)} rows={8}/></label><div><button type="button" className="ai-button" onClick={generateDescription} disabled={aiBusy}>{aiBusy?"Анализирую картину…":"✦ Создать описание с ИИ"}</button><p>ИИ анализирует изображение и создаёт описание на русском и английском. Фактические данные не выдумываются.</p></div></div>
         {message&&<p className="admin-message">{message}</p>}
-        <div className="admin-actions"><button type="button" onClick={publish} disabled={busy||!form.id}>Опубликовать ↗</button>{etsy?.connected&&form.id&&<button type="button" className="secondary" onClick={importSelectedToEtsy} disabled={busy||etsyImporting}>{"Создать новый черновик в Etsy ↗"}</button>}<button type="submit" disabled={busy}>{busy?"Сохраняю…":"Сохранить картину"} <span>↗</span></button>{form.id&&<><button type="button" className="secondary" onClick={passport} disabled={busy}>Создать паспорт PDF</button><button type="button" className="secondary" onClick={removeArtwork} disabled={busy}>Удалить картину</button></>}</div>
+        <div className="admin-actions"><button type="button" onClick={publish} disabled={busy||!form.id}>Опубликовать на сайте ↗</button>{form.id&&form.status==="available"&&<button type="button" className="secondary" onClick={publishToPinterest} disabled={busy}>Опубликовать эту картину в Pinterest ↗</button>}{etsy?.connected&&form.id&&<button type="button" className="secondary" onClick={importSelectedToEtsy} disabled={busy||etsyImporting}>{"Создать новый черновик в Etsy ↗"}</button>}<button type="submit" disabled={busy}>{busy?"Сохраняю…":"Сохранить картину"} <span>↗</span></button>{form.id&&<><button type="button" className="secondary" onClick={passport} disabled={busy}>Создать паспорт PDF</button><button type="button" className="secondary" onClick={removeArtwork} disabled={busy}>Удалить картину</button></>}</div>
       </form></section>
     </section>}
   </main></div></div>

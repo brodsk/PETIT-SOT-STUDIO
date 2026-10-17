@@ -12,7 +12,6 @@ type Status = {
 };
 
 type Board = { name: string; id: string };
-type BulkResult = { ok: boolean; published: number; skipped: number; failed: number; results: { title: string; status: string; pinUrl?: string; error?: string }[] };
 
 export default function PinterestDashboard() {
   const [status, setStatus] = useState<Status | null>(null);
@@ -41,24 +40,6 @@ export default function PinterestDashboard() {
     load().catch((err) => setError(err?.message || "Ошибка загрузки."));
   }, []);
 
-  async function publishAll() {
-    if (!window.confirm("Опубликовать в Pinterest все картины со статусом «В продаже», для которых пины ещё не созданы? Уже опубликованные пины будут пропущены.")) return;
-    setBusy(true);
-    setMessage("");
-    setError("");
-    try {
-      const response = await fetch("/api/admin/pinterest/publish-all", { method: "POST" });
-      const data = await response.json().catch(() => ({})) as BulkResult & { error?: string };
-      if (!response.ok) throw new Error(data.error || "Не удалось запустить публикацию.");
-      const details = (data.results || []).filter((item) => item.status === "error").slice(0, 3).map((item) => item.title + ": " + item.error).join(" · ");
-      setMessage("Готово: опубликовано " + data.published + ", уже были опубликованы " + data.skipped + ", ошибок " + data.failed + "." + (details ? " " + details : ""));
-    } catch (err: any) {
-      setError(err?.message || "Ошибка публикации.");
-    } finally {
-      setBusy(false);
-    }
-  }
-
   return <div className="admin-shell">
     <aside className="admin-sidebar">
       <a href="/admin" className="admin-sidebar-brand"><img className="admin-sidebar-mark" src="/favicon.png" alt="PETITSOT" style={{ background: "transparent", borderRadius: 0, objectFit: "contain", padding: 0 }} /><span><strong>PETITSOT</strong><small>STUDIO ADMIN</small></span></a>
@@ -79,7 +60,7 @@ export default function PinterestDashboard() {
       <section className="admin-stats" aria-label="Pinterest status">
         <div className="admin-stat-card"><span>Подключение</span><strong>{status?.connected ? "Активно" : "Не подключено"}</strong><small>{status?.connected ? "OAuth авторизация сохранена" : "Нужно связать аккаунт"}</small></div>
         <div className="admin-stat-card"><span>Доски</span><strong>{boards.length || "—"}</strong><small>Одна общая доска для всех картин</small></div>
-        <div className="admin-stat-card"><span>Публикация</span><strong>Авто</strong><small>При публикации новой картины</small></div>
+        <div className="admin-stat-card"><span>Публикация</span><strong>Вручную</strong><small>Выбираете каждую картину</small></div>
         <div className="admin-stat-card"><span>Переходы</span><strong>Сайт</strong><small>Каждый пин ведёт на страницу картины</small></div>
       </section>
 
@@ -88,9 +69,9 @@ export default function PinterestDashboard() {
       {status?.appConfigured && !status.connected && <section className="admin-artwork-empty"><span>Подключите бизнес-аккаунт</span><p>После подключения публикации будут попадать на одну общую доску бренда.</p><a className="admin-new-artwork" href="/api/admin/pinterest/connect">Подключить Pinterest ↗</a></section>}
 
       {status?.connected && <section className="admin-artwork-grid">
-        <div className="admin-gallery-toolbar"><div><span className="eyebrow">PETITSOT / PINTEREST</span><h2>Доска бренда</h2><p>Все картины публикуются на одной доске, чтобы собрать коллекцию в одном месте. Тематические доски добавим позже, когда работ станет больше.</p></div><button className="admin-new-artwork" onClick={publishAll} disabled={busy}>{busy ? "Публикую…" : "Опубликовать существующие картины ↗"}</button></div>
+        <div className="admin-gallery-toolbar"><div><span className="eyebrow">PETITSOT / PINTEREST</span><h2>Доска бренда</h2><p>Все картины публикуются на одной доске. Откройте нужную картину в разделе «Коллекция» и нажмите отдельную кнопку публикации в Pinterest — каждая работа отправляется только после вашего выбора.</p></div></div>
         <div className="admin-artwork-cards">{boards.map((board) => <div className="admin-artwork-card" key={board.id}><div className="admin-artwork-card-meta"><div><strong>{board.name}</strong><span>Доска Pinterest</span></div></div></div>)}</div>
-        <p>Публикуются только работы со статусом «В продаже». Каждый пин создаётся один раз и ведёт на соответствующую страницу картины на petitsot.com.</p>
+        <p>Публикуются только картины со статусом «В продаже». Каждый пин ведёт на страницу конкретной картины на petitsot.com.</p>
       </section>}
 
       {message && <p className="admin-message">{message}</p>}

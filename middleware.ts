@@ -32,6 +32,12 @@ export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const first = pathname.split("/").filter(Boolean)[0];
 
+  // Public legal pages must remain unlocalized so external services (including Pinterest)
+  // can access their canonical URLs without being rewritten to /en or /ru.
+  if (pathname === "/privacy-policy") {
+    return NextResponse.next();
+  }
+
   // English keeps clean URLs. Russian has explicit /ru URLs so search engines
   // can index both language versions independently.
   if (first === "en") {

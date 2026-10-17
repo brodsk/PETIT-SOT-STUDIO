@@ -1,0 +1,100 @@
+"use client";
+
+import { useEffect, useState } from "react";
+
+type Status = {
+  connected: boolean;
+  appConfigured: boolean;
+  expiresAt?: string | null;
+  scope?: string | null;
+  boards?: Record<string, string>;
+  updatedAt?: string | null;
+};
+
+type Board = { name: string; id: string };
+type BulkResult = { ok: boolean; published: number; skipped: number; failed: number; results: { title: string; status: string; pinUrl?: string; error?: string }[] };
+
+export default function PinterestDashboard() {
+  const [status, setStatus] = useState<Status | null>(null);
+  const [boards, setBoards] = useState<Board[]>([]);
+  const [busy, setBusy] = useState(false);
+  const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
+
+  async function load() {
+    const response = await fetch("/api/admin/pinterest/status", { cache: "no-store" });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(data.error || "Не удалось загрузить статус Pinterest.");
+    setStatus(data);
+    if (data.connected) {
+      const boardResponse = await fetch("/api/admin/pinterest/boards", { cache: "no-store" });
+      const boardData = await boardResponse.json().catch(() => ({}));
+      if (!boardResponse.ok) throw new Error(boardData.error || "Не удалось загрузить доски Pinterest.");
+      setBoards(boardData.boards || []);
+    }
+  }
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("connected")) setMessage("Pinterest подключён.");
+    if (params.get("error")) setError(params.get("error") || "Ошибка подключения.");
+    load().catch((err) => setError(err?.message || "Ошибка загрузки."));
+  }, []);
+
+  async function publishAll() {
+    if (!window.confirm("Опубликовать в Pinterest все картины со статусом «В продаже», для которых пины ещё не созданы? Уже опубликованные пины будут пропущены.")) return;
+    setBusy(true);
+    setMessage("");
+    setError("");
+    try {
+      const response = await fetch("/api/admin/pinterest/publish-all", { method: "POST" });
+      const data = await response.json().catch(() => ({})) as BulkResult & { error?: string };
+      if (!response.ok) throw new Error(data.error || "Не удалось запустить публикацию.");
+      const details = (data.results || []).filter((item) => item.status === "error").slice(0, 3).map((item) => item.title + ": " + item.error).join(" · ");
+      setMessage("Готово: опубликовано " + data.published + ", уже были опубликованы " + data.skipped + ", ошибок " + data.failed + "." + (details ? " " + details : ""));
+    } catch (err: any) {
+      setError(err?.message || "Ошибка публикации.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return <div className="admin-shell">
+    <aside className="admin-sidebar">
+      <a href="/admin" className="admin-sidebar-brand"><img className="admin-sidebar-mark" src="/favicon.png" alt="PETITSOT" style={{ background: "transparent", borderRadius: 0, objectFit: "contain", padding: 0 }} /><span><strong>PETITSOT</strong><small>STUDIO ADMIN</small></span></a>
+      <div className="admin-sidebar-label">РАБОЧЕЕ ПРОСТРАНСТВО</div>
+      <nav className="admin-sidebar-nav">
+        <a href="/admin"><span className="admin-nav-icon">▦</span><span>Коллекция</span></a>
+        <a href="/admin/orders"><span className="admin-nav-icon">↗</span><span>Заказы</span></a>
+        <a href="/api/admin/etsy/connect"><span className="admin-nav-icon">◎</span><span>Etsy</span></a>
+        <a className="active" href="/admin/pinterest"><span className="admin-nav-icon">P</span><span>Pinterest</span></a>
+      </nav>
+      <div className="admin-sidebar-bottom"><a href="https://petitsot.com" target="_blank" rel="noreferrer"><span className="admin-nav-icon">↗</span><span>Открыть сайт</span></a></div>
+    </aside>
+    <div className="admin-main"><main className="admin-page">
+      <header className="admin-top">
+        <div className="admin-brand"><span className="eyebrow"><a href="/admin">PETITSOT</a> / ПРОДВИЖЕНИЕ</span><h1>Pinterest</h1></div>
+        <nav><a href="/admin">Коллекция</a>{status?.connected ? <span className="eyebrow">АККАУНТ ПОДКЛЮЧЁН</span> : <a href="/api/admin/pinterest/connect">Подключить Pinterest ↗</a>}</nav>
+      </header>
+      <section className="admin-stats" aria-label="Pinterest status">
+        <div className="admin-stat-card"><span>Подключение</span><strong>{status?.connected ? "Активно" : "Не подключено"}</strong><small>{status?.connected ? "OAuth авторизация сохранена" : "Нужно связать аккаунт"}</small></div>
+        <div className="admin-stat-card"><span>Доски</span><strong>{boards.length || "—"}</strong><small>Создаются автоматически при подключении</small></div>
+        <div className="admin-stat-card"><span>Публикация</span><strong>Авто</strong><small>При публикации новой картины</small></div>
+        <div className="admin-stat-card"><span>Переходы</span><strong>Сайт</strong><small>Каждый пин ведёт на страницу картины</small></div>
+      </section>
+
+      {!status?.appConfigured && <section className="admin-artwork-empty"><span>Нужно зарегистрировать приложение Pinterest</span><p>Откройте Pinterest Developers, подключите приложение и добавьте в Vercel переменные PINTEREST_APP_ID и PINTEREST_APP_SECRET. Redirect URI должен быть ровно таким:</p><code>https://petitsot.com/api/admin/pinterest/callback</code><p><a href="https://developers.pinterest.com/apps/" target="_blank" rel="noreferrer">Открыть Pinterest Developers ↗</a></p></section>}
+
+      {status?.appConfigured && !status.connected && <section className="admin-artwork-empty"><span>Подключите бизнес-аккаунт</span><p>После подключения мы создадим тематические доски и сможем публиковать картины из админки.</p><a className="admin-new-artwork" href="/api/admin/pinterest/connect">Подключить Pinterest ↗</a></section>}
+
+      {status?.connected && <section className="admin-artwork-grid">
+        <div className="admin-gallery-toolbar"><div><span className="eyebrow">PETITSOT / PINTEREST</span><h2>Доски бренда</h2><p>Новые картины будут направляться на подходящую тематическую доску автоматически.</p></div><button className="admin-new-artwork" onClick={publishAll} disabled={busy}>{busy ? "Публикую…" : "Опубликовать существующие картины ↗"}</button></div>
+        <div className="admin-artwork-cards">{boards.map((board) => <div className="admin-artwork-card" key={board.id}><div className="admin-artwork-card-meta"><div><strong>{board.name}</strong><span>Доска Pinterest</span></div></div></div>)}</div>
+        <p>Публикуются только работы со статусом «В продаже». Каждый пин создаётся один раз и ведёт на соответствующую страницу картины на petitsot.com.</p>
+      </section>}
+
+      {message && <p className="admin-message">{message}</p>}
+      {error && <p className="admin-message" role="alert">{error}</p>}
+    </main></div>
+  </div>;
+}

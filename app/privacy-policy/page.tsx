@@ -86,11 +86,14 @@ export default function PrivacyPolicyPage() {
         <section>
           <h2 className="mb-2 text-xl">4. Cookies and similar technologies</h2>
           <p>
-            The website is intended to use only strictly necessary technical cookies or similar storage, if
-            required for essential operation, security or a function explicitly requested by the user. We do
-            not intentionally use analytics cookies, advertising cookies or advertising pixels.
+            The site uses a first-party cookie named <code>NEXT_LOCALE</code> to remember the language
+            preference (English or Russian) and help serve the corresponding language version. It is set for
+            the site path and has a maximum lifetime of one year. This cookie is used for language preference,
+            not for advertising or analytics.
           </p>
           <p className="mt-2">
+            We do not intentionally use analytics cookies, advertising cookies or advertising pixels. Other
+            strictly necessary technical storage may be used if required for essential operation or security.
             The actual technologies used can change as the site and its providers change. External services
             such as Instagram, Pinterest or Etsy operate under their own privacy and cookie policies when you
             follow a link or interact with content hosted by them. We cannot control their processing from

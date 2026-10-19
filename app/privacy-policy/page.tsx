@@ -4,7 +4,7 @@ export const metadata: Metadata = {
   title: "Privacy Policy",
   description:
     "How PETITSOT Studio handles personal data when you visit this website, contact the artist, or interact with its publishing tools.",
-  alternates: { canonical: "https://www.petitsot.com/privacy-policy" },
+  alternates: { canonical: "https://petitsot.com/privacy-policy" },
   robots: { index: true, follow: true },
 };
 
@@ -39,8 +39,9 @@ export default function PrivacyPolicyPage() {
               infrastructure providers to deliver, maintain and protect the website.
             </li>
             <li>
-              <strong>Messages you send:</strong> your email address, name if supplied, message contents, and
-              information you choose to provide when asking about an artwork, image permission or another matter.
+              <strong>Messages you send through the contact form:</strong> your name, email address and message
+              content. The form also uses a hidden anti-spam field; information entered into that field is not
+              sent as a message when it triggers the spam check.
             </li>
             <li>
               <strong>Website administration and publishing integration:</strong> if an authorised administrator
@@ -85,10 +86,11 @@ export default function PrivacyPolicyPage() {
         <section>
           <h2 className="mb-2 text-xl">4. Cookies and similar technologies</h2>
           <p>
-            The site uses a first-party cookie named <code>NEXT_LOCALE</code> to remember the language
-            preference (English or Russian) and help serve the corresponding language version. It is set for
-            the site path and has a maximum lifetime of one year. This cookie is used for language preference,
-            not for advertising or analytics.
+            The site may set a first-party cookie named <code>NEXT_LOCALE</code> when you select or visit a
+            language-specific URL. It stores the language preference (English or Russian), uses the root path,
+            and has a maximum lifetime of one year. It is used for language preference, not for advertising
+            or analytics. Depending on the route and your previous preference, the site may also choose a
+            language version without setting a new cookie on every request.
           </p>
           <p className="mt-2">
             We do not intentionally use analytics cookies, advertising cookies or advertising pixels. Other
@@ -105,15 +107,26 @@ export default function PrivacyPolicyPage() {
           <h2 className="mb-2 text-xl">5. Service providers and recipients</h2>
           <p>
             To operate the website and its features, data may be processed by infrastructure providers used
-            by the project, including Vercel for hosting/deployment and Supabase for database or file-storage
-            functions, and by Pinterest when the administrator-authorised publishing integration is used.
-            Email providers may process messages sent to our contact address. The exact provider role and
+            by the project, including Vercel for hosting and deployment and Supabase for database and file
+            storage. Artwork images are delivered from a public Supabase Storage bucket, so a visitor's browser
+            may connect directly to Supabase to request those image files; the provider may receive technical
+            request data such as an IP address, user-agent and requested resource. The contact form sends the
+            name, email address and message you submit to the Telegram Bot API, which forwards the message to
+            the administrator's configured Telegram chat or chats. Telegram therefore processes the submitted
+            contact details as part of message delivery and may retain copies according to the relevant
+            Telegram account, chat and service settings. Pinterest may process account and publication data
+            when the administrator-authorised publishing integration is used. Email service providers may
+            process email sent directly to our contact address. The exact provider role, retention and
             processing location depend on the service and its configuration.
           </p>
           <p className="mt-2">
             We do not sell personal data. We disclose data only as reasonably necessary to operate the site,
-            respond to a request, comply with law, protect rights or address security incidents. Providers may
-            act as processors or independent controllers depending on the service and activity.
+            deliver a message you submit, respond to a request, comply with law, protect rights or address
+            security incidents. Providers may act as processors or independent controllers depending on the
+            service and activity. When a contact-form message has been delivered to Telegram, copies may remain
+            in the configured Telegram chat; you can ask us to delete the message from chats under our control,
+            but we cannot guarantee deletion of copies held by other recipients or according to Telegram's own
+            systems and retention rules.
           </p>
         </section>
 
@@ -132,11 +145,14 @@ export default function PrivacyPolicyPage() {
           <p>
             We keep enquiry correspondence for as long as reasonably necessary to handle the request and any
             follow-up, and longer only where needed to document an agreement, meet a legal obligation or
-            establish or defend legal claims. Website and security logs are retained according to the hosting
-            provider's configuration and only for as long as reasonably needed for security and troubleshooting.
-            Pinterest integration records are retained while needed to operate the integration, maintain
-            publication status or address security and legal needs; authorisation can be revoked through
-            Pinterest and deletion may be requested from us.
+            establish or defend legal claims. Contact-form messages are delivered to configured Telegram chats;
+            retention of copies in those chats depends on deletion by chat administrators and Telegram's own
+            systems. Website and security logs are retained according to the hosting provider's configuration
+            and only for as long as reasonably needed for security and troubleshooting. Artwork files remain
+            available while published or otherwise required for site operation. Pinterest integration records
+            are retained while needed to operate the integration, maintain publication status or address
+            security and legal needs; authorisation can be revoked through Pinterest and deletion may be
+            requested from us.
           </p>
           <p className="mt-2">
             Retention periods should be reviewed against the actual hosting, database, backup and integration

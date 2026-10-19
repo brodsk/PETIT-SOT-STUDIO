@@ -32,9 +32,8 @@ export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const first = pathname.split("/").filter(Boolean)[0];
 
-  // Public legal pages must remain unlocalized so external services (including Pinterest)
-  // can access their canonical URLs without being rewritten to /en or /ru.
-  if (pathname === "/privacy-policy") {
+  // Public legal pages must remain unlocalized so external services can access stable canonical URLs.
+  if (pathname === "/privacy-policy" || pathname === "/image-licensing") {
     return NextResponse.next();
   }
 

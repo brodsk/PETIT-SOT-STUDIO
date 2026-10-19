@@ -4,7 +4,7 @@ export const metadata: Metadata = {
   title: "Image Licensing & Copyright",
   description:
     "Copyright and image licensing information for original artwork and photographs published by Olga Trikhleb and PETITSOT Studio.",
-  alternates: { canonical: "https://www.petitsot.com/image-licensing" },
+  alternates: { canonical: "https://petitsot.com/image-licensing" },
   robots: { index: true, follow: true },
 };
 

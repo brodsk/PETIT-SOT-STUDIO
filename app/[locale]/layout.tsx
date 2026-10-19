@@ -72,7 +72,7 @@ export default async function LocaleLayout({
         <a href="https://www.instagram.com/petit.sot.art" target="_blank" rel="noreferrer">
           Instagram ↗
         </a>
-        <nav aria-label={ru ? "Юридическая информация" : "Legal information"} className="footer-legal-links">
+        <nav aria-label={ru ? "Юридическая информация" : "Legal information"} className="footer-legal-links" style={{ display: "flex", gap: "16px" }}>
           <Link href="/image-licensing">Image Licensing</Link>
           <Link href="/privacy-policy">Privacy Policy</Link>
         </nav>

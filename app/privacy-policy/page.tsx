@@ -19,14 +19,13 @@ export default function PrivacyPolicyPage() {
         <section>
           <h2 className="mb-2 text-xl">1. Who is responsible for your data?</h2>
           <p>
-            The website petitsot.com is operated by an individual using the name PETITSOT Studio to present
-            the artwork of Olga Trikhleb. The operator is not currently presented here as a registered company
-            or Slovak sole trader. For privacy requests, contact the operator at{" "}
+            The data controller for petitsot.com is Serhii Kapuza, operating the website under the project
+            name PETITSOT Studio to present the artwork of Olga Trikhleb. PETITSOT Studio is a project name,
+            not a separate legal person. For privacy requests, contact Serhii Kapuza at{" "}
             <a className="underline underline-offset-4" href="mailto:manager@petitsot.com">manager@petitsot.com</a>.
           </p>
           <p className="mt-2">
-            Postal contact location for privacy requests: Trencin, 911 01, Slovakia.
-            PETITSOT Studio is a trading name and does not itself identify a separate legal person.
+            Postal contact address for privacy requests: Kuzmanyho 725/15, 911 01 Trencin, Slovakia.
           </p>
         </section>
 

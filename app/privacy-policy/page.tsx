@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "Privacy Policy",
   description: "How PETITSOT Studio handles personal data when you visit the website or contact the artist.",
-  alternates: { canonical: "https://petitsot.com/privacy-policy" },
+  alternates: { canonical: "https://www.petitsot.com/privacy-policy" },
   robots: { index: true, follow: true },
 };
 

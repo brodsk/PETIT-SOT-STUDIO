@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { getWorks, localizeMedium } from "../../lib/works";
 
-const SITE_URL = "https://www.petitsot.com";
+const SITE_URL = "https://petitsot.com";
 
 export async function generateMetadata({
   params,

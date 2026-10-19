@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import LanguageSwitcher from "./language-switcher";
 import BackToTop from "../components/BackToTop";
 
-const SITE_URL = "https://www.petitsot.com";
+const SITE_URL = "https://petitsot.com";
 
 export async function generateMetadata({
   params,

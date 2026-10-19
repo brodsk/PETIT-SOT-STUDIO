@@ -1,4 +1,3 @@
-import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
 const LOCALES = ["en", "ru"] as const;
@@ -8,37 +7,23 @@ function getPreferredLocale(request: NextRequest): Locale {
   return request.cookies.get("NEXT_LOCALE")?.value === "ru" ? "ru" : "en";
 }
 
-async function withSupabase(request: NextRequest) {
-  let response = NextResponse.next({ request: { headers: request.headers } });
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
-    {
-      cookies: {
-        getAll() { return request.cookies.getAll(); },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
-          response = NextResponse.next({ request });
-          cookiesToSet.forEach(({ name, value, options }) => response.cookies.set(name, value, options));
-        },
-      },
-    }
-  );
-  await supabase.auth.getUser();
-  return response;
-}
-
-export async function middleware(request: NextRequest) {
+export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const first = pathname.split("/").filter(Boolean)[0];
 
-  // Public legal pages must remain unlocalized so external services can access stable canonical URLs.
+  // Public legal pages keep stable, unlocalized URLs.
   if (pathname === "/privacy-policy" || pathname === "/image-licensing") {
     return NextResponse.next();
   }
 
-  // English keeps clean URLs. Russian has explicit /ru URLs so search engines
-  // can index both language versions independently.
+  // Keep locale handling local to middleware: do not make Supabase network
+  // requests here. Protected pages and API handlers perform their own auth
+  // checks, avoiding an external auth request on every admin/API navigation.
+  if (pathname.startsWith("/admin") || pathname.startsWith("/api")) {
+    return NextResponse.next();
+  }
+
+  // English keeps clean URLs. Russian has explicit /ru URLs.
   if (first === "en") {
     const cleanPath = pathname.replace(/^\/en(?=\/|$)/, "") || "/";
     const url = request.nextUrl.clone();
@@ -58,10 +43,6 @@ export async function middleware(request: NextRequest) {
     return response;
   }
 
-  if (pathname.startsWith("/admin") || pathname.startsWith("/api")) {
-    return withSupabase(request);
-  }
-
   const locale = getPreferredLocale(request);
   if (locale === "ru") {
     const url = request.nextUrl.clone();
@@ -75,5 +56,9 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/admin/:path*", "/api/:path*", "/((?!_next/static|_next/image|favicon.ico|favicon.svg|favicon.png|icon.svg|robots.txt|sitemap.xml).*)"],
+  matcher: [
+    "/admin/:path*",
+    "/api/:path*",
+    "/((?!_next/static|_next/image|favicon\\.ico|favicon\\.svg|favicon\\.png|icon\\.svg|robots\\.txt|sitemap\\.xml|.*\\.(?:png|jpg|jpeg|gif|webp|svg|ico|css|js|woff2?)$).*)",
+  ],
 };

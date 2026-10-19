@@ -1,0 +1,41 @@
+.page {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  min-height: min(690px, 72svh);
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  padding: 88px 24px 76px;
+  text-align: center;
+  background: #fff;
+  color: #171715;
+}
+.eyebrow { margin: 0 0 14px; font-size: 10px; font-weight: 500; letter-spacing: .24em; line-height: 1.5; }
+.code { position: relative; z-index: 1; margin: 0; font-size: clamp(112px, 21vw, 228px); font-weight: 400; letter-spacing: -.095em; line-height: .88; }
+.rule { width: 42px; height: 1px; margin: 32px 0 24px; background: #aaa69f; }
+.heading { max-width: 520px; margin: 0; font-size: clamp(22px, 3vw, 32px); font-weight: 400; letter-spacing: -.045em; line-height: 1.2; }
+.description { max-width: 420px; margin: 14px 0 0; color: #77736d; font-size: 13px; font-weight: 400; line-height: 1.8; }
+.actions { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 12px; margin-top: 30px; }
+.primary, .secondary { display: inline-flex; min-height: 46px; align-items: center; justify-content: center; gap: 18px; padding: 0 20px; font-size: 11px; letter-spacing: .025em; text-decoration: none; transition: background-color .18s ease, color .18s ease, border-color .18s ease; }
+.primary { border: 1px solid #171715; background: #171715; color: #fff; }
+.primary:hover { border-color: #393833; background: #393833; }
+.secondary { border: 1px solid #dedbd5; background: transparent; color: #171715; }
+.secondary:hover { border-color: #171715; }
+.artMark { position: absolute; z-index: -1; top: 16%; right: max(5%, calc((100vw - 1120px) / 2)); width: clamp(90px, 14vw, 168px); aspect-ratio: 1; border: 1px solid #efede9; border-radius: 50%; transform: rotate(-18deg); }
+.orbit { position: absolute; inset: 12% -8% 12% 8%; border: 1px solid #efede9; border-radius: 50%; transform: rotate(42deg); }
+.dot { position: absolute; top: 13%; left: 18%; width: 7px; height: 7px; border-radius: 50%; background: #b8a99a; }
+.note { margin: 54px 0 0; color: #a09b93; font-size: 8px; letter-spacing: .18em; line-height: 1.6; }
+@media (max-width: 600px) {
+  .page { min-height: 64svh; padding: 68px 22px 58px; }
+  .code { font-size: clamp(112px, 35vw, 164px); }
+  .rule { margin: 27px 0 21px; }
+  .heading { max-width: 340px; font-size: 25px; }
+  .description { max-width: 330px; font-size: 12px; }
+  .actions { width: 100%; max-width: 340px; flex-direction: column; gap: 9px; margin-top: 25px; }
+  .primary, .secondary { width: 100%; min-height: 45px; }
+  .artMark { top: 9%; right: -22px; width: 92px; opacity: .75; }
+  .note { margin-top: 38px; font-size: 7px; letter-spacing: .12em; }
+}
+@media (prefers-reduced-motion: reduce) { .primary, .secondary { transition: none; } }

@@ -90,7 +90,10 @@ export default function PrivacyPolicyPage() {
             language-specific URL. It stores the language preference (English or Russian), uses the root path,
             and has a maximum lifetime of one year. It is used for language preference, not for advertising
             or analytics. Depending on the route and your previous preference, the site may also choose a
-            language version without setting a new cookie on every request.
+            language version without setting a new cookie on every request. The administration and API routes
+            also initialise Supabase authentication; where an administrator session is present, Supabase may
+            use or refresh authentication cookies needed to maintain that session. These are functional
+            authentication cookies, not advertising cookies.
           </p>
           <p className="mt-2">
             We do not intentionally use analytics cookies, advertising cookies or advertising pixels. Other
@@ -110,7 +113,10 @@ export default function PrivacyPolicyPage() {
             by the project, including Vercel for hosting and deployment and Supabase for database and file
             storage. Artwork images are delivered from a public Supabase Storage bucket, so a visitor's browser
             may connect directly to Supabase to request those image files; the provider may receive technical
-            request data such as an IP address, user-agent and requested resource. The contact form sends the
+            request data such as an IP address, user-agent and requested resource. The Supabase project settings
+            currently identify its primary region as AWS us-east-1 (Northern Virginia, United States). This
+            places the primary project data outside the European Economic Area; related service processing,
+            backups and transfers are also subject to the provider's infrastructure and terms. The contact form sends the
             name, email address and message you submit to the Telegram Bot API, which forwards the message to
             the administrator's configured Telegram chat or chats. Telegram therefore processes the submitted
             contact details as part of message delivery and may retain copies according to the relevant
@@ -133,10 +139,14 @@ export default function PrivacyPolicyPage() {
         <section>
           <h2 className="mb-2 text-xl">6. International transfers</h2>
           <p>
-            Some service providers may process information outside the European Economic Area. Where personal
-            data is transferred internationally, the relevant provider and transfer mechanism must be assessed
-            for the service in use; where required, appropriate safeguards under Chapter V GDPR must apply.
-            Consult the providers' current privacy and data-transfer documentation for further details.
+            The Supabase project is configured in AWS us-east-1 (Northern Virginia, United States), outside
+            the European Economic Area. Telegram's privacy notice states that EEA users' Telegram data is stored
+            in data centres in the Netherlands, while its cloud-service infrastructure and encryption keys may
+            involve other jurisdictions. Vercel and Pinterest may also process data in locations determined by
+            their infrastructure and service settings. The applicable provider terms, data-processing
+            agreements and transfer safeguards must be checked for the specific services and account
+            configurations in use; this source-code review cannot verify which contractual safeguards are
+            enabled for every provider.
           </p>
         </section>
 

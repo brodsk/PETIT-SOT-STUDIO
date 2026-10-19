@@ -1,7 +1,13 @@
+import type { Metadata } from "next";
 import {getWorks} from "../../../lib/works";
 import ARWallPreview from "./ARWallPreview";
 import PhotoWallPreview from "./PhotoWallPreview";
 import AppleQuickLook from "./AppleQuickLook";
+
+export const metadata: Metadata = {
+  title: "AR Wall Preview — PETITSOT",
+  robots: { index: false, follow: false },
+};
 
 function getDimensions(size:string){
   const match=(size||"").match(/([\d.,]+)\s*×\s*([\d.,]+)/);

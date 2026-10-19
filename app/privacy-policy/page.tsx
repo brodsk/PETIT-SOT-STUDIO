@@ -25,7 +25,7 @@ export default function PrivacyPolicyPage() {
             <a className="underline underline-offset-4" href="mailto:manager@petitsot.com">manager@petitsot.com</a>.
           </p>
           <p className="mt-2">
-            Postal contact address for privacy requests: Kuzmanyho 725/15, 911 01 Trencin, Slovakia.
+            Postal contact location for privacy requests: Trencin, 911 01, Slovakia.
             PETITSOT Studio is a trading name and does not itself identify a separate legal person.
           </p>
         </section>

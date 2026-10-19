@@ -1,7 +1,7 @@
 import type { MetadataRoute } from "next";
 import { getWorks } from "../lib/works";
 
-const SITE_URL = "https://www.petitsot.com";
+const SITE_URL = "https://petitsot.com";
 
 function languageAlternates(path: string) {
   const cleanPath = path === "/" ? "" : path;

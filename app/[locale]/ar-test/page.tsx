@@ -1,7 +1,25 @@
+import type { Metadata } from "next";
 import {getWorks} from "../../../lib/works";
 import ARWallPreview from "./ARWallPreview";
 import PhotoWallPreview from "./PhotoWallPreview";
 import AppleQuickLook from "./AppleQuickLook";
+
+const SITE_URL = "https://www.petitsot.com";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const canonical = SITE_URL + (locale === "ru" ? "/ru" : "") + "/ar-test";
+
+  return {
+    title: "AR Wall Preview — PETITSOT",
+    alternates: { canonical },
+    robots: { index: false, follow: true },
+  };
+}
 
 function getDimensions(size:string){
   const match=(size||"").match(/([\d.,]+)\s*×\s*([\d.,]+)/);

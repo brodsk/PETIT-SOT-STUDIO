@@ -91,9 +91,8 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
       {
         "@type": "WebSite",
         "@id": `${SITE_URL}/#website`,
-        url: `${SITE_URL}${ru ? "/ru" : ""}`,
+        url: SITE_URL,
         name: "PETIT.SOT STUDIO",
-        inLanguage: ru ? "ru" : "en",
         publisher: { "@id": `${SITE_URL}/#artist` },
       },
       {

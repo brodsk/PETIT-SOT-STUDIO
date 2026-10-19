@@ -2,8 +2,7 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Image Licensing & Copyright",
-  description:
-    "Copyright and image licensing information for original artwork and photographs published by Olga Trikhleb and PETITSOT Studio.",
+  description: "Copyright and image licensing information for artwork and photographs published by Olga Trikhleb and PETITSOT Studio.",
   alternates: { canonical: "https://www.petitsot.com/image-licensing" },
   robots: { index: true, follow: true },
 };
@@ -17,21 +16,40 @@ export default function ImageLicensingPage() {
 
       <div className="space-y-8 leading-7">
         <section>
-          <h2 className="mb-2 text-xl">Copyright ownership</h2>
-          <p>Unless a specific credit states otherwise, the artwork images, photographs and related visual material published on petitsot.com are protected by copyright and are credited to artist Olga Trikhleb and PETITSOT Studio as applicable. All rights remain with their respective copyright holders.</p>
+          <h2 className="mb-2 text-xl">Copyright</h2>
+          <p>
+            Paintings presented on petitsot.com are attributed to artist Olga Trikhleb unless stated otherwise.
+            Artwork, photographs and website text may be protected by copyright and may have different rights
+            holders. PETITSOT Studio does not claim ownership of third-party material.
+          </p>
         </section>
+
         <section>
-          <h2 className="mb-2 text-xl">Permitted use</h2>
-          <p>Viewing the images on this website does not grant permission to reproduce, redistribute, modify, publish, sell, use for commercial purposes, or include them in datasets or products. Written permission from the relevant rights holder is required before reuse, except where applicable law expressly permits it.</p>
+          <h2 className="mb-2 text-xl">Buying an original painting</h2>
+          <p>
+            Buying a physical painting does not, by itself, transfer copyright or grant permission to reproduce,
+            publish or commercially use its image. Any separate licence or transfer of rights must be agreed
+            with the relevant rights holder.
+          </p>
         </section>
+
         <section>
-          <h2 className="mb-2 text-xl">Request permission to use an image</h2>
-          <p>If you would like to license, reproduce, publish or otherwise use an artwork image, please contact us before using it. Include the artwork title, the image or page URL, your intended use, where it will appear, and the expected duration of use.</p>
-          <p className="mt-2">Email: <a className="underline underline-offset-4" href="mailto:manager@petitsot.com">manager@petitsot.com</a></p>
+          <h2 className="mb-2 text-xl">Using and sharing images</h2>
+          <p>
+            You may link to a public page on this website. Re-uploading, reproducing or commercially using an
+            artwork image generally requires permission unless applicable law says otherwise. This notice does
+            not limit any exceptions or rights provided by law.
+          </p>
         </section>
+
         <section>
-          <h2 className="mb-2 text-xl">Image credits</h2>
-          <p>Suggested credit where applicable: “Artwork by Olga Trikhleb / PETITSOT Studio”. A credit alone does not replace permission when permission is required.</p>
+          <h2 className="mb-2 text-xl">Permission and copyright concerns</h2>
+          <p>
+            For licensing requests or to report a suspected infringement or incorrect credit, email{" "}
+            <a className="underline underline-offset-4" href="mailto:manager@petitsot.com">manager@petitsot.com</a>.
+            Include the artwork title or page URL, your intended use or concern, and contact details. Permission
+            is granted only when confirmed by the relevant rights holder.
+          </p>
         </section>
       </div>
     </main>

@@ -7,6 +7,7 @@ import ArtworkViewer from "./ArtworkViewer";
 import InteriorShowcase from "./InteriorShowcase";
 
 const SITE_URL = "https://www.petitsot.com";
+const IMAGE_LICENSE_URL = `${SITE_URL}/image-licensing`;
 
 export async function generateMetadata({
   params,
@@ -121,6 +122,12 @@ export default async function WorkPage({
   };
 
   const primaryImage = w.imageUrl || w.images[0];
+  const imageLicensing = {
+    acquireLicensePage: IMAGE_LICENSE_URL,
+    license: IMAGE_LICENSE_URL,
+    copyrightNotice: "© Olga Trikhleb",
+    creditText: "Olga Trikhleb / PETIT.SOT STUDIO",
+  };
   const webPageSchema = {
     "@context": "https://schema.org",
     "@type": "WebPage",
@@ -140,6 +147,7 @@ export default async function WorkPage({
               "@type": "Person",
               name: "Olga Trikhleb",
             },
+            ...imageLicensing,
           },
         }
       : {}),
@@ -167,6 +175,7 @@ export default async function WorkPage({
     },
     category: "Contemporary artwork",
     material: localizeMedium(w.medium, ru ? "ru" : "en"),
+    ...(primaryImage ? { image: { "@type": "ImageObject", url: primaryImage, contentUrl: primaryImage, caption: title, creator: { "@type": "Person", name: "Olga Trikhleb" }, ...imageLicensing } } : {}),
     offers:
       w.price > 0
         ? {

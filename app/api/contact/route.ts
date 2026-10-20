@@ -37,10 +37,11 @@ function validEmail(email: string) {
 
 async function verifyTurnstile(token: string, ip: string) {
   const secret = process.env.TURNSTILE_SECRET_KEY;
-  // Keeps the existing form operational until the Turnstile keys are added in Vercel.
-  // Once the secret is configured, every submission must carry a valid token.
-  if (!secret) return {ok: true, configured: false};
-  if (!token) return {ok: false, configured: true};
+  const siteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
+  // Keep the existing form operational only when neither key has been configured.
+  // If either key exists, require both keys and a server-verified token.
+  if (!secret && !siteKey) return {ok: true, configured: false};
+  if (!secret || !siteKey || !token) return {ok: false, configured: true};
 
   const form = new URLSearchParams({secret, response: token});
   if (ip && ip !== "unknown") form.set("remoteip", ip);
@@ -54,7 +55,7 @@ async function verifyTurnstile(token: string, ip: string) {
   const result = await response.json() as {success?: boolean; hostname?: string};
   const allowedHostnames = ["petitsot.com", "www.petitsot.com"];
   return {
-    ok: result.success === true && (!result.hostname || allowedHostnames.includes(result.hostname)),
+    ok: result.success === true && typeof result.hostname === "string" && allowedHostnames.includes(result.hostname),
     configured: true,
   };
 }

@@ -10,7 +10,8 @@ type TurnstileApi = {
     "error-callback"?: () => void;
     theme?: "light" | "dark" | "auto";
   }) => string;
-  remove: (widgetId: string) => void;\n  reset: (widgetId: string) => void;
+  remove: (widgetId: string) => void;
+  reset: (widgetId: string) => void;
 };
 declare global {
   interface Window { turnstile?: TurnstileApi; }
@@ -23,7 +24,8 @@ export default function ContactForm({ru}:{ru:boolean}) {
   const [captchaToken, setCaptchaToken] = useState("");
   const [captchaReady, setCaptchaReady] = useState(!TURNSTILE_SITE_KEY);
   const [captchaError, setCaptchaError] = useState(false);
-  const captchaRef = useRef<HTMLDivElement>(null);\n  const widgetIdRef = useRef<string | null>(null);
+  const captchaRef = useRef<HTMLDivElement>(null);
+  const widgetIdRef = useRef<string | null>(null);
 
   useEffect(() => {
     if (!TURNSTILE_SITE_KEY || !captchaRef.current) return;
@@ -39,7 +41,8 @@ export default function ContactForm({ru}:{ru:boolean}) {
         "expired-callback": () => setCaptchaToken(""),
         "error-callback": () => { setCaptchaToken(""); setCaptchaError(true); },
       });
-      widgetIdRef.current = widgetId;\n      setCaptchaReady(true);
+      widgetIdRef.current = widgetId;
+      setCaptchaReady(true);
     };
 
     if (window.turnstile) {
@@ -61,7 +64,8 @@ export default function ContactForm({ru}:{ru:boolean}) {
 
     return () => {
       cancelled = true;
-      if (widgetId && window.turnstile) window.turnstile.remove(widgetId);\n      widgetIdRef.current = null;
+      if (widgetId && window.turnstile) window.turnstile.remove(widgetId);
+      widgetIdRef.current = null;
     };
   }, []);
 
@@ -93,7 +97,8 @@ export default function ContactForm({ru}:{ru:boolean}) {
       setCaptchaError(false);
       setStatus("sent");
       if (TURNSTILE_SITE_KEY && window.turnstile && captchaRef.current) {
-        const widgetId = widgetIdRef.current;\n        if (widgetId) window.turnstile.reset(widgetId);
+        const widgetId = widgetIdRef.current;
+        if (widgetId) window.turnstile.reset(widgetId);
       }
     } catch {
       setStatus("error");

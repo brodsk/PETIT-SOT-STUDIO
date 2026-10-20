@@ -25,7 +25,7 @@ export async function generateMetadata({
   const isAcrylic = /acrylic|акрил/.test(rawMedium);
   const workTypeEn = isOil ? "Original Oil Painting" : isAcrylic ? "Original Acrylic Painting" : "Original Artwork";
   const workTypeRu = isOil ? "оригинальная картина маслом" : isAcrylic ? "оригинальная акриловая картина" : "оригинальная работа";
-  const seoArtwork = {
+  const seoArtworkBySlug: Record<string, { en: { subject: string; description: string }; ru: { subject: string; description: string } }> = {
     "rain-in-the-city": {
       en: { subject: "Rainy City", description: "Discover Rain in the City, an original painting by Olga Trikhleb depicting a rainy urban scene. View the canvas details, dimensions and purchase options." },
       ru: { subject: "дождливый город", description: "Оригинальная картина «Дождь в городе» Ольги Трихлеб с городским пейзажем под дождём. Посмотрите детали, размер и варианты покупки." },
@@ -66,7 +66,8 @@ export async function generateMetadata({
       en: { subject: "Misty Landscape", description: "Discover Fog, an original landscape painting by Olga Trikhleb depicting a scene in mist. View the artwork details, dimensions and purchase options." },
       ru: { subject: "пейзаж в тумане", description: "«Fog» — оригинальная картина Ольги Трихлеб с пейзажем в тумане. Посмотрите детали работы, размер и варианты покупки." },
     },
-  }[slug];
+  };
+  const seoArtwork = seoArtworkBySlug[slug];
   const seoTitle = seoArtwork
     ? ru
       ? `${title} — ${isOil ? "картина маслом: " : ""}${seoArtwork.ru.subject}`

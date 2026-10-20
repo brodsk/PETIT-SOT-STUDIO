@@ -71,7 +71,7 @@ export async function generateMetadata({
   const seoTitle = seoArtwork
     ? ru
       ? `${title} — ${isOil ? "картина маслом: " : ""}${seoArtwork.ru.subject}`
-      : `${title} — ${seoArtwork.en.subject} ${isOil ? "Oil Painting" : isAcrylic ? "Acrylic Painting" : "Original Artwork"}`
+      : `${title} — ${isOil ? "Original Oil Painting" : isAcrylic ? "Original Acrylic Painting" : "Original Artwork"} | ${seoArtwork.en.subject}`
     : ru
       ? `${title} — ${isOil ? "картина маслом" : isAcrylic ? "акриловая картина" : "оригинальная работа"}`
       : `${title} — ${workTypeEn}`;

@@ -92,3 +92,6 @@
   .socialLinks a i { font-size: 17px; }
   .socialLinks a:hover { padding-left: 3px; }
 }
+
+.page :global(.contact-captcha-wrap) { margin: 0 0 18px; min-height: 65px; }
+.page :global(.contact-captcha) { min-height: 65px; }

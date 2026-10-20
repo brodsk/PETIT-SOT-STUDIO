@@ -25,12 +25,62 @@ export async function generateMetadata({
   const isAcrylic = /acrylic|акрил/.test(rawMedium);
   const workTypeEn = isOil ? "Original Oil Painting" : isAcrylic ? "Original Acrylic Painting" : "Original Artwork";
   const workTypeRu = isOil ? "оригинальная картина маслом" : isAcrylic ? "оригинальная акриловая картина" : "оригинальная работа";
-  const seoTitle = ru
-    ? `${title} — ${isOil ? "картина маслом" : isAcrylic ? "акриловая картина" : "оригинальная работа"}`
-    : `${title} — ${workTypeEn}`;
-  const description = ru
-    ? `${workTypeRu.charAt(0).toUpperCase() + workTypeRu.slice(1)} «${title}» Ольги Трихлеб, ${w.year}, ${w.size}. Посмотрите детали работы и варианты покупки.`
-    : `${workTypeEn} “${title}” by Olga Trikhleb, ${w.year}, ${w.size}. View artwork details and purchase options.`;
+  const seoArtwork = {
+    "rain-in-the-city": {
+      en: { subject: "Rainy City", description: "Discover Rain in the City, an original painting by Olga Trikhleb depicting a rainy urban scene. View the canvas details, dimensions and purchase options." },
+      ru: { subject: "дождливый город", description: "Оригинальная картина «Дождь в городе» Ольги Трихлеб с городским пейзажем под дождём. Посмотрите детали, размер и варианты покупки." },
+    },
+    rain: {
+      en: { subject: "Rainy City", description: "Discover Rain in the City, an original painting by Olga Trikhleb depicting a rainy urban scene. View the canvas details, dimensions and purchase options." },
+      ru: { subject: "дождливый город", description: "Оригинальная картина «Дождь в городе» Ольги Трихлеб с городским пейзажем под дождём. Посмотрите детали, размер и варианты покупки." },
+    },
+    meadow: {
+      en: { subject: "Landscape with Sheep", description: "Explore Meadow, an original countryside landscape painting with sheep by Olga Trikhleb. See the artwork details, canvas size and purchase options." },
+      ru: { subject: "луговой пейзаж с овцами", description: "«Meadow» — оригинальный сельский пейзаж Ольги Трихлеб с овцами. Посмотрите описание картины, размер и варианты покупки." },
+    },
+    "sunset-in-the-village": {
+      en: { subject: "Village Sunset", description: "View Sunset in the Village, an original landscape painting by Olga Trikhleb capturing a sunset over a village. Explore its dimensions and purchase options." },
+      ru: { subject: "закат в деревне", description: "«Закат в деревне» — оригинальный пейзаж Ольги Трихлеб с вечерним светом над деревней. Узнайте размер картины и варианты покупки." },
+    },
+    sunset: {
+      en: { subject: "Village Sunset", description: "View Sunset in the Village, an original landscape painting by Olga Trikhleb capturing a sunset over a village. Explore its dimensions and purchase options." },
+      ru: { subject: "закат в деревне", description: "«Закат в деревне» — оригинальный пейзаж Ольги Трихлеб с вечерним светом над деревней. Узнайте размер картины и варианты покупки." },
+    },
+    evening: {
+      en: { subject: "Landscape Painting", description: "Discover Evening, an original landscape painting by Olga Trikhleb. View the artwork details, dimensions and available purchase options." },
+      ru: { subject: "вечерний пейзаж", description: "«Evening» — оригинальная картина с вечерним пейзажем Ольги Трихлеб. Посмотрите детали работы, размер и варианты покупки." },
+    },
+    nice: {
+      en: { subject: "Seascape", description: "Discover Nice, an original seascape painting by Olga Trikhleb featuring a view of the sea. Explore the artwork details, dimensions and purchase options." },
+      ru: { subject: "морской пейзаж", description: "«Nice» — оригинальная картина Ольги Трихлеб с видом на море. Посмотрите детали работы, размер и варианты покупки." },
+    },
+    angel: {
+      en: { subject: "Fallen Angel", description: "Discover Angel, an original painting by Olga Trikhleb depicting a fallen angel. View the artwork details, dimensions and purchase options." },
+      ru: { subject: "падший ангел", description: "«Angel» — оригинальная картина Ольги Трихлеб с образом падшего ангела. Посмотрите детали работы, размер и варианты покупки." },
+    },
+    road: {
+      en: { subject: "Landscape Painting", description: "Explore Road, an original landscape painting by Olga Trikhleb. View the composition, canvas dimensions and purchase options." },
+      ru: { subject: "пейзаж с дорогой", description: "«Road» — оригинальная картина Ольги Трихлеб с пейзажным мотивом дороги. Посмотрите детали, размер и варианты покупки." },
+    },
+    fog: {
+      en: { subject: "Misty Landscape", description: "Discover Fog, an original landscape painting by Olga Trikhleb depicting a scene in mist. View the artwork details, dimensions and purchase options." },
+      ru: { subject: "пейзаж в тумане", description: "«Fog» — оригинальная картина Ольги Трихлеб с пейзажем в тумане. Посмотрите детали работы, размер и варианты покупки." },
+    },
+  }[slug];
+  const seoTitle = seoArtwork
+    ? ru
+      ? `${title} — ${isOil ? "картина маслом: " : ""}${seoArtwork.ru.subject}`
+      : `${title} — ${seoArtwork.en.subject} ${isOil ? "Oil Painting" : isAcrylic ? "Acrylic Painting" : "Original Artwork"}`
+    : ru
+      ? `${title} — ${isOil ? "картина маслом" : isAcrylic ? "акриловая картина" : "оригинальная работа"}`
+      : `${title} — ${workTypeEn}`;
+  const description = seoArtwork
+    ? ru
+      ? `${seoArtwork.ru.description} Год: ${w.year}; размер: ${w.size}.`
+      : `${seoArtwork.en.description} Year: ${w.year}; size: ${w.size}.`
+    : ru
+      ? `${workTypeRu.charAt(0).toUpperCase() + workTypeRu.slice(1)} «${title}» Ольги Трихлеб, ${w.year}, ${w.size}. Посмотрите детали работы и варианты покупки.`
+      : `${workTypeEn} “${title}” by Olga Trikhleb, ${w.year}, ${w.size}. View artwork details and purchase options.`;
   const image = w.imageUrl;
   const canonical = `${SITE_URL}${ru ? "/ru" : ""}/works/${w.slug}`;
 

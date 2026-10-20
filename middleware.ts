@@ -12,7 +12,11 @@ export function middleware(request: NextRequest) {
   const first = pathname.split("/").filter(Boolean)[0];
 
   // Public legal pages keep stable, unlocalized URLs.
-  if (pathname === "/privacy-policy" || pathname === "/image-licensing") {
+  if (
+    pathname === "/privacy-policy" ||
+    pathname === "/image-licensing" ||
+    pathname === "/return-policy"
+  ) {
     return NextResponse.next();
   }
 

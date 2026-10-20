@@ -10,7 +10,7 @@ type TurnstileApi = {
     "error-callback"?: () => void;
     theme?: "light" | "dark" | "auto";
   }) => string;
-  remove: (widgetId: string) => void;
+  remove: (widgetId: string) => void;\n  reset: (widgetId: string) => void;
 };
 declare global {
   interface Window { turnstile?: TurnstileApi; }
@@ -23,7 +23,7 @@ export default function ContactForm({ru}:{ru:boolean}) {
   const [captchaToken, setCaptchaToken] = useState("");
   const [captchaReady, setCaptchaReady] = useState(!TURNSTILE_SITE_KEY);
   const [captchaError, setCaptchaError] = useState(false);
-  const captchaRef = useRef<HTMLDivElement>(null);
+  const captchaRef = useRef<HTMLDivElement>(null);\n  const widgetIdRef = useRef<string | null>(null);
 
   useEffect(() => {
     if (!TURNSTILE_SITE_KEY || !captchaRef.current) return;
@@ -39,7 +39,7 @@ export default function ContactForm({ru}:{ru:boolean}) {
         "expired-callback": () => setCaptchaToken(""),
         "error-callback": () => { setCaptchaToken(""); setCaptchaError(true); },
       });
-      setCaptchaReady(true);
+      widgetIdRef.current = widgetId;\n      setCaptchaReady(true);
     };
 
     if (window.turnstile) {
@@ -61,7 +61,7 @@ export default function ContactForm({ru}:{ru:boolean}) {
 
     return () => {
       cancelled = true;
-      if (widgetId && window.turnstile) window.turnstile.remove(widgetId);
+      if (widgetId && window.turnstile) window.turnstile.remove(widgetId);\n      widgetIdRef.current = null;
     };
   }, []);
 
@@ -93,7 +93,7 @@ export default function ContactForm({ru}:{ru:boolean}) {
       setCaptchaError(false);
       setStatus("sent");
       if (TURNSTILE_SITE_KEY && window.turnstile && captchaRef.current) {
-        window.turnstile.remove(captchaRef.current.dataset.widgetId || "");
+        const widgetId = widgetIdRef.current;\n        if (widgetId) window.turnstile.reset(widgetId);
       }
     } catch {
       setStatus("error");

@@ -2304,19 +2304,22 @@ button,
   pointer-events: none !important;
 }
 
-/* Angel: round beige mat matching the existing rectangular artwork mats. */
+/* Angel only: larger centered artwork on a perfectly circular beige mat. */
 .work-page > .artwork-viewer .artwork-viewer-main.artwork-viewer-angel-first {
-  width: min(100%, 70vw, 680px) !important;
+  position: relative !important;
+  box-sizing: border-box !important;
+  width: min(100%, 78vw, 780px) !important;
   height: auto !important;
-  aspect-ratio: 1 / 1 !important;
   min-height: 0 !important;
   max-height: none !important;
+  aspect-ratio: 1 / 1 !important;
   margin: 0 auto !important;
-  flex: 0 1 auto !important;
+  padding: 0 !important;
+  flex: 0 0 auto !important;
+  border: 0 !important;
   border-radius: 50% !important;
   overflow: hidden !important;
   background: #e5e1d9 !important;
-  border: 1px solid rgba(23,23,23,.12) !important;
   box-shadow: none !important;
 }
 .work-page > .artwork-viewer .artwork-viewer-main.artwork-viewer-angel-first::before {
@@ -2325,12 +2328,20 @@ button,
 }
 .work-page > .artwork-viewer .artwork-viewer-main.artwork-viewer-angel-first > img {
   position: absolute !important;
-  inset: 6% !important;
-  width: 88% !important;
-  height: 88% !important;
+  left: 50% !important;
+  top: 50% !important;
+  right: auto !important;
+  bottom: auto !important;
+  inset: auto !important;
+  display: block !important;
+  width: 95% !important;
+  height: 95% !important;
   max-width: none !important;
   max-height: none !important;
-  transform: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  transform: translate(-50%, -50%) !important;
+  border: 0 !important;
   border-radius: 50% !important;
   object-fit: contain !important;
   object-position: center !important;
@@ -2338,19 +2349,22 @@ button,
 }
 @media (max-width: 700px) {
   .work-page > .artwork-viewer .artwork-viewer-main.artwork-viewer-angel-first {
-    width: min(100%, 88vw) !important;
+    width: min(100%, 94vw) !important;
     height: auto !important;
-    aspect-ratio: 1 / 1 !important;
     min-height: 0 !important;
     max-height: none !important;
+    aspect-ratio: 1 / 1 !important;
     margin: 24px auto 0 !important;
     border-radius: 50% !important;
     background: #e5e1d9 !important;
     overflow: hidden !important;
   }
   .work-page > .artwork-viewer .artwork-viewer-main.artwork-viewer-angel-first > img {
-    inset: 6% !important;
-    width: 88% !important;
-    height: 88% !important;
+    left: 50% !important;
+    top: 50% !important;
+    inset: auto !important;
+    width: 95% !important;
+    height: 95% !important;
+    transform: translate(-50%, -50%) !important;
   }
 }

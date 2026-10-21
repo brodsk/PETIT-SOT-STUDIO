@@ -4,7 +4,7 @@ import { NextRequest, NextResponse } from "next/server";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const ENDPOINT = "https://petitsot.com/api/ebay/account-deletion";
+const ENDPOINT = "https://www.petitsot.com/api/ebay/account-deletion";
 
 export async function GET(request: NextRequest) {
   const challengeCode = request.nextUrl.searchParams.get("challenge_code");

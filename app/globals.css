@@ -2334,8 +2334,8 @@ button,
   right: auto !important;
   bottom: auto !important;
   display: block !important;
-  width: 95% !important;
-  height: 95% !important;
+  width: 118.75% !important;
+  height: 118.75% !important;
   max-width: none !important;
   max-height: none !important;
   margin: 0 !important;
@@ -2361,8 +2361,8 @@ button,
     top: 50% !important;
     right: auto !important;
     bottom: auto !important;
-    width: 90% !important;
-    height: 90% !important;
+    width: 112.5% !important;
+    height: 112.5% !important;
     transform: translate(-50%, -50%) !important;
   }
 }

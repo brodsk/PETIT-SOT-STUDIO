@@ -89,9 +89,17 @@ function fitWall(points: any[], camera: THREE.Camera): WallFit | null {
 }
 
 function wallQuaternion(normal: THREE.Vector3) {
-  const z = normal.clone().normalize();
-  let x = new THREE.Vector3().crossVectors(new THREE.Vector3(0, 1, 0), z).normalize();
-  if (x.lengthSq() < 0.001) x = new THREE.Vector3(1, 0, 0);
+  // XR world-point fitting can introduce a small vertical component into the wall normal.
+  // Remove it before building the artwork basis so the image can never tilt toward the floor.
+  const z = normal.clone();
+  z.y = 0;
+  if (z.lengthSq() < 0.001) z.set(normal.x, 0, normal.z);
+  z.normalize();
+
+  // Three.js artwork is authored in the XY plane (+Z is the front). Keep local Y
+  // aligned with world-up and local +Z facing out from the wall toward the viewer.
+  const worldUp = new THREE.Vector3(0, 1, 0);
+  const x = new THREE.Vector3().crossVectors(worldUp, z).normalize();
   const y = new THREE.Vector3().crossVectors(z, x).normalize();
   return new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().makeBasis(x, y, z));
 }

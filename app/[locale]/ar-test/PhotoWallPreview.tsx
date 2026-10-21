@@ -18,6 +18,7 @@ export default function PhotoWallPreview({ ru, artworkChoices }: Props) {
   const [dragging, setDragging] = useState(false);
   const stageRef = useRef<HTMLDivElement>(null);
   const uploadRef = useRef<HTMLInputElement>(null);
+  const cameraRef = useRef<HTMLInputElement>(null);
   const dragOffset = useRef({ x: 0, y: 0 });
 
   const choice = useMemo(() => artworkChoices.find((item) => item.image === selected) || artworkChoices[0], [artworkChoices, selected]);
@@ -169,18 +170,38 @@ export default function PhotoWallPreview({ ru, artworkChoices }: Props) {
               </div>
             )}
           </div>
-          <label className="photo-wall-upload">
-            <span>{ru ? "Выбрать фото комнаты" : "Choose room photo"}</span>
+          <div className="photo-wall-upload-actions">
+            <label className="photo-wall-upload">
+              <span>{ru ? "Выбрать из галереи" : "Choose from gallery"}</span>
+              <input
+                ref={uploadRef}
+                type="file"
+                accept="image/*"
+                onChange={(event) => {
+                  loadRoom(event.target.files?.[0]);
+                  event.currentTarget.value = "";
+                }}
+              />
+            </label>
+            <button
+              className="photo-wall-upload photo-wall-camera"
+              type="button"
+              onClick={() => cameraRef.current?.click()}
+            >
+              {ru ? "Сделать фото камерой" : "Take a photo"}
+            </button>
             <input
-              ref={uploadRef}
+              ref={cameraRef}
+              className="photo-wall-camera-input"
               type="file"
               accept="image/*"
+              capture="environment"
               onChange={(event) => {
                 loadRoom(event.target.files?.[0]);
                 event.currentTarget.value = "";
               }}
             />
-          </label>
+          </div>
         </div>
         <div className="photo-wall-controls">
           <label>

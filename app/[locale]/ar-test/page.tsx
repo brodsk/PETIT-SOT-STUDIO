@@ -10,6 +10,5 @@ export default async function LegacyWallPreview({
   const { locale } = await params;
   const { work } = await searchParams;
   const prefix = locale === "ru" ? "/ru" : "";
-  const query = work ? `?work=${encodeURIComponent(work)}` : "";
-  redirect(`${prefix}/wall-preview${query}`);
+  redirect(work ? `${prefix}/wall-preview/${encodeURIComponent(work)}` : `${prefix}/works`);
 }

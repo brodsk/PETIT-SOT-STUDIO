@@ -2,7 +2,7 @@ import "server-only";
 import { createAdminClient } from "./supabase/admin";
 import { getEbayUserAccessToken } from "./ebay";
 
-const ETSY_API = "https://api.etsy.com/v3";
+const ETSY_API = "https://openapi.etsy.com/v3";
 const ETSY_TOKEN_URL = "https://api.etsy.com/v3/public/oauth/token";
 
 type ArtworkSyncRow = {
@@ -68,9 +68,17 @@ export async function etsyServerRequest(path: string, init: RequestInit = {}) {
     if (update.error) throw new Error("Could not save refreshed Etsy token.");
   }
 
+  const headers = new Headers(init.headers);
+  const baseHeaders = etsyHeaders(accessToken);
+  headers.set("x-api-key", baseHeaders["x-api-key"]);
+  headers.set("Authorization", baseHeaders.Authorization);
+  headers.set("Accept", baseHeaders.Accept);
+  if (!headers.has("content-type") && init.body && !(init.body instanceof FormData)) {
+    headers.set("content-type", "application/x-www-form-urlencoded");
+  }
   const response = await fetch(ETSY_API + path, {
     ...init,
-    headers: { ...etsyHeaders(accessToken), ...(init.headers as Record<string, string> || {}) },
+    headers,
     cache: "no-store",
   });
   return response;

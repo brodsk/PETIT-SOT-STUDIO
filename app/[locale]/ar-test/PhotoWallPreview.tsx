@@ -18,6 +18,7 @@ export default function PhotoWallPreview({ ru, artworkChoices }: Props) {
   const [dragging, setDragging] = useState(false);
   const stageRef = useRef<HTMLDivElement>(null);
   const uploadRef = useRef<HTMLInputElement>(null);
+  const cameraRef = useRef<HTMLInputElement>(null);
   const dragOffset = useRef({ x: 0, y: 0 });
 
   const choice = useMemo(() => artworkChoices.find((item) => item.image === selected) || artworkChoices[0], [artworkChoices, selected]);
@@ -203,9 +204,13 @@ export default function PhotoWallPreview({ ru, artworkChoices }: Props) {
           </div>
           <div className="photo-wall-upload-actions">
             <button className="photo-wall-upload" type="button" onClick={() => uploadRef.current?.click()}>
-              {ru ? "Выбрать фото" : "Choose photo"}
+              {ru ? "Выбрать из галереи" : "Choose from gallery"}
             </button>
             <input ref={uploadRef} className="photo-wall-hidden-input" type="file" accept="image/*" onChange={(event) => { loadRoom(event.target.files?.[0]); event.currentTarget.value = ""; }} />
+            <button className="photo-wall-upload" type="button" onClick={() => cameraRef.current?.click()}>
+              {ru ? "Сделать фото" : "Take a photo"}
+            </button>
+            <input ref={cameraRef} className="photo-wall-hidden-input" type="file" accept="image/*" capture="environment" onChange={(event) => { loadRoom(event.target.files?.[0]); event.currentTarget.value = ""; }} />
             {roomImage && (
               <button className="photo-wall-upload photo-wall-camera" type="button" onClick={capturePreview}>
                 {ru ? "Сохранить результат" : "Save result"}

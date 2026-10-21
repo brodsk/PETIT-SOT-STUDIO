@@ -89,7 +89,8 @@ export default function PhotoWallPreview({ ru, artworkChoices }: Props) {
       const artWidthCss = stage.clientWidth * size / 100;
       const artHeightCss = artWidthCss * (art.naturalHeight / Math.max(1, art.naturalWidth));
       const centerX = ((stage.clientWidth * position.x / 100) - offsetX) / renderedWidth * output.width;
-      const centerY = ((stage.clientHeight * position.y / 100) - offsetY) / renderedHeight * output.height;
+      // The CSS preview's perspective transform lands a fraction lower than the canvas projection; compensate slightly so the saved image aligns with the on-screen placement.
+      const centerY = ((stage.clientHeight * position.y / 100) - offsetY) / renderedHeight * output.height - (artHeightCss * scale * 0.01);
       const w = artWidthCss * scale, h = artHeightCss * scale;
       const rx = rotateX * Math.PI / 180, ry = rotateY * Math.PI / 180, rz = rotateZ * Math.PI / 180;
       const camera = 900 * scale;

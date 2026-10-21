@@ -174,11 +174,23 @@ export default function PhotoWallPreview({ ru, artworkChoices }: Props) {
           </div>
           <div className="photo-wall-upload-actions">
             <label className="photo-wall-upload">
-              <span>{ru ? "Выбрать фото комнаты" : "Choose room photo"}</span>
+              <span>{ru ? "Выбрать фото" : "Choose photo"}</span>
               <input
                 ref={uploadRef}
                 type="file"
                 accept="image/*"
+                onChange={(event) => {
+                  loadRoom(event.target.files?.[0]);
+                  event.currentTarget.value = "";
+                }}
+              />
+            </label>
+            <label className="photo-wall-upload photo-wall-camera">
+              <span>{ru ? "Сфотографировать" : "Take a photo"}</span>
+              <input
+                type="file"
+                accept="image/*"
+                capture="environment"
                 onChange={(event) => {
                   loadRoom(event.target.files?.[0]);
                   event.currentTarget.value = "";

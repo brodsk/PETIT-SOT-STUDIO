@@ -2304,9 +2304,10 @@ button,
   pointer-events: none !important;
 }
 
-/* Angel only: larger centered artwork on a perfectly circular beige mat. */
+/* Angel only: circular beige mat with visible, centered artwork. */
 .work-page > .artwork-viewer .artwork-viewer-main.artwork-viewer-angel-first {
   position: relative !important;
+  display: block !important;
   box-sizing: border-box !important;
   width: min(100%, 78vw, 780px) !important;
   height: auto !important;
@@ -2332,7 +2333,6 @@ button,
   top: 50% !important;
   right: auto !important;
   bottom: auto !important;
-  inset: auto !important;
   display: block !important;
   width: 95% !important;
   height: 95% !important;
@@ -2355,14 +2355,12 @@ button,
     max-height: none !important;
     aspect-ratio: 1 / 1 !important;
     margin: 24px auto 0 !important;
-    border-radius: 50% !important;
-    background: #e5e1d9 !important;
-    overflow: hidden !important;
   }
   .work-page > .artwork-viewer .artwork-viewer-main.artwork-viewer-angel-first > img {
     left: 50% !important;
     top: 50% !important;
-    inset: auto !important;
+    right: auto !important;
+    bottom: auto !important;
     width: 95% !important;
     height: 95% !important;
     transform: translate(-50%, -50%) !important;

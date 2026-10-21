@@ -12,9 +12,12 @@ export default function PhotoWallPreview({ ru, artworkChoices }: Props) {
   const [selected, setSelected] = useState(artworkChoices[0]?.image || "");
   const [size, setSize] = useState(34);
   const [position, setPosition] = useState({ x: 50, y: 48 });
-  const [rotation, setRotation] = useState(0);
+  const [rotateX, setRotateX] = useState(0);
+  const [rotateY, setRotateY] = useState(0);
+  const [rotateZ, setRotateZ] = useState(0);
   const [dragging, setDragging] = useState(false);
   const stageRef = useRef<HTMLDivElement>(null);
+  const uploadRef = useRef<HTMLInputElement>(null);
   const dragOffset = useRef({ x: 0, y: 0 });
 
   const choice = useMemo(() => artworkChoices.find((item) => item.image === selected) || artworkChoices[0], [artworkChoices, selected]);
@@ -51,12 +54,20 @@ export default function PhotoWallPreview({ ru, artworkChoices }: Props) {
     });
   };
 
+  const reset = () => {
+    setPosition({ x: 50, y: 48 });
+    setSize(34);
+    setRotateX(0);
+    setRotateY(0);
+    setRotateZ(0);
+  };
+
   return (
     <section className="photo-wall-tool">
       <div className="photo-wall-heading">
         <span className="eyebrow">{ru ? "АЛЬТЕРНАТИВА AR" : "AR ALTERNATIVE"}</span>
         <h2>{ru ? "Примерьте картину на фото стены" : "Preview artwork on your wall photo"}</h2>
-        <p>{ru ? "Работает на Android и iPhone без ARCore и специальных AR-функций. Загрузите фото комнаты, затем перетащите картину на стену." : "Works on Android and iPhone without ARCore or special AR support. Upload a room photo, then drag the artwork onto the wall."}</p>
+        <p>{ru ? "Загрузите фото комнаты, затем перетащите картину на стену и настройте её угол." : "Upload a room photo, then drag the artwork onto the wall and adjust its angle."}</p>
       </div>
       <div className="photo-wall-layout">
         <div className="photo-wall-stage-wrap">
@@ -70,11 +81,16 @@ export default function PhotoWallPreview({ ru, artworkChoices }: Props) {
             {roomImage ? (
               <img className="photo-wall-room" src={roomImage} alt={ru ? "Фото комнаты" : "Room photo"} />
             ) : (
-              <div className="photo-wall-empty">
+              <button
+                className="photo-wall-empty"
+                type="button"
+                onClick={() => uploadRef.current?.click()}
+                aria-label={ru ? "Загрузить фото комнаты" : "Upload a room photo"}
+              >
                 <span>+</span>
-                <strong>{ru ? "Загрузите фото комнаты" : "Upload a room photo"}</strong>
-                <small>{ru ? "Лучше всего — фото стены прямо спереди" : "A straight-on photo of the wall works best"}</small>
-              </div>
+                <strong>{ru ? "Загрузить фото комнаты" : "Upload a room photo"}</strong>
+                <small>{ru ? "Нажмите здесь или выберите фото ниже" : "Tap here or use the button below"}</small>
+              </button>
             )}
             {roomImage && selected && (
               <div
@@ -84,7 +100,8 @@ export default function PhotoWallPreview({ ru, artworkChoices }: Props) {
                   top: `${position.y}%`,
                   width: `${size}%`,
                   aspectRatio: `${Math.max(1, choice?.width || 1)} / ${Math.max(1, choice?.height || 1)}`,
-                  transform: `translate(-50%, -50%) rotate(${rotation}deg)`,
+                  transform: `translate(-50%, -50%) perspective(900px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) rotateZ(${rotateZ}deg)`,
+                  transformStyle: "preserve-3d",
                 }}
                 onPointerDown={onPointerDown}
                 role="slider"
@@ -100,7 +117,15 @@ export default function PhotoWallPreview({ ru, artworkChoices }: Props) {
           </div>
           <label className="photo-wall-upload">
             <span>{ru ? "Выбрать фото комнаты" : "Choose room photo"}</span>
-            <input type="file" accept="image/*" onChange={(event) => loadRoom(event.target.files?.[0])} />
+            <input
+              ref={uploadRef}
+              type="file"
+              accept="image/*"
+              onChange={(event) => {
+                loadRoom(event.target.files?.[0]);
+                event.currentTarget.value = "";
+              }}
+            />
           </label>
         </div>
         <div className="photo-wall-controls">
@@ -115,14 +140,22 @@ export default function PhotoWallPreview({ ru, artworkChoices }: Props) {
             <input type="range" min="8" max="72" value={size} onChange={(event) => setSize(Number(event.target.value))} />
           </label>
           <label>
-            <span>{ru ? "Наклон" : "Rotation"}</span>
-            <input type="range" min="-12" max="12" value={rotation} onChange={(event) => setRotation(Number(event.target.value))} />
+            <span>{ru ? "Наклон влево / вправо" : "Tilt left / right"} · {rotateZ}°</span>
+            <input type="range" min="-180" max="180" value={rotateZ} onChange={(event) => setRotateZ(Number(event.target.value))} />
+          </label>
+          <label>
+            <span>{ru ? "Перспектива по горизонтали" : "Horizontal perspective"} · {rotateY}°</span>
+            <input type="range" min="-75" max="75" value={rotateY} onChange={(event) => setRotateY(Number(event.target.value))} />
+          </label>
+          <label>
+            <span>{ru ? "Перспектива по вертикали" : "Vertical perspective"} · {rotateX}°</span>
+            <input type="range" min="-75" max="75" value={rotateX} onChange={(event) => setRotateX(Number(event.target.value))} />
           </label>
           <div className="photo-wall-actions">
-            <button type="button" onClick={() => { setPosition({ x: 50, y: 48 }); setSize(34); setRotation(0); }}>{ru ? "Сбросить положение" : "Reset placement"}</button>
+            <button type="button" onClick={reset}>{ru ? "Сбросить положение и угол" : "Reset position and angles"}</button>
             {roomImage && <button type="button" onClick={() => setRoomImage("")}>{ru ? "Удалить фото" : "Remove photo"}</button>}
           </div>
-          <p>{ru ? "Перетаскивайте картину пальцем. Размер сохраняет пропорции оригинала, но масштаб на фотографии подбирается вручную." : "Drag the artwork with your finger. Its proportions are preserved; match the scale to your room photo manually."}</p>
+          <p>{ru ? "Перетаскивайте картину пальцем. Три ползунка позволяют повернуть её вокруг всех осей." : "Drag the artwork with your finger. The three angle controls rotate it on all axes."}</p>
         </div>
       </div>
     </section>

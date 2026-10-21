@@ -16,6 +16,16 @@ async function ebayGet(path: string, token: string) {
   return { ok: response.ok, status: response.status, data };
 }
 
+function apiErrorSummary(data: any) {
+  const errors = Array.isArray(data?.errors) ? data.errors : [];
+  return errors.slice(0, 3).map((item: any) => ({
+    errorId: item?.errorId ?? null,
+    domain: String(item?.domain || ""),
+    category: String(item?.category || ""),
+    message: String(item?.message || "").slice(0, 240),
+  }));
+}
+
 function policySummary(result: { ok: boolean; status: number; data: any }) {
   const items = Array.isArray(result.data?.fulfillmentPolicies)
     ? result.data.fulfillmentPolicies
@@ -28,6 +38,7 @@ function policySummary(result: { ok: boolean; status: number; data: any }) {
     ok: result.ok,
     httpStatus: result.status,
     count: items.length,
+    errors: apiErrorSummary(result.data),
     policies: items.slice(0, 20).map((p: any) => ({
       id: String(p.fulfillmentPolicyId || p.paymentPolicyId || p.returnPolicyId || ""),
       name: String(p.name || ""),
@@ -63,6 +74,7 @@ export async function GET() {
         httpStatus: privileges.status,
         sellerRegistrationCompleted: privileges.data?.sellerRegistrationCompleted ?? null,
         status: privileges.data?.status ?? null,
+        errors: apiErrorSummary(privileges.data),
       },
       ordersApi: {
         ok: orders.ok,
@@ -73,6 +85,7 @@ export async function GET() {
       inventoryLocations: {
         ok: locations.ok,
         httpStatus: locations.status,
+        errors: apiErrorSummary(locations.data),
         count: locationItems.length,
         locations: locationItems.slice(0, 20).map((x: any) => ({
           key: String(x.merchantLocationKey || ""),

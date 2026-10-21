@@ -2329,7 +2329,7 @@ button,
 }
 .work-page > .artwork-viewer .artwork-viewer-main.artwork-viewer-angel-first > img {
   position: absolute !important;
-  left: 50% !important;
+  left: 47.5% !important;
   top: 50% !important;
   right: auto !important;
   bottom: auto !important;
@@ -2357,7 +2357,7 @@ button,
     margin: 24px auto 0 !important;
   }
   .work-page > .artwork-viewer .artwork-viewer-main.artwork-viewer-angel-first > img {
-    left: 48.5% !important;
+    left: 46.5% !important;
     top: 50% !important;
     right: auto !important;
     bottom: auto !important;

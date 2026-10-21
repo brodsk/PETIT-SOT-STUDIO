@@ -110,7 +110,11 @@ export default function PhotoWallPreview({ ru, artworkChoices }: Props) {
         const b=(p0.y*(s1.y-s2.y)+p1.y*(s2.y-s0.y)+p2.y*(s0.y-s1.y))/den;
         const d=(p0.y*(s2.x-s1.x)+p1.y*(s0.x-s2.x)+p2.y*(s1.x-s0.x))/den;
         const f=(p0.y*(s1.x*s2.y-s2.x*s1.y)+p1.y*(s2.x*s0.y-s0.x*s2.y)+p2.y*(s0.x*s1.y-s1.x*s0.y))/den;
-        ctx.save();ctx.beginPath();ctx.moveTo(p0.x,p0.y);ctx.lineTo(p1.x,p1.y);ctx.lineTo(p2.x,p2.y);ctx.closePath();ctx.clip();
+        // Expand each clipped triangle slightly to cover anti-aliased seams between mesh cells.
+        const cx=(p0.x+p1.x+p2.x)/3, cy=(p0.y+p1.y+p2.y)/3;
+        const expand=(p:any)=>{const dx=p.x-cx,dy=p.y-cy,len=Math.hypot(dx,dy)||1;return{x:p.x+dx/len*1.25,y:p.y+dy/len*1.25};};
+        const q0=expand(p0),q1=expand(p1),q2=expand(p2);
+        ctx.save();ctx.beginPath();ctx.moveTo(q0.x,q0.y);ctx.lineTo(q1.x,q1.y);ctx.lineTo(q2.x,q2.y);ctx.closePath();ctx.clip();
         ctx.transform(a,b,c1,d,e,f);ctx.drawImage(art,0,0);ctx.restore();
       };
       const corners=[point(0,0),point(1,0),point(1,1),point(0,1)];

@@ -33,7 +33,7 @@ export async function startEtsyOAuth() {
     response_type: "code",
     client_id: key,
     redirect_uri: etsyRedirectUri(),
-    scope: "listings_r listings_w shops_r shops_w",
+    scope: "listings_r listings_w shops_r shops_w transactions_r",
     state,
     code_challenge: challenge,
     code_challenge_method: "S256",

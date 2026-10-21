@@ -85,7 +85,7 @@ export default function PhotoWallPreview({ ru, artworkChoices }: Props) {
       const offsetX = (stage.clientWidth - renderedWidth) / 2;
       const offsetY = (stage.clientHeight - renderedHeight) / 2;
       const artWidth = (stage.clientWidth * size / 100) / renderedWidth * output.width;
-      const artHeight = artWidth * (choice.height / Math.max(1, choice.width));
+      const artHeight = artWidth * (art.naturalHeight / Math.max(1, art.naturalWidth));
       const centerX = ((stage.clientWidth * position.x / 100) - offsetX) / renderedWidth * output.width;
       const centerY = ((stage.clientHeight * position.y / 100) - offsetY) / renderedHeight * output.height;
       ctx.save();

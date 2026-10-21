@@ -74,7 +74,7 @@ export async function GET(request: NextRequest) {
   };
 
   if (!payload.refresh_token) {
-    return htmlPage("eBay did not return a refresh token", "<p>The authorization succeeded but eBay did not return a refresh token. Check that the offline_access scope was granted, then authorize again.</p>", 502);
+    return htmlPage("eBay did not return a refresh token", "<p>The authorization succeeded but eBay did not return a refresh token. Check that the requested scopes are available to the Production application and authorize again.</p>", 502);
   }
 
   const token = payload.refresh_token.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");

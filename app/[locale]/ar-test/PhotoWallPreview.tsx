@@ -185,7 +185,6 @@ export default function PhotoWallPreview({ ru, artworkChoices }: Props) {
                   aspectRatio: `${Math.max(1, choice?.width || 1)} / ${Math.max(1, choice?.height || 1)}`,
                   transform: `translate(-50%, -50%) perspective(900px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) rotateZ(${rotateZ}deg)`,
                   transformStyle: "preserve-3d",
-                  boxShadow: "0 5px 12px rgba(0,0,0,.18)",
                 }}
                 onPointerDown={onPointerDown}
                 role="slider"

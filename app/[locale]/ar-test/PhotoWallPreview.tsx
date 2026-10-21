@@ -224,6 +224,7 @@ export default function PhotoWallPreview({ ru, artworkChoices }: Props) {
             <input type="range" min="-75" max="75" value={rotateX} onChange={(event) => setRotateX(Number(event.target.value))} />
           </label>
           <div className="photo-wall-actions">
+            {roomImage && <button type="button" onClick={capturePreview}>{ru ? "Сохранить результат" : "Save result"}</button>}
             <button type="button" onClick={reset}>{ru ? "Сбросить положение и угол" : "Reset position and angles"}</button>
             {roomImage && <button type="button" onClick={() => setRoomImage("")}>{ru ? "Удалить фото" : "Remove photo"}</button>}
           </div>

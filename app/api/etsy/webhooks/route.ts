@@ -6,6 +6,7 @@ import {
   markArtworkSold,
   recordMarketplaceEvent,
   updateMarketplaceEvent,
+  etsyServerRequest,
 } from "../../../../lib/marketplace-sync";
 
 export const runtime = "nodejs";
@@ -96,18 +97,9 @@ export async function POST(request: Request) {
     await updateMarketplaceEvent("etsy", eventId, "processing");
 
     if (eventType === "order.paid") {
-      const receiptResponse = await fetch(
-        "https://api.etsy.com/v3/application/shops/" + shopId + "/receipts/" + receiptId,
-        {
-          headers: {
-            "x-api-key": (process.env.ETSY_API_KEYSTRING || "") + ":" + (process.env.ETSY_SHARED_SECRET || ""),
-            "Accept": "application/json",
-          },
-          cache: "no-store",
-        },
+      const receiptResponse = await etsyServerRequest(
+        "/application/shops/" + shopId + "/receipts/" + receiptId,
       );
-      // The authenticated receipt request is performed by the shared helper below;
-      // the direct response above is intentionally not used to access protected data.
       if (!receiptResponse.ok) {
         throw new Error("Could not fetch Etsy receipt (HTTP " + receiptResponse.status + ").");
       }

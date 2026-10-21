@@ -54,6 +54,60 @@ export default function PhotoWallPreview({ ru, artworkChoices }: Props) {
     });
   };
 
+  const capturePreview = async () => {
+    if (!roomImage || !choice) return;
+    try {
+      const room = new Image();
+      room.src = roomImage;
+      await new Promise<void>((resolve, reject) => {
+        room.onload = () => resolve();
+        room.onerror = () => reject(new Error("Could not load room photo"));
+      });
+      const output = document.createElement("canvas");
+      output.width = room.naturalWidth;
+      output.height = room.naturalHeight;
+      const ctx = output.getContext("2d");
+      if (!ctx) return;
+      ctx.drawImage(room, 0, 0);
+      const art = new Image();
+      art.crossOrigin = "anonymous";
+      art.src = selected;
+      await new Promise<void>((resolve, reject) => {
+        art.onload = () => resolve();
+        art.onerror = () => reject(new Error("Could not load artwork"));
+      });
+      const stage = stageRef.current;
+      if (!stage) return;
+      const scaleX = output.width / stage.clientWidth;
+      const scaleY = output.height / stage.clientHeight;
+      const artWidth = stage.clientWidth * size / 100;
+      const artHeight = artWidth * (choice.height / Math.max(1, choice.width));
+      const centerX = output.width * position.x / 100;
+      const centerY = output.height * position.y / 100;
+      ctx.save();
+      ctx.translate(centerX, centerY);
+      ctx.rotate(rotateZ * Math.PI / 180);
+      ctx.scale(scaleX, scaleY);
+      ctx.shadowColor = "rgba(0, 0, 0, 0.28)";
+      ctx.shadowBlur = 12;
+      ctx.shadowOffsetX = 2;
+      ctx.shadowOffsetY = 5;
+      ctx.drawImage(art, -artWidth / 2, -artHeight / 2, artWidth, artHeight);
+      ctx.shadowColor = "transparent";
+      ctx.strokeStyle = "rgba(25, 22, 18, 0.35)";
+      ctx.lineWidth = 1;
+      ctx.strokeRect(-artWidth / 2, -artHeight / 2, artWidth, artHeight);
+      ctx.restore();
+      const link = document.createElement("a");
+      link.download = "petitsot-room-preview.png";
+      link.href = output.toDataURL("image/png");
+      link.click();
+    } catch (error) {
+      console.error("Could not capture room preview:", error);
+      window.alert(ru ? "Не удалось сохранить фото. Попробуйте другое изображение." : "Could not save the photo. Please try another image.");
+    }
+  };
+
   const reset = () => {
     setPosition({ x: 50, y: 48 });
     setSize(34);

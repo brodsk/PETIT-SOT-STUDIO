@@ -2304,21 +2304,53 @@ button,
   pointer-events: none !important;
 }
 
-
-/* Circular frame for the first, transparent cutout image of Angel. */
-.artwork-viewer-main.artwork-viewer-angel-first > img {
-  position: absolute !important;
-  left: 50% !important;
-  top: 50% !important;
-  right: auto !important;
-  bottom: auto !important;
-  width: auto !important;
+/* Angel: round beige mat matching the existing rectangular artwork mats. */
+.work-page > .artwork-viewer .artwork-viewer-main.artwork-viewer-angel-first {
+  width: min(100%, 70vw, 680px) !important;
   height: auto !important;
-  max-width: 100% !important;
-  max-height: 100% !important;
   aspect-ratio: 1 / 1 !important;
-  transform: translate(-50%, -50%) !important;
-  object-fit: contain !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  margin: 0 auto !important;
+  flex: 0 1 auto !important;
   border-radius: 50% !important;
-  box-shadow: 0 0 0 3px #171614, 0 0 0 5px #89754f, 0 0 0 7px rgba(30, 28, 24, .88), 0 12px 30px rgba(0, 0, 0, .24) !important;
+  overflow: hidden !important;
+  background: #e5e1d9 !important;
+  border: 1px solid rgba(23,23,23,.12) !important;
+  box-shadow: none !important;
+}
+.work-page > .artwork-viewer .artwork-viewer-main.artwork-viewer-angel-first::before {
+  content: none !important;
+  display: none !important;
+}
+.work-page > .artwork-viewer .artwork-viewer-main.artwork-viewer-angel-first > img {
+  position: absolute !important;
+  inset: 6% !important;
+  width: 88% !important;
+  height: 88% !important;
+  max-width: none !important;
+  max-height: none !important;
+  transform: none !important;
+  border-radius: 50% !important;
+  object-fit: contain !important;
+  object-position: center !important;
+  box-shadow: none !important;
+}
+@media (max-width: 700px) {
+  .work-page > .artwork-viewer .artwork-viewer-main.artwork-viewer-angel-first {
+    width: min(100%, 88vw) !important;
+    height: auto !important;
+    aspect-ratio: 1 / 1 !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    margin: 24px auto 0 !important;
+    border-radius: 50% !important;
+    background: #e5e1d9 !important;
+    overflow: hidden !important;
+  }
+  .work-page > .artwork-viewer .artwork-viewer-main.artwork-viewer-angel-first > img {
+    inset: 6% !important;
+    width: 88% !important;
+    height: 88% !important;
+  }
 }

@@ -2340,7 +2340,7 @@ button,
   max-height: none !important;
   margin: 0 !important;
   padding: 0 !important;
-  transform: translate(-50%, -50%) scale(1.25) !important;
+  transform: translate(-50%, -50%) scale(1.5625) !important;
   border: 0 !important;
   border-radius: 50% !important;
   object-fit: contain !important;
@@ -2363,6 +2363,6 @@ button,
     bottom: auto !important;
     width: 95% !important;
     height: 95% !important;
-    transform: translate(-50%, -50%) scale(1.25) !important;
+    transform: translate(-50%, -50%) scale(1.5625) !important;
   }
 }

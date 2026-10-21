@@ -18,7 +18,6 @@ export default function PhotoWallPreview({ ru, artworkChoices }: Props) {
   const [dragging, setDragging] = useState(false);
   const stageRef = useRef<HTMLDivElement>(null);
   const uploadRef = useRef<HTMLInputElement>(null);
-  const cameraRef = useRef<HTMLInputElement>(null);
   const dragOffset = useRef({ x: 0, y: 0 });
 
   const choice = useMemo(() => artworkChoices.find((item) => item.image === selected) || artworkChoices[0], [artworkChoices, selected]);
@@ -79,10 +78,16 @@ export default function PhotoWallPreview({ ru, artworkChoices }: Props) {
       });
       const stage = stageRef.current;
       if (!stage) return;
-      const artWidth = output.width * size / 100;
+      const stageBounds = stage.getBoundingClientRect();
+      const roomScale = Math.min(stage.clientWidth / room.naturalWidth, stage.clientHeight / room.naturalHeight);
+      const renderedWidth = room.naturalWidth * roomScale;
+      const renderedHeight = room.naturalHeight * roomScale;
+      const offsetX = (stage.clientWidth - renderedWidth) / 2;
+      const offsetY = (stage.clientHeight - renderedHeight) / 2;
+      const artWidth = (stage.clientWidth * size / 100) / renderedWidth * output.width;
       const artHeight = artWidth * (choice.height / Math.max(1, choice.width));
-      const centerX = output.width * position.x / 100;
-      const centerY = output.height * position.y / 100;
+      const centerX = ((stage.clientWidth * position.x / 100) - offsetX) / renderedWidth * output.width;
+      const centerY = ((stage.clientHeight * position.y / 100) - offsetY) / renderedHeight * output.height;
       ctx.save();
       ctx.translate(centerX, centerY);
       ctx.rotate(rotateZ * Math.PI / 180);
@@ -169,7 +174,7 @@ export default function PhotoWallPreview({ ru, artworkChoices }: Props) {
           </div>
           <div className="photo-wall-upload-actions">
             <label className="photo-wall-upload">
-              <span>{ru ? "Выбрать из галереи" : "Choose from gallery"}</span>
+              <span>{ru ? "Выбрать фото комнаты" : "Choose room photo"}</span>
               <input
                 ref={uploadRef}
                 type="file"
@@ -180,24 +185,11 @@ export default function PhotoWallPreview({ ru, artworkChoices }: Props) {
                 }}
               />
             </label>
-            <button
-              className="photo-wall-upload photo-wall-camera"
-              type="button"
-              onClick={() => cameraRef.current?.click()}
-            >
-              {ru ? "Сделать фото камерой" : "Take a photo"}
-            </button>
-            <input
-              ref={cameraRef}
-              className="photo-wall-camera-input"
-              type="file"
-              accept="image/*"
-              capture="environment"
-              onChange={(event) => {
-                loadRoom(event.target.files?.[0]);
-                event.currentTarget.value = "";
-              }}
-            />
+            {roomImage && (
+              <button className="photo-wall-upload photo-wall-camera" type="button" onClick={capturePreview}>
+                {ru ? "Сохранить результат" : "Save result"}
+              </button>
+            )}
           </div>
         </div>
         <div className="photo-wall-controls">

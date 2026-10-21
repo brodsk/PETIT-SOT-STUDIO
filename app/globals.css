@@ -1626,7 +1626,7 @@ button,
 .photo-wall-empty>span{font-size:35px;font-weight:200;margin-bottom:12px}
 .photo-wall-empty strong{font-size:12px;font-weight:400}
 .photo-wall-empty small{font-size:10px;opacity:.65;margin-top:8px}
-.photo-wall-art{position:absolute;z-index:2;max-height:90%;cursor:grab;touch-action:none;user-select:none;filter:drop-shadow(0 6px 8px rgba(0,0,0,.24));border:1px solid rgba(0,0,0,.16)}
+.photo-wall-art{position:absolute;z-index:2;max-height:90%;cursor:grab;touch-action:none;user-select:none;filter:drop-shadow(0 6px 8px rgba(0,0,0,.24));border:0}
 .photo-wall-art:active{cursor:grabbing}
 .photo-wall-art img{display:block;width:100%;height:100%;object-fit:contain;pointer-events:none;user-select:none}
 .photo-wall-upload{display:flex;justify-content:center;align-items:center;margin-top:10px;min-height:44px;border:1px solid rgba(23,23,23,.3);cursor:pointer;font-size:9px;letter-spacing:.1em;text-transform:uppercase}

@@ -32,13 +32,13 @@ export async function POST(request: Request) {
   const artworkId = String(input?.artworkId || "");
   if (!artworkId) return error("Не указана картина.");
 
-  const marketplaceId = process.env.EBAY_MARKETPLACE_ID?.trim();
+  const marketplaceId = process.env.EBAY_MARKETPLACE_ID?.trim() || "";
   const currency = (process.env.EBAY_CURRENCY || "").trim().toUpperCase();
-  const locationKey = process.env.EBAY_MERCHANT_LOCATION_KEY?.trim();
-  const fulfillmentPolicyId = process.env.EBAY_FULFILLMENT_POLICY_ID?.trim();
-  const paymentPolicyId = process.env.EBAY_PAYMENT_POLICY_ID?.trim();
-  const returnPolicyId = process.env.EBAY_RETURN_POLICY_ID?.trim();
-  const categoryId = process.env.EBAY_CATEGORY_ID?.trim();
+  const locationKey = process.env.EBAY_MERCHANT_LOCATION_KEY?.trim() || "";
+  const fulfillmentPolicyId = process.env.EBAY_FULFILLMENT_POLICY_ID?.trim() || "";
+  const paymentPolicyId = process.env.EBAY_PAYMENT_POLICY_ID?.trim() || "";
+  const returnPolicyId = process.env.EBAY_RETURN_POLICY_ID?.trim() || "";
+  const categoryId = process.env.EBAY_CATEGORY_ID?.trim() || "";
   const rateText = process.env.EBAY_EUR_TO_LISTING_CURRENCY_RATE?.trim();
   const missing = [
     ["EBAY_MARKETPLACE_ID", marketplaceId],

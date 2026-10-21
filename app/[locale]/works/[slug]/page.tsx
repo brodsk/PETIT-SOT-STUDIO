@@ -243,7 +243,7 @@ export default async function WorkPage({
           <div><dt>{ru ? "Размер" : "Size"}</dt><dd>{w.size}</dd></div>
           <div><dt>{ru ? "Год" : "Year"}</dt><dd>{w.year}</dd></div>
         </dl>
-        <Link className="interior-button" href={`/wall-preview?work=${encodeURIComponent(w.slug)}`}>
+        <Link className="interior-button" href={`/wall-preview/${encodeURIComponent(w.slug)}`}>
           <span>{ru ? "Примерить на своей стене" : "Preview on your wall"}</span><span className="interior-button-arrow">↗</span>
         </Link>
         <p className="work-description">{description}</p>

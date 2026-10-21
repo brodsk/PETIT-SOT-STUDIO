@@ -2304,12 +2304,12 @@ button,
   pointer-events: none !important;
 }
 
-/* Angel only: circular beige mat with visible, centered artwork. */
+/* Angel only: enlarge the round artwork and keep the beige mat centered around it. */
 .work-page > .artwork-viewer .artwork-viewer-main.artwork-viewer-angel-first {
   position: relative !important;
   display: block !important;
   box-sizing: border-box !important;
-  width: min(100%, 78vw, 780px) !important;
+  width: min(100%, 88vw, 880px) !important;
   height: auto !important;
   min-height: 0 !important;
   max-height: none !important;
@@ -2334,8 +2334,8 @@ button,
   right: auto !important;
   bottom: auto !important;
   display: block !important;
-  width: 118.75% !important;
-  height: 118.75% !important;
+  width: 130% !important;
+  height: 130% !important;
   max-width: none !important;
   max-height: none !important;
   margin: 0 !important;
@@ -2361,8 +2361,8 @@ button,
     top: 50% !important;
     right: auto !important;
     bottom: auto !important;
-    width: 112.5% !important;
-    height: 112.5% !important;
+    width: 125% !important;
+    height: 125% !important;
     transform: translate(-50%, -50%) !important;
   }
 }

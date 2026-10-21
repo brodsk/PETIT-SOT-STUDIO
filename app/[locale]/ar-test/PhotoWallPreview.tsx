@@ -186,6 +186,8 @@ export default function PhotoWallPreview({ ru, artworkChoices }: Props) {
                   aspectRatio: `${Math.max(1, choice?.width || 1)} / ${Math.max(1, choice?.height || 1)}`,
                   transform: `translate(-50%, -50%) perspective(900px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) rotateZ(${rotateZ}deg)`,
                   transformStyle: "preserve-3d",
+                  boxShadow: (() => { const edgeDepth = Math.max(2, (stageRef.current?.clientWidth || 300) * size / 100 / Math.max(1, choice?.width || 30)); return edgeDepth + "px " + edgeDepth + "px 0 rgba(65, 47, 30, 0.82), 0 8px 14px rgba(0,0,0,.22)"; })(),
+                  border: "1px solid rgba(25, 22, 18, 0.45)",
                 }}
                 onPointerDown={onPointerDown}
                 role="slider"

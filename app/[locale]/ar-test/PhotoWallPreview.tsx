@@ -218,12 +218,14 @@ export default function PhotoWallPreview({ ru, artworkChoices, initialArtwork }:
 
         </div>
         <div className="photo-wall-controls">
-          <label>
-            <span>{ru ? "Картина" : "Artwork"}</span>
-            <select value={selected} onChange={(event) => setSelected(event.target.value)}>
-              {artworkChoices.map((item) => <option key={item.id} value={item.image}>{item.title}</option>)}
-            </select>
-          </label>
+{artworkChoices.length > 1 && (
+            <label>
+              <span>{ru ? "Картина" : "Artwork"}</span>
+              <select value={selected} onChange={(event) => setSelected(event.target.value)}>
+                {artworkChoices.map((item) => <option key={item.id} value={item.image}>{item.title}</option>)}
+              </select>
+            </label>
+          )}
           <label>
             <span>{ru ? "Размер на фото" : "Size on photo"}</span>
             <input type="range" min="8" max="72" value={size} onChange={(event) => setSize(Number(event.target.value))} />

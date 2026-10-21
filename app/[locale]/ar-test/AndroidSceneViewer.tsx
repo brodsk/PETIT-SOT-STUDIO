@@ -4,6 +4,8 @@ import { useMemo, useState } from "react";
 import * as THREE from "three";
 import { GLTFExporter } from "three/addons/exporters/GLTFExporter.js";
 
+const ModelViewer = "model-viewer" as any;
+
 type ArtworkChoice = { id: string | number; title: string; image: string; width: number; height: number };
 
 export default function AndroidSceneViewer({ ru, artworkChoices }: { ru: boolean; artworkChoices: ArtworkChoice[] }) {
@@ -102,7 +104,7 @@ export default function AndroidSceneViewer({ ru, artworkChoices }: { ru: boolean
         </button>
       ) : (
         <div className="apple-quicklook-ready">
-          <model-viewer
+          <ModelViewer
             src={modelUrl}
             alt={artwork.title}
             ar
@@ -116,7 +118,7 @@ export default function AndroidSceneViewer({ ru, artworkChoices }: { ru: boolean
             <button slot="ar-button" className="apple-quicklook-button" type="button">
               {ru ? "РАЗМЕСТИТЬ НА СТЕНЕ ↗" : "PLACE ON WALL ↗"}
             </button>
-          </model-viewer>
+          </ModelViewer>
           <button type="button" className="apple-quicklook-reset" onClick={() => setModelUrl("")}>
             {ru ? "Выбрать другую работу" : "Choose another artwork"}
           </button>

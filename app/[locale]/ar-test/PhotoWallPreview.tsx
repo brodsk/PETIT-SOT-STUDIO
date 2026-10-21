@@ -84,23 +84,50 @@ export default function PhotoWallPreview({ ru, artworkChoices }: Props) {
       const renderedHeight = room.naturalHeight * roomScale;
       const offsetX = (stage.clientWidth - renderedWidth) / 2;
       const offsetY = (stage.clientHeight - renderedHeight) / 2;
-      const artWidth = (stage.clientWidth * size / 100) / renderedWidth * output.width;
-      const artHeight = artWidth * (art.naturalHeight / Math.max(1, art.naturalWidth));
+      const scale = output.width / renderedWidth;
+      const artWidthCss = stage.clientWidth * size / 100;
+      const artHeightCss = artWidthCss * (art.naturalHeight / Math.max(1, art.naturalWidth));
       const centerX = ((stage.clientWidth * position.x / 100) - offsetX) / renderedWidth * output.width;
       const centerY = ((stage.clientHeight * position.y / 100) - offsetY) / renderedHeight * output.height;
+      const w = artWidthCss * scale, h = artHeightCss * scale;
+      const rx = rotateX * Math.PI / 180, ry = rotateY * Math.PI / 180, rz = rotateZ * Math.PI / 180;
+      const camera = 900 * scale;
+      const project = (x: number, y: number, z = 0) => {
+        const x1=x*Math.cos(rz)-y*Math.sin(rz), y1=x*Math.sin(rz)+y*Math.cos(rz);
+        const x2=x1*Math.cos(ry)+z*Math.sin(ry), z2=-x1*Math.sin(ry)+z*Math.cos(ry);
+        const y3=y1*Math.cos(rx)-z2*Math.sin(rx), z3=y1*Math.sin(rx)+z2*Math.cos(rx);
+        const p=camera/Math.max(1,camera-z3);
+        return {x:centerX+x2*p,y:centerY+y3*p};
+      };
+      const point=(u:number,v:number)=>project((u-.5)*w,(v-.5)*h);
+      const triangle=(p0:any,p1:any,p2:any,s0:any,s1:any,s2:any)=>{
+        const den=s0.x*(s1.y-s2.y)+s1.x*(s2.y-s0.y)+s2.x*(s0.y-s1.y);
+        if(Math.abs(den)<.0001)return;
+        const a=(p0.x*(s1.y-s2.y)+p1.x*(s2.y-s0.y)+p2.x*(s0.y-s1.y))/den;
+        const c1=(p0.x*(s2.x-s1.x)+p1.x*(s0.x-s2.x)+p2.x*(s1.x-s0.x))/den;
+        const e=(p0.x*(s1.x*s2.y-s2.x*s1.y)+p1.x*(s2.x*s0.y-s0.x*s2.y)+p2.x*(s0.x*s1.y-s1.x*s0.y))/den;
+        const b=(p0.y*(s1.y-s2.y)+p1.y*(s2.y-s0.y)+p2.y*(s0.y-s1.y))/den;
+        const d=(p0.y*(s2.x-s1.x)+p1.y*(s0.x-s2.x)+p2.y*(s1.x-s0.x))/den;
+        const f=(p0.y*(s1.x*s2.y-s2.x*s1.y)+p1.y*(s2.x*s0.y-s0.x*s2.y)+p2.y*(s0.x*s1.y-s1.x*s0.y))/den;
+        ctx.save();ctx.beginPath();ctx.moveTo(p0.x,p0.y);ctx.lineTo(p1.x,p1.y);ctx.lineTo(p2.x,p2.y);ctx.closePath();ctx.clip();
+        ctx.transform(a,b,c1,d,e,f);ctx.drawImage(art,0,0);ctx.restore();
+      };
+      const corners=[point(0,0),point(1,0),point(1,1),point(0,1)];
+      const depth=Math.max(2,w/Math.max(1,choice.width||30));
+      const back=[project(-w/2+depth,-h/2+depth,-depth),project(w/2+depth,-h/2+depth,-depth),project(w/2+depth,h/2+depth,-depth),project(-w/2+depth,h/2+depth,-depth)];
       ctx.save();
-      ctx.translate(centerX, centerY);
-      ctx.rotate(rotateZ * Math.PI / 180);
-      ctx.shadowColor = "rgba(0, 0, 0, 0.28)";
-      ctx.shadowBlur = 12;
-      ctx.shadowOffsetX = 2;
-      ctx.shadowOffsetY = 5;
-      ctx.drawImage(art, -artWidth / 2, -artHeight / 2, artWidth, artHeight);
-      ctx.shadowColor = "transparent";
-      ctx.strokeStyle = "rgba(25, 22, 18, 0.35)";
-      ctx.lineWidth = 1;
-      ctx.strokeRect(-artWidth / 2, -artHeight / 2, artWidth, artHeight);
-      ctx.restore();
+      ctx.fillStyle="#4b3828";ctx.beginPath();ctx.moveTo(corners[1].x,corners[1].y);ctx.lineTo(back[1].x,back[1].y);ctx.lineTo(back[2].x,back[2].y);ctx.lineTo(corners[2].x,corners[2].y);ctx.closePath();ctx.fill();
+      ctx.fillStyle="#6a5038";ctx.beginPath();ctx.moveTo(corners[2].x,corners[2].y);ctx.lineTo(back[2].x,back[2].y);ctx.lineTo(back[3].x,back[3].y);ctx.lineTo(corners[3].x,corners[3].y);ctx.closePath();ctx.fill();
+      ctx.shadowColor="rgba(0,0,0,.28)";ctx.shadowBlur=12;ctx.shadowOffsetX=2;ctx.shadowOffsetY=5;
+      const grid=12;
+      for(let y=0;y<grid;y++)for(let x=0;x<grid;x++){
+        const u0=x/grid,v0=y/grid,u1=(x+1)/grid,v1=(y+1)/grid;
+        const p00=point(u0,v0),p10=point(u1,v0),p01=point(u0,v1),p11=point(u1,v1);
+        const s00={x:u0*art.naturalWidth,y:v0*art.naturalHeight},s10={x:u1*art.naturalWidth,y:v0*art.naturalHeight},s01={x:u0*art.naturalWidth,y:v1*art.naturalHeight},s11={x:u1*art.naturalWidth,y:v1*art.naturalHeight};
+        triangle(p00,p10,p11,s00,s10,s11);triangle(p00,p11,p01,s00,s11,s01);
+      }
+      ctx.shadowColor="transparent";ctx.strokeStyle="rgba(25,22,18,.4)";ctx.lineWidth=Math.max(1,scale);
+      ctx.beginPath();ctx.moveTo(corners[0].x,corners[0].y);corners.slice(1).forEach(p=>ctx.lineTo(p.x,p.y));ctx.closePath();ctx.stroke();ctx.restore();
       const link = document.createElement("a");
       link.download = "petitsot-room-preview.png";
       link.href = output.toDataURL("image/png");
@@ -179,18 +206,6 @@ export default function PhotoWallPreview({ ru, artworkChoices }: Props) {
                 ref={uploadRef}
                 type="file"
                 accept="image/*"
-                onChange={(event) => {
-                  loadRoom(event.target.files?.[0]);
-                  event.currentTarget.value = "";
-                }}
-              />
-            </label>
-            <label className="photo-wall-upload photo-wall-camera">
-              <span>{ru ? "Сфотографировать" : "Take a photo"}</span>
-              <input
-                type="file"
-                accept="image/*"
-                capture="environment"
                 onChange={(event) => {
                   loadRoom(event.target.files?.[0]);
                   event.currentTarget.value = "";

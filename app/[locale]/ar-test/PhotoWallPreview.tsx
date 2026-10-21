@@ -79,16 +79,13 @@ export default function PhotoWallPreview({ ru, artworkChoices }: Props) {
       });
       const stage = stageRef.current;
       if (!stage) return;
-      const scaleX = output.width / stage.clientWidth;
-      const scaleY = output.height / stage.clientHeight;
-      const artWidth = stage.clientWidth * size / 100;
+      const artWidth = output.width * size / 100;
       const artHeight = artWidth * (choice.height / Math.max(1, choice.width));
       const centerX = output.width * position.x / 100;
       const centerY = output.height * position.y / 100;
       ctx.save();
       ctx.translate(centerX, centerY);
       ctx.rotate(rotateZ * Math.PI / 180);
-      ctx.scale(scaleX, scaleY);
       ctx.shadowColor = "rgba(0, 0, 0, 0.28)";
       ctx.shadowBlur = 12;
       ctx.shadowOffsetX = 2;

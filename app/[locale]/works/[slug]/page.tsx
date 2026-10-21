@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getWork, localizeMedium } from "../../../../lib/works";
-import { createClient } from "../../../../lib/supabase/server";
 import Link from "next/link";
 import ArtworkViewer from "./ArtworkViewer";
 

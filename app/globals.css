@@ -1631,6 +1631,10 @@ button,
 .photo-wall-art img{display:block;width:100%;height:100%;object-fit:contain;pointer-events:none;user-select:none}
 .photo-wall-upload{display:flex;justify-content:center;align-items:center;margin-top:10px;min-height:44px;border:1px solid rgba(23,23,23,.3);cursor:pointer;font-size:9px;letter-spacing:.1em;text-transform:uppercase}
 .photo-wall-upload input{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
+.photo-wall-upload-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+.photo-wall-upload-actions .photo-wall-upload{margin-top:0;width:100%;background:transparent;color:inherit;font-family:inherit}
+.photo-wall-camera{appearance:none;padding:0}
+.photo-wall-camera-input{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
 .photo-wall-controls{display:flex;flex-direction:column;gap:20px;padding-top:2px}
 .photo-wall-controls label{display:flex;flex-direction:column;gap:9px}
 .photo-wall-controls label>span{font-size:9px;text-transform:uppercase;letter-spacing:.12em}

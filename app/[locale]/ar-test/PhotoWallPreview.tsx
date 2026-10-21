@@ -4,12 +4,13 @@ import { useMemo, useRef, useState } from "react";
 
 type Props = {
   ru: boolean;
-  artworkChoices: { id: string | number; title: string; image: string; width: number; height: number }[];
+  artworkChoices: { id: string | number; slug?: string; title: string; image: string; width: number; height: number }[];
+  initialArtwork?: string;
 };
 
-export default function PhotoWallPreview({ ru, artworkChoices }: Props) {
+export default function PhotoWallPreview({ ru, artworkChoices, initialArtwork }: Props) {
   const [roomImage, setRoomImage] = useState("");
-  const [selected, setSelected] = useState(artworkChoices[0]?.image || "");
+  const [selected, setSelected] = useState(artworkChoices.find((item) => item.slug === initialArtwork)?.image || artworkChoices[0]?.image || "");
   const [size, setSize] = useState(34);
   const [position, setPosition] = useState({ x: 50, y: 48 });
   const [rotateX, setRotateX] = useState(0);

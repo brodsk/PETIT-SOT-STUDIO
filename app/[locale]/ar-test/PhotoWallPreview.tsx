@@ -16,10 +16,8 @@ export default function PhotoWallPreview({ ru, artworkChoices }: Props) {
   const [rotateY, setRotateY] = useState(0);
   const [rotateZ, setRotateZ] = useState(0);
   const [dragging, setDragging] = useState(false);
-  const [showPhotoSource, setShowPhotoSource] = useState(false);
   const stageRef = useRef<HTMLDivElement>(null);
   const uploadRef = useRef<HTMLInputElement>(null);
-  const cameraRef = useRef<HTMLInputElement>(null);
   const dragOffset = useRef({ x: 0, y: 0 });
 
   const choice = useMemo(() => artworkChoices.find((item) => item.image === selected) || artworkChoices[0], [artworkChoices, selected]);
@@ -170,7 +168,7 @@ export default function PhotoWallPreview({ ru, artworkChoices }: Props) {
               <button
                 className="photo-wall-empty"
                 type="button"
-                onClick={() => setShowPhotoSource(true)}
+                onClick={() => uploadRef.current?.click()}
                 aria-label={ru ? "Загрузить фото комнаты" : "Upload a room photo"}
               >
                 <span>+</span>
@@ -204,31 +202,17 @@ export default function PhotoWallPreview({ ru, artworkChoices }: Props) {
             )}
           </div>
           <div className="photo-wall-upload-actions">
-            <button className="photo-wall-upload" type="button" onClick={() => setShowPhotoSource(true)}>
+            <button className="photo-wall-upload" type="button" onClick={() => uploadRef.current?.click()}>
               {ru ? "Выбрать фото" : "Choose photo"}
             </button>
             <input ref={uploadRef} className="photo-wall-hidden-input" type="file" accept="image/*" onChange={(event) => { loadRoom(event.target.files?.[0]); event.currentTarget.value = ""; }} />
-            <input ref={cameraRef} className="photo-wall-hidden-input" type="file" accept="image/*" capture="environment" onChange={(event) => { loadRoom(event.target.files?.[0]); event.currentTarget.value = ""; }} />
             {roomImage && (
               <button className="photo-wall-upload photo-wall-camera" type="button" onClick={capturePreview}>
                 {ru ? "Сохранить результат" : "Save result"}
               </button>
             )}
           </div>
-          {showPhotoSource && (
-            <div className="photo-source-backdrop" role="presentation" onClick={() => setShowPhotoSource(false)}>
-              <div className="photo-source-dialog" role="dialog" aria-modal="true" aria-labelledby="photo-source-title" onClick={(event) => event.stopPropagation()}>
-                <h3 id="photo-source-title">{ru ? "Откуда загрузить фото?" : "Choose photo source"}</h3>
-                <button type="button" onClick={() => { setShowPhotoSource(false); cameraRef.current?.click(); }}>
-                  <span aria-hidden="true">📷</span>{ru ? "Сделать фото камерой" : "Take a photo"}
-                </button>
-                <button type="button" onClick={() => { setShowPhotoSource(false); uploadRef.current?.click(); }}>
-                  <span aria-hidden="true">🖼️</span>{ru ? "Выбрать из галереи" : "Choose from gallery"}
-                </button>
-                <button className="photo-source-cancel" type="button" onClick={() => setShowPhotoSource(false)}>{ru ? "Отмена" : "Cancel"}</button>
-              </div>
-            </div>
-          )}
+
         </div>
         <div className="photo-wall-controls">
           <label>

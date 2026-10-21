@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import * as THREE from "three";
 import { GLTFExporter } from "three/addons/exporters/GLTFExporter.js";
+import Script from "next/script";
 
 const ModelViewer = "model-viewer" as any;
 
@@ -84,6 +85,8 @@ export default function AndroidSceneViewer({ ru, artworkChoices }: { ru: boolean
   if (!artworkChoices.length) return null;
 
   return (
+    <>
+    <Script src="https://ajax.googleapis.com/ajax/libs/model-viewer/4.0.0/model-viewer.min.js" type="module" strategy="afterInteractive" />
     <section className="apple-quicklook android-scene-viewer">
       <div className="apple-quicklook-copy">
         <span className="eyebrow">ANDROID / GOOGLE SCENE VIEWER</span>
@@ -129,5 +132,6 @@ export default function AndroidSceneViewer({ ru, artworkChoices }: { ru: boolean
         ? "Нужен совместимый Android с ARCore и актуальными сервисами Google. Если AR недоступен, можно посмотреть модель в 3D."
         : "Requires an ARCore-compatible Android device with up-to-date Google services. If AR is unavailable, the model can still be viewed in 3D."}</p>
     </section>
+    </>
   );
 }

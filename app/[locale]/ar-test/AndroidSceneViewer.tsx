@@ -74,9 +74,10 @@ export default function AndroidSceneViewer({ ru, artworkChoices }: { ru: boolean
       front.material.dispose();
     } catch (e) {
       console.error("Android Scene Viewer model preparation failed:", e);
+      const detail = e instanceof Error ? e.message : String(e);
       setError(ru
-        ? "Не удалось подготовить AR-модель. Проверьте подключение и настройки AR-хранилища."
-        : "Could not prepare the AR model. Check your connection and AR storage configuration.");
+        ? `Не удалось подготовить AR-модель: ${detail}`
+        : `Could not prepare the AR model: ${detail}`);
     } finally {
       setBusy(false);
     }

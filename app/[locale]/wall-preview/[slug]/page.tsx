@@ -6,7 +6,7 @@ import PhotoWallPreview from "../../ar-test/PhotoWallPreview";
 const SITE_URL = "https://www.petitsot.com";
 
 function getDimensions(size: string) {
-  const match = (size || "").match(/([\\d.,]+)\\s*×\\s*([\\d.,]+)/);
+  const match = (size || "").match(/([\d.,]+)\s*×\s*([\d.,]+)/);
   return {
     width: match ? Number(match[1].replace(",", ".")) : 0,
     height: match ? Number(match[2].replace(",", ".")) : 0,

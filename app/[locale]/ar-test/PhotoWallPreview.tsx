@@ -150,7 +150,7 @@ export default function PhotoWallPreview({ ru, artworkChoices, initialArtwork }:
   return (
     <section className="photo-wall-tool">
       <div className="photo-wall-heading">
-        <span className="eyebrow">{ru ? "АЛЬТЕРНАТИВА AR" : "AR ALTERNATIVE"}</span>
+        <span className="eyebrow">{ru ? "ПРИМЕРКА ПО ФОТО" : "PHOTO PREVIEW"}</span>
         <h2>{ru ? "Примерьте картину на фото стены" : "Preview artwork on your wall photo"}</h2>
         <p>{ru ? "Загрузите фото комнаты, затем перетащите картину на стену и настройте её угол." : "Upload a room photo, then drag the artwork onto the wall and adjust its angle."}</p>
       </div>

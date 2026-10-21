@@ -92,7 +92,7 @@ export async function POST(request: Request) {
       marketplace: "ebay",
       eventId: notificationId,
       eventType: topic,
-      resourceId: String(payload?.notification?.data?.order?.orderId || ""),
+      resourceId: String(payload?.notification?.data?.orderId || payload?.notification?.data?.order?.orderId || ""),
       payload: { topic, notificationId },
     });
     if (recorded.status === "processed" || recorded.status === "conflict") {

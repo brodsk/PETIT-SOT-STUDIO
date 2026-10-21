@@ -5,11 +5,12 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 const AUTHORIZE_URL = "https://auth.ebay.com/oauth2/authorize";
+// eBay does not use the generic OAuth "offline_access" scope. Refresh tokens
+// are issued by eBay's authorization-code flow when the user grants consent.
 const SCOPES = [
   "https://api.ebay.com/oauth/api_scope/sell.inventory",
   "https://api.ebay.com/oauth/api_scope/sell.account",
   "https://api.ebay.com/oauth/api_scope/sell.fulfillment.readonly",
-  "https://api.ebay.com/oauth/api_scope/offline_access",
 ];
 
 export async function GET(request: NextRequest) {

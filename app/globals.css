@@ -2309,7 +2309,7 @@ button,
   position: relative !important;
   display: block !important;
   box-sizing: border-box !important;
-  width: min(100%, 78vw, 780px) !important;
+  width: min(100%, 94vw, 900px) !important;
   height: auto !important;
   min-height: 0 !important;
   max-height: none !important;
@@ -2334,13 +2334,13 @@ button,
   right: auto !important;
   bottom: auto !important;
   display: block !important;
-  width: 95% !important;
-  height: 95% !important;
+  width: 90% !important;
+  height: 90% !important;
   max-width: none !important;
   max-height: none !important;
   margin: 0 !important;
   padding: 0 !important;
-  transform: translate(-50%, -50%) scale(1.953125) !important;
+  transform: translate(-50%, -50%) !important;
   border: 0 !important;
   border-radius: 50% !important;
   object-fit: contain !important;
@@ -2361,12 +2361,12 @@ button,
     top: 50% !important;
     right: auto !important;
     bottom: auto !important;
-    width: 95% !important;
-    height: 95% !important;
-    transform: translate(-50%, -50%) scale(1.953125) !important;
+    width: 90% !important;
+    height: 90% !important;
+    transform: translate(-50%, -50%) !important;
   }
 }
 
 /* Angel: keep the beige mat concentric with the artwork's visible circular edge. */
-.work-page > .artwork-viewer .artwork-viewer-main.artwork-viewer-angel-first { background: transparent !important; }
+.work-page > .artwork-viewer .artwork-viewer-main.artwork-viewer-angel-first { background: #e5e1d9 !important; }
 .work-page > .artwork-viewer .artwork-viewer-main.artwork-viewer-angel-first > img { border-radius: 50% !important; }

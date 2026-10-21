@@ -114,12 +114,7 @@ export default function PhotoWallPreview({ ru, artworkChoices }: Props) {
         ctx.transform(a,b,c1,d,e,f);ctx.drawImage(art,0,0);ctx.restore();
       };
       const corners=[point(0,0),point(1,0),point(1,1),point(0,1)];
-      const depth=Math.max(2,w/Math.max(1,choice.width||30));
-      const back=[project(-w/2+depth,-h/2+depth,-depth),project(w/2+depth,-h/2+depth,-depth),project(w/2+depth,h/2+depth,-depth),project(-w/2+depth,h/2+depth,-depth)];
       ctx.save();
-      ctx.fillStyle="#4b3828";ctx.beginPath();ctx.moveTo(corners[1].x,corners[1].y);ctx.lineTo(back[1].x,back[1].y);ctx.lineTo(back[2].x,back[2].y);ctx.lineTo(corners[2].x,corners[2].y);ctx.closePath();ctx.fill();
-      ctx.fillStyle="#6a5038";ctx.beginPath();ctx.moveTo(corners[2].x,corners[2].y);ctx.lineTo(back[2].x,back[2].y);ctx.lineTo(back[3].x,back[3].y);ctx.lineTo(corners[3].x,corners[3].y);ctx.closePath();ctx.fill();
-      ctx.shadowColor="rgba(0,0,0,.28)";ctx.shadowBlur=12;ctx.shadowOffsetX=2;ctx.shadowOffsetY=5;
       const grid=12;
       for(let y=0;y<grid;y++)for(let x=0;x<grid;x++){
         const u0=x/grid,v0=y/grid,u1=(x+1)/grid,v1=(y+1)/grid;
@@ -127,8 +122,7 @@ export default function PhotoWallPreview({ ru, artworkChoices }: Props) {
         const s00={x:u0*art.naturalWidth,y:v0*art.naturalHeight},s10={x:u1*art.naturalWidth,y:v0*art.naturalHeight},s01={x:u0*art.naturalWidth,y:v1*art.naturalHeight},s11={x:u1*art.naturalWidth,y:v1*art.naturalHeight};
         triangle(p00,p10,p11,s00,s10,s11);triangle(p00,p11,p01,s00,s11,s01);
       }
-      ctx.shadowColor="transparent";ctx.strokeStyle="rgba(25,22,18,.4)";ctx.lineWidth=Math.max(1,scale);
-      ctx.beginPath();ctx.moveTo(corners[0].x,corners[0].y);corners.slice(1).forEach(p=>ctx.lineTo(p.x,p.y));ctx.closePath();ctx.stroke();ctx.restore();
+      ctx.restore();
       const link = document.createElement("a");
       link.download = "petitsot-room-preview.png";
       link.href = output.toDataURL("image/png");
@@ -187,8 +181,7 @@ export default function PhotoWallPreview({ ru, artworkChoices }: Props) {
                   aspectRatio: `${Math.max(1, choice?.width || 1)} / ${Math.max(1, choice?.height || 1)}`,
                   transform: `translate(-50%, -50%) perspective(900px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) rotateZ(${rotateZ}deg)`,
                   transformStyle: "preserve-3d",
-                  boxShadow: (() => { const edgeDepth = Math.max(2, (stageRef.current?.clientWidth || 300) * size / 100 / Math.max(1, choice?.width || 30)); return edgeDepth + "px " + edgeDepth + "px 0 rgba(65, 47, 30, 0.82), 0 8px 14px rgba(0,0,0,.22)"; })(),
-                  border: "1px solid rgba(25, 22, 18, 0.45)",
+                  boxShadow: "0 5px 12px rgba(0,0,0,.18)",
                 }}
                 onPointerDown={onPointerDown}
                 role="slider"

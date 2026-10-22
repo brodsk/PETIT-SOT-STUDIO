@@ -50,7 +50,7 @@ export default function PayPalCheckoutButton({ slug, locale }: { slug: string; l
         } else {
           script = document.createElement("script");
           script.dataset.paypalCardSdk = "true";
-          script.src = `https://www.paypal.com/sdk/js?client-id=${encodeURIComponent(config.clientId)}&currency=EUR&intent=capture&components=buttons&disable-funding=paypal,credit,paylater`;
+          script.src = `https://www.paypal.com/sdk/js?client-id=${encodeURIComponent(config.clientId)}&currency=EUR&intent=capture&components=buttons,funding-eligibility&enable-funding=card`;
           script.async = true;
           document.head.appendChild(script);
           await new Promise<void>((resolve, reject) => {

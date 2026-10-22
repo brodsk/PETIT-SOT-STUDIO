@@ -186,6 +186,9 @@ function chooseBoard(_artwork: any, boards: { name: string; id: string }[]) {
 }
 
 export async function publishArtworkPin(supabase: any, artworkId: string) {
+  if (process.env.PINTEREST_ACCESS_LEVEL?.trim().toLowerCase() !== "standard") {
+    throw new Error("Pinterest пока работает в режиме Trial. Реальная публикация станет доступна после одобрения Standard access и установки PINTEREST_ACCESS_LEVEL=standard в Vercel.");
+  }
   const { data: artwork, error: artworkError } = await supabase
     .from("petit_sot_artworks")
     .select("id,slug,title,title_en,year,medium,description,description_en,ai_description,status,image_path")

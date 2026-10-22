@@ -32,6 +32,10 @@ export async function POST(request: Request) {
   try {
     const body = await request.json().catch(() => null);
     const slug = typeof body?.slug === "string" ? body.slug.trim() : "";
+    const paymentMethod = body?.paymentMethod === "googlepay" ? "googlepay" : null;
+    if (body?.paymentMethod !== undefined && body.paymentMethod !== "googlepay") {
+      return NextResponse.json({ error: "Unsupported payment method" }, { status: 400 });
+    }
     if (!slug || slug.length > 120 || !/^[a-zA-Z0-9_-]+$/.test(slug)) {
       return NextResponse.json({ error: "Invalid artwork" }, { status: 400 });
     }
@@ -72,6 +76,15 @@ export async function POST(request: Request) {
           description: String(artwork.title_en || artwork.title || artwork.slug).slice(0, 127),
           amount: { currency_code: "EUR", value: price.toFixed(2) },
         }],
+        ...(paymentMethod === "googlepay" ? {
+          payment_source: {
+            google_pay: {
+              attributes: {
+                verification: { method: "SCA_WHEN_REQUIRED" },
+              },
+            },
+          },
+        } : {}),
         application_context: {
           brand_name: "PETIT.SOT STUDIO",
           user_action: "PAY_NOW",

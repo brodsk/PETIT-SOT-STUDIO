@@ -2478,3 +2478,14 @@ button,
   font-size: 11px;
   line-height: 1.5;
 }
+
+
+/* Keep all checkout and marketplace purchase buttons exactly the same height. */
+.work-page .purchase-box .purchase-button,
+.work-page .purchase-box .paypal-checkout .paypal-purchase-button {
+  box-sizing: border-box;
+  min-height: 49px;
+  height: 49px;
+  padding: 0 18px;
+  line-height: 1.4;
+}

@@ -12,7 +12,7 @@ declare global {
 
 function loadScript(src: string, marker: string): Promise<void> {
   return new Promise((resolve, reject) => {
-    const existing = document.querySelector<HTMLScriptElement>(`script[data-${marker}="true"]`);
+    const existing = document.querySelector<HTMLScriptElement>(`script[data-sdk-marker="${marker}"]`);
     if (existing) {
       if (existing.dataset.loaded === "true") return resolve();
       existing.addEventListener("load", () => resolve(), { once: true });
@@ -22,7 +22,7 @@ function loadScript(src: string, marker: string): Promise<void> {
     const script = document.createElement("script");
     script.src = src;
     script.async = true;
-    script.dataset[marker] = "true";
+    script.dataset.sdkMarker = marker;
     script.addEventListener("load", () => {
       script.dataset.loaded = "true";
       resolve();
@@ -46,7 +46,6 @@ export default function PayPalCheckoutButton({
   const [appleAvailable, setAppleAvailable] = useState(false);
   const [googleAvailable, setGoogleAvailable] = useState(false);
   const cardContainer = useRef<HTMLDivElement>(null);
-  const appleRef = useRef<HTMLButtonElement>(null);
   const googleRef = useRef<HTMLDivElement>(null);
   const appleClientRef = useRef<any>(null);
   const appleConfigRef = useRef<any>(null);
@@ -297,7 +296,7 @@ export default function PayPalCheckoutButton({
   return (
     <div className="paypal-checkout">
       {appleAvailable && (
-        <button className="wallet-button apple-pay-button" type="button" onClick={() => void startApplePay()} disabled={loading !== null} ref={appleRef}>
+        <button className="wallet-button apple-pay-button" type="button" onClick={() => void startApplePay()} disabled={loading !== null}>
           {loading === "apple" ? message("Loading Apple Pay…", "Загрузка Apple Pay…") : " Pay"}
         </button>
       )}

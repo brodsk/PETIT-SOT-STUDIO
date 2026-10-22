@@ -145,7 +145,7 @@ async function readJson(response: Response) {
 export async function ensurePinterestBoards(supabase: any) {
   const connection = await getPinterestConnection(supabase);
   if (!connection) throw new Error("Pinterest ещё не подключён.");
-  const stored = (connection.board_ids || {}) as Record<string, string>;
+  const stored = (pinterestApiMode() === "sandbox" ? {} : connection.board_ids || {}) as Record<string, string>;
   if (BOARD_NAMES.every((name) => Boolean(stored[name]))) {
     return BOARD_NAMES.map((name) => ({ name, id: stored[name] }));
   }

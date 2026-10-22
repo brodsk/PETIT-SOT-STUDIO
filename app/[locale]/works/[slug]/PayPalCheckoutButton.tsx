@@ -172,6 +172,7 @@ export default function PayPalCheckoutButton({
               apiVersionMinor: 0,
               allowedPaymentMethods: googleConfig.allowedPaymentMethods,
             });
+            console.info("Google Pay readiness check:", { result: ready?.result, hasAllowedPaymentMethods: Boolean(googleConfig?.allowedPaymentMethods?.length), hasMerchantInfo: Boolean(googleConfig?.merchantInfo) });
             if (!cancelled && ready.result && googleRef.current) {
               const button = paymentsClient.createButton({
                 onClick: async () => {
@@ -206,7 +207,11 @@ export default function PayPalCheckoutButton({
               setGoogleAvailable(true);
             }
           } catch (e) {
-            console.info("Google Pay is not available in this browser/account", e);
+            console.error("Google Pay setup failed:", e);
+            setError(message(
+              "Google Pay could not initialize. Please refresh the page or use another payment method.",
+              "Не удалось запустить Google Pay. Обновите страницу или выберите другой способ оплаты.",
+            ));
           }
         }
       } catch (reason) {

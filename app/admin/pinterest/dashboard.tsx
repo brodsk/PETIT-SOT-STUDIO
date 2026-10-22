@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 type Status = {
   connected: boolean;
   appConfigured: boolean;
+  accessLevel?: "trial" | "standard";
   expiresAt?: string | null;
   scope?: string | null;
   boards?: Record<string, string>;
@@ -63,6 +64,8 @@ export default function PinterestDashboard() {
         <div className="admin-stat-card"><span>Публикация</span><strong>Вручную</strong><small>Выбираете каждую картину</small></div>
         <div className="admin-stat-card"><span>Переходы</span><strong>Сайт</strong><small>Каждый пин ведёт на страницу картины</small></div>
       </section>
+
+      {status?.connected && status.accessLevel !== "standard" && <section className="admin-artwork-empty"><span>Нужен Standard access для публикации</span><p>Аккаунт подключён, но у приложения пока Trial access. Pinterest блокирует создание пинов в настоящем аккаунте до одобрения Standard access. Остальные настройки и подготовку публикаций можно завершить сейчас.</p><p>После одобрения Standard access добавьте в Vercel переменную <code>PINTEREST_ACCESS_LEVEL=standard</code> и выполните redeploy.</p><p><a href="https://developers.pinterest.com/apps/" target="_blank" rel="noreferrer">Открыть Pinterest Developers ↗</a></p></section>}
 
       {!status?.appConfigured && <section className="admin-artwork-empty"><span>Нужно зарегистрировать приложение Pinterest</span><p>Откройте Pinterest Developers, подключите приложение и добавьте в Vercel переменные PINTEREST_APP_ID и PINTEREST_APP_SECRET. Redirect URI должен быть ровно таким:</p><code>https://petitsot.com/api/admin/pinterest/callback</code><p><a href="https://developers.pinterest.com/apps/" target="_blank" rel="noreferrer">Открыть Pinterest Developers ↗</a></p></section>}
 

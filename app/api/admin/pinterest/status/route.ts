@@ -13,6 +13,7 @@ export async function GET() {
       boards: connection?.board_ids || {},
       updatedAt: connection?.updated_at || null,
       appConfigured: Boolean(process.env.PINTEREST_APP_ID?.trim() && process.env.PINTEREST_APP_SECRET?.trim()),
+      accessLevel: process.env.PINTEREST_ACCESS_LEVEL?.trim().toLowerCase() === "standard" ? "standard" : "trial",
     });
   } catch (error: any) {
     return NextResponse.json({ error: error?.message || "Не удалось проверить Pinterest." }, { status: 500 });

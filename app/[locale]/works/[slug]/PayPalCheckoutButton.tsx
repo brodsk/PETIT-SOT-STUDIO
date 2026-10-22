@@ -6,7 +6,6 @@ declare global {
   interface Window {
     paypal?: any;
     google?: any;
-    ApplePaySession?: any;
   }
 }
 
@@ -41,23 +40,18 @@ export default function PayPalCheckoutButton({
   locale: string;
   price: number;
 }) {
-  const [loading, setLoading] = useState<"paypal" | "card" | "apple" | "google" | null>(null);
+  const [loading, setLoading] = useState<"paypal" | "card" | "google" | null>(null);
   const [error, setError] = useState("");
-  const [appleAvailable, setAppleAvailable] = useState(false);
   const [googleAvailable, setGoogleAvailable] = useState(false);
-  const cardContainer = useRef<HTMLDivElement>(null);
   const googleRef = useRef<HTMLDivElement>(null);
-  const appleClientRef = useRef<any>(null);
-  const appleConfigRef = useRef<any>(null);
   const ru = locale === "ru";
-
   const message = (en: string, ruText: string) => ru ? ruText : en;
 
-  async function createOrder() {
+  async function createOrder(paymentMethod?: "googlepay") {
     const response = await fetch("/api/paypal/create-order", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ slug }),
+      body: JSON.stringify({ slug, ...(paymentMethod ? { paymentMethod } : {}) }),
     });
     const data = await response.json();
     if (!response.ok || !data.orderId) throw new Error(data.error || "Could not start checkout");
@@ -76,7 +70,6 @@ export default function PayPalCheckoutButton({
 
   useEffect(() => {
     let cancelled = false;
-    let cardButton: any;
 
     async function setup() {
       try {
@@ -84,209 +77,135 @@ export default function PayPalCheckoutButton({
         const config = await configResponse.json();
         if (!configResponse.ok || !config.clientId) throw new Error(config.error || "PayPal is not configured");
 
-        await loadScript(
-          `https://www.paypal.com/sdk/js?client-id=${encodeURIComponent(config.clientId)}&currency=EUR&intent=capture&locale=${ru ? "ru_RU" : "en_US"}&components=buttons,funding-eligibility,applepay,googlepay&enable-funding=card`,
-          "paypal-payment-sdk",
-        );
-        if (cancelled || !window.paypal) return;
+        // Use PayPal JavaScript SDK v6 for Google Pay. Do not load v5 and v6 on the same page.
+        await loadScript("https://www.paypal.com/web-sdk/v6/core", "paypal-v6-core");
+        if (cancelled || !window.paypal?.createInstance) return;
 
-        if (cardContainer.current) {
-          cardButton = window.paypal.Buttons({
-            fundingSource: window.paypal.FUNDING.CARD,
-            style: { layout: "vertical", color: "black", shape: "rect", height: 49, label: "pay", tagline: false },
-            createOrder: async () => {
-              setLoading("card");
+        const sdk = await window.paypal.createInstance({
+          clientId: config.clientId,
+          components: ["googlepay-payments"],
+          pageType: "checkout",
+          locale: ru ? "ru-RU" : "en-US",
+        });
+        const methods = await sdk.findEligibleMethods({
+          currencyCode: "EUR",
+          amount: price.toFixed(2),
+        });
+        console.info("PayPal v6 eligible payment methods", {
+          googlepay: methods.isEligible("googlepay"),
+        });
+        if (!methods.isEligible("googlepay")) {
+          console.info("Google Pay is not eligible for this buyer/merchant/amount.");
+          return;
+        }
+
+        await loadScript("https://pay.google.com/gp/p/js/pay.js", "google-pay-sdk-v6");
+        const googlePaySession = sdk.createGooglePayOneTimePaymentSession();
+        const googlePayDetails = methods.getDetails("googlepay");
+        const googlePayConfig = googlePaySession.formatConfigForPaymentRequest(googlePayDetails.config);
+
+        const paymentsClient = new window.google.payments.api.PaymentsClient({
+          environment: "PRODUCTION",
+          paymentDataCallbacks: {
+            onPaymentAuthorized: async (paymentData: any) => {
+              try {
+                setLoading("google");
+                setError("");
+                const orderId = await createOrder("googlepay");
+                const confirmed = await googlePaySession.confirmOrder({
+                  orderId,
+                  paymentMethodData: paymentData.paymentMethodData,
+                });
+
+                if (confirmed.status === "PAYER_ACTION_REQUIRED") {
+                  // Google's payment sheet must close before PayPal opens its 3DS flow.
+                  window.setTimeout(() => {
+                    void (async () => {
+                      try {
+                        await googlePaySession.initiatePayerAction({ orderId });
+                        await captureOrder(orderId);
+                        window.location.assign(`/checkout/success?token=${encodeURIComponent(orderId)}`);
+                      } catch (e) {
+                        console.error("Google Pay authentication failed", e);
+                        setError(message("Google Pay authentication failed. Please try another method.", "Не удалось подтвердить Google Pay. Попробуйте другой способ оплаты."));
+                        setLoading(null);
+                      }
+                    })();
+                  }, 0);
+                  return { transactionState: "SUCCESS" };
+                }
+
+                await captureOrder(orderId);
+                window.location.assign(`/checkout/success?token=${encodeURIComponent(orderId)}`);
+                return { transactionState: "SUCCESS" };
+              } catch (e) {
+                console.error("Google Pay payment failed", e);
+                setError(message("Google Pay payment failed. Please try another method.", "Не удалось оплатить через Google Pay. Попробуйте другой способ оплаты."));
+                setLoading(null);
+                return {
+                  transactionState: "ERROR",
+                  error: { intent: "PAYMENT_AUTHORIZATION", message: "Payment failed" },
+                };
+              }
+            },
+          },
+        });
+
+        const ready = await paymentsClient.isReadyToPay({
+          allowedPaymentMethods: googlePayConfig.allowedPaymentMethods,
+          apiVersion: googlePayConfig.apiVersion,
+          apiVersionMinor: googlePayConfig.apiVersionMinor,
+        });
+        console.info("Google Pay readiness check", { result: ready?.result });
+        if (cancelled || !ready?.result || !googleRef.current) return;
+
+        const button = paymentsClient.createButton({
+          onClick: async () => {
+            try {
+              setLoading("google");
               setError("");
-              return await createOrder();
-            },
-            onApprove: ({ orderID }: { orderID: string }) => {
-              window.location.assign(`/checkout/success?token=${encodeURIComponent(orderID)}`);
-            },
-            onError: (reason: unknown) => {
-              console.error("PayPal card checkout error", reason);
-              setError(message("Card checkout could not be opened. Please try again or choose PayPal.", "Оплата картой не открылась. Попробуйте ещё раз или выберите PayPal."));
-              setLoading(null);
-            },
-          });
-          if (cardButton.isEligible()) await cardButton.render(cardContainer.current);
-        }
-
-        // Load Apple’s web SDK too; it enables Apple Pay support in additional compatible browsers.
-        if (!window.ApplePaySession && window.paypal.Applepay) {
-          try { await loadScript("https://applepay.cdn-apple.com/jsapi/1.latest/apple-pay-sdk.js", "apple-pay-sdk"); }
-          catch (e) { console.info("Apple Pay web SDK unavailable", e); }
-        }
-
-        // Apple Pay: only show the wallet after both browser/device and PayPal eligibility checks pass.
-        if (window.ApplePaySession && window.ApplePaySession.canMakePayments?.() && window.paypal.Applepay) {
-          try {
-            const apple = window.paypal.Applepay();
-            const appleConfig = await apple.config();
-            if (!cancelled && appleConfig?.isEligible) {
-              appleClientRef.current = apple;
-              appleConfigRef.current = appleConfig;
-              setAppleAvailable(true);
-            }
-          } catch (e) {
-            console.info("Apple Pay is not available in this browser/account", e);
-          }
-        }
-
-        // Google Pay availability is checked by PayPal and Google, not inferred from the device type.
-        if (window.paypal.Googlepay) {
-          try {
-            await loadScript("https://pay.google.com/gp/p/js/pay.js", "google-pay-sdk");
-            const googlePay = window.paypal.Googlepay();
-            const googleConfig = await googlePay.config();
-            const paymentsClient = new window.google.payments.api.PaymentsClient({
-              environment: "PRODUCTION",
-              paymentDataCallbacks: {
-                onPaymentAuthorized: async (paymentData: any) => {
-                  try {
-                    setLoading("google");
-                    const orderId = await createOrder();
-                    const confirmed = await googlePay.confirmOrder({
-                      orderId,
-                      paymentMethodData: paymentData.paymentMethodData,
-                      ...(paymentData.email ? { email: paymentData.email } : {}),
-                      ...(paymentData.shippingAddress ? { shippingAddress: paymentData.shippingAddress } : {}),
-                    });
-                    if (confirmed.status !== "APPROVED") throw new Error("Google Pay payment was not approved");
-                    await captureOrder(orderId);
-                    window.location.assign(`/checkout/success?token=${encodeURIComponent(orderId)}`);
-                    return { transactionState: "SUCCESS" };
-                  } catch (e) {
-                    console.error("Google Pay payment failed", e);
-                    setError(message("Google Pay payment failed. Please try another method.", "Не удалось оплатить через Google Pay. Попробуйте другой способ."));
-                    setLoading(null);
-                    return {
-                      transactionState: "ERROR",
-                      error: { intent: "PAYMENT_AUTHORIZATION", message: "Payment failed" },
-                    };
-                  }
+              await paymentsClient.loadPaymentData({
+                ...googlePayConfig,
+                transactionInfo: {
+                  countryCode: googlePayConfig.countryCode,
+                  currencyCode: "EUR",
+                  totalPriceStatus: "FINAL",
+                  totalPrice: price.toFixed(2),
+                  totalPriceLabel: "PETIT.SOT STUDIO",
                 },
-              },
-            });
-            const ready = await paymentsClient.isReadyToPay({
-              apiVersion: 2,
-              apiVersionMinor: 0,
-              allowedPaymentMethods: googleConfig.allowedPaymentMethods,
-            });
-            console.info("Google Pay readiness check:", { result: ready?.result, hasAllowedPaymentMethods: Boolean(googleConfig?.allowedPaymentMethods?.length), hasMerchantInfo: Boolean(googleConfig?.merchantInfo) });
-            if (!cancelled && ready.result && googleRef.current) {
-              const button = paymentsClient.createButton({
-                onClick: async () => {
-                  try {
-                    setLoading("google");
-                    setError("");
-                    const paymentDataRequest = {
-                      apiVersion: 2,
-                      apiVersionMinor: 0,
-                      allowedPaymentMethods: googleConfig.allowedPaymentMethods,
-                      merchantInfo: googleConfig.merchantInfo,
-                      transactionInfo: {
-                        currencyCode: "EUR",
-                        totalPriceStatus: "FINAL",
-                        totalPrice: price.toFixed(2),
-                      },
-                      callbackIntents: ["PAYMENT_AUTHORIZATION"],
-                    };
-                    await paymentsClient.loadPaymentData(paymentDataRequest);
-                  } catch (e: any) {
-                    if (e?.statusCode !== "CANCELED") {
-                      console.error("Google Pay could not open", e);
-                      setError(message("Google Pay could not be opened. Please try another method.", "Не удалось открыть Google Pay. Попробуйте другой способ."));
-                    }
-                    setLoading(null);
-                  }
-                },
-                buttonType: "buy",
-                buttonColor: "black",
+                callbackIntents: ["PAYMENT_AUTHORIZATION"],
               });
-              googleRef.current.replaceChildren(button);
-              setGoogleAvailable(true);
+            } catch (e: any) {
+              if (e?.statusCode !== "CANCELED") {
+                console.error("Google Pay could not open", e);
+                setError(message("Google Pay could not be opened. Please try another method.", "Не удалось открыть Google Pay. Попробуйте другой способ оплаты."));
+              }
+              setLoading(null);
             }
-          } catch (e) {
-            console.error("Google Pay setup failed:", e);
-            setError(message(
-              "Google Pay could not initialize. Please refresh the page or use another payment method.",
-              "Не удалось запустить Google Pay. Обновите страницу или выберите другой способ оплаты.",
-            ));
-          }
+          },
+          buttonType: "buy",
+          buttonColor: "black",
+          buttonSizeMode: "fill",
+        });
+        googleRef.current.replaceChildren(button);
+        setGoogleAvailable(true);
+      } catch (e) {
+        console.error("Google Pay setup failed", e);
+        if (!cancelled) {
+          setError(message(
+            "Google Pay could not initialize. PayPal and card checkout are still available.",
+            "Не удалось запустить Google Pay. PayPal и оплата картой остаются доступны.",
+          ));
         }
-      } catch (reason) {
-        if (cancelled) return;
-        console.error("PayPal checkout setup error", reason);
-        setError(message("Could not load all payment options. PayPal may still be available.", "Не удалось загрузить все способы оплаты. PayPal может оставаться доступен."));
       }
     }
 
     void setup();
-    return () => {
-      cancelled = true;
-      try { cardButton?.close?.(); } catch { /* no-op */ }
-    };
+    return () => { cancelled = true; };
   }, [slug, ru, price]);
 
-  function startApplePay() {
-    const apple = appleClientRef.current;
-    const config = appleConfigRef.current;
-    if (!apple || !config || !window.ApplePaySession) return;
-    setLoading("apple");
-    setError("");
-    try {
-      // Apple requires session construction and begin() directly in the click gesture.
-      const session = new window.ApplePaySession(4, {
-        countryCode: config.countryCode,
-        merchantCapabilities: config.merchantCapabilities,
-        supportedNetworks: config.supportedNetworks,
-        currencyCode: "EUR",
-        total: { label: "PETIT.SOT STUDIO", type: "final", amount: price.toFixed(2) },
-      });
-      session.onvalidatemerchant = async (event: any) => {
-        try {
-          const result = await apple.validateMerchant({
-            validationUrl: event.validationURL,
-            displayName: "PETIT.SOT STUDIO",
-          });
-          session.completeMerchantValidation(result.merchantSession);
-        } catch (e) {
-          console.error("Apple Pay merchant validation failed", e);
-          session.abort();
-          setError(message("Apple Pay validation failed. Please use another method.", "Не удалось подтвердить Apple Pay. Используйте другой способ оплаты."));
-          setLoading(null);
-        }
-      };
-      session.onpaymentauthorized = async (event: any) => {
-        try {
-          const orderId = await createOrder();
-          const result = await apple.confirmOrder({
-            orderId,
-            token: event.payment.token,
-            billingContact: event.payment.billingContact,
-          });
-          if (result.status !== "APPROVED") throw new Error("Apple Pay order was not approved");
-          await captureOrder(orderId);
-          session.completePayment(window.ApplePaySession.STATUS_SUCCESS);
-          window.location.assign(`/checkout/success?token=${encodeURIComponent(orderId)}`);
-        } catch (e) {
-          console.error("Apple Pay payment failed", e);
-          session.completePayment(window.ApplePaySession.STATUS_FAILURE);
-          setError(message("Apple Pay payment failed. Please try another method.", "Не удалось оплатить через Apple Pay. Попробуйте другой способ."));
-          setLoading(null);
-        }
-      };
-      session.oncancel = () => setLoading(null);
-      session.begin();
-    } catch (e) {
-      console.error("Apple Pay could not start", e);
-      setError(message("Apple Pay could not be opened. Please try another method.", "Не удалось открыть Apple Pay. Попробуйте другой способ."));
-      setLoading(null);
-    }
-  }
-
-  async function startPayPalCheckout() {
-    setLoading("paypal");
+  async function startPayPalCheckout(method: "paypal" | "card") {
+    setLoading(method);
     setError("");
     try {
       const response = await fetch("/api/paypal/create-order", {
@@ -306,24 +225,19 @@ export default function PayPalCheckoutButton({
 
   return (
     <div className="paypal-checkout">
-      {appleAvailable && (
-        <button className="wallet-button apple-pay-button" type="button" onClick={() => void startApplePay()} disabled={loading !== null}>
-          {loading === "apple" ? message("Loading Apple Pay…", "Загрузка Apple Pay…") : " Pay"}
-        </button>
-      )}
       {googleAvailable && <div className="wallet-button google-pay-button" ref={googleRef} aria-label="Google Pay" />}
-      <button className="purchase-button paypal-purchase-button" type="button" onClick={() => void startPayPalCheckout()} disabled={loading !== null}>
+      <button className="purchase-button paypal-purchase-button" type="button" onClick={() => void startPayPalCheckout("paypal")} disabled={loading !== null}>
         <span>{loading === "paypal" ? message("Loading…", "Загрузка…") : message("Pay with PayPal", "Оплатить через PayPal")}</span>
         <span aria-hidden="true">↗</span>
       </button>
-      <div className="paypal-card-button-wrap" aria-label={message("Pay by debit or credit card", "Оплата банковской картой")}>
-        <div ref={cardContainer} />
-      </div>
+      <button className="wallet-button card-checkout-button" type="button" onClick={() => void startPayPalCheckout("card")} disabled={loading !== null}>
+        {loading === "card" ? message("Loading…", "Загрузка…") : message("Pay by debit or credit card", "Оплатить банковской картой")}
+      </button>
       {error && <p className="paypal-checkout-error" role="alert">{error}</p>}
       <p className="paypal-checkout-note">
         {message(
-          "Secure checkout via PayPal. Wallet options appear only when supported by your browser, device and PayPal account.",
-          "Безопасная оплата через PayPal. Кошельки отображаются только при поддержке браузером, устройством и аккаунтом PayPal.",
+          "Secure checkout via PayPal. Google Pay appears when supported by your browser, device and PayPal account.",
+          "Безопасная оплата через PayPal. Google Pay отображается при поддержке браузером, устройством и аккаунтом PayPal.",
         )}
       </p>
     </div>

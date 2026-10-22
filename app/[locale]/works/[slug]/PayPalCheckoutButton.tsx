@@ -149,10 +149,10 @@ export default function PayPalCheckoutButton({
               if (fields.isEligible()) {
                 cardFieldsRef.current = fields;
                 await Promise.all([
-                  fields.NameField({ placeholder: message("Name on card (optional)", "Имя на карте (необязательно)") }).render(cardNameRef.current),
-                  fields.NumberField({ placeholder: message("Card number", "Номер карты") }).render(cardNumberRef.current),
-                  fields.ExpiryField({ placeholder: message("MM / YY", "ММ / ГГ") }).render(cardExpiryRef.current),
-                  fields.CVVField({ placeholder: "CVV" }).render(cardCvvRef.current),
+                  fields.NameField({ placeholder: message("Name on card (optional)", "Имя на карте (необязательно)") }).render("#paypal-card-name"),
+                  fields.NumberField({ placeholder: message("Card number", "Номер карты") }).render("#paypal-card-number"),
+                  fields.ExpiryField({ placeholder: message("MM / YY", "ММ / ГГ") }).render("#paypal-card-expiry"),
+                  fields.CVVField({ placeholder: "CVV" }).render("#paypal-card-cvv"),
                 ]);
                 if (!cancelled) {
                   setCardFieldsAvailable(true);
@@ -398,12 +398,12 @@ export default function PayPalCheckoutButton({
       </button>
       <div className="paypal-card-fields" aria-label={message("Pay by debit or credit card", "Оплата банковской картой")} style={{ display: cardFieldsAvailable ? "block" : "none" }}>
         <label>{message("Name on card", "Имя на карте")} <span>{message("(optional)", "(необязательно)")}</span></label>
-        <div className="paypal-card-field" ref={cardNameRef} />
+        <div id="paypal-card-name" className="paypal-card-field" ref={cardNameRef} />
         <label>{message("Card number", "Номер карты")}</label>
-        <div className="paypal-card-field" ref={cardNumberRef} />
+        <div id="paypal-card-number" className="paypal-card-field" ref={cardNumberRef} />
         <div className="paypal-card-fields-row">
-          <div><label>{message("Expiry date", "Срок действия")}</label><div className="paypal-card-field" ref={cardExpiryRef} /></div>
-          <div><label>CVV</label><div className="paypal-card-field" ref={cardCvvRef} /></div>
+          <div><label>{message("Expiry date", "Срок действия")}</label><div id="paypal-card-expiry" className="paypal-card-field" ref={cardExpiryRef} /></div>
+          <div><label>CVV</label><div id="paypal-card-cvv" className="paypal-card-field" ref={cardCvvRef} /></div>
         </div>
         <button className="purchase-button paypal-purchase-button paypal-card-submit" type="button" disabled={loading !== null} onClick={async () => {
           try {

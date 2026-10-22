@@ -2516,3 +2516,43 @@ button,
   width: 100% !important;
   max-width: 100% !important;
 }
+
+
+/* Wallet buttons share the same full-width purchase column. */
+.work-page .purchase-box .wallet-button {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  margin: 0 0 8px;
+}
+.work-page .purchase-box .apple-pay-button {
+  min-height: 49px;
+  border: 0;
+  border-radius: 4px;
+  background: #000;
+  color: #fff;
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+}
+.work-page .purchase-box .apple-pay-button:disabled {
+  opacity: .65;
+  cursor: wait;
+}
+.work-page .purchase-box .google-pay-button {
+  min-height: 49px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.work-page .purchase-box .google-pay-button button {
+  box-sizing: border-box;
+  width: 100% !important;
+  min-height: 49px !important;
+  max-height: 49px !important;
+  border-radius: 4px !important;
+}

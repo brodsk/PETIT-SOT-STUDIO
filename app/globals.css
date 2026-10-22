@@ -2556,3 +2556,46 @@ button,
   max-height: 49px !important;
   border-radius: 4px !important;
 }
+
+ 
+/* Embedded PayPal Card Fields — restrained PETIT.SOT checkout styling. */
+.paypal-checkout .paypal-card-fields {
+  width: 100%;
+  margin: 0;
+  padding: 0;
+}
+.paypal-checkout .paypal-card-fields > label,
+.paypal-checkout .paypal-card-fields-row label {
+  display: block;
+  margin: 11px 0 6px;
+  color: #66635e;
+  font-size: 9px;
+  line-height: 1.4;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+.paypal-checkout .paypal-card-fields label span {
+  letter-spacing: 0;
+  text-transform: none;
+}
+.paypal-checkout .paypal-card-field {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 46px;
+  border: 1px solid #aaa59d;
+  border-radius: 0;
+  background: #eeeae3;
+  overflow: hidden;
+}
+.paypal-checkout .paypal-card-fields-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 10px;
+}
+.paypal-checkout .paypal-card-submit {
+  margin-top: 15px;
+}
+.paypal-checkout .paypal-card-submit:disabled {
+  opacity: .58;
+  cursor: wait;
+}

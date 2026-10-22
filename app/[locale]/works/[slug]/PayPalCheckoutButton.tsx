@@ -97,7 +97,7 @@ export default function PayPalCheckoutButton({
         if (!configResponse.ok || !config.clientId) throw new Error(config.error || "PayPal is not configured");
 
         await loadScript(
-          `https://www.paypal.com/sdk/js?client-id=${encodeURIComponent(config.clientId)}&currency=EUR&intent=capture&locale=${ru ? "ru_RU" : "en_US"}&components=buttons,funding-eligibility,applepay,googlepay&enable-funding=card`,
+          `https://www.paypal.com/sdk/js?client-id=${encodeURIComponent(config.clientId)}&currency=EUR&intent=capture&locale=en_US&components=buttons,funding-eligibility,applepay,googlepay&enable-funding=card`,
           "paypal-payment-sdk",
         );
         if (cancelled || !window.paypal) return;
@@ -334,7 +334,8 @@ export default function PayPalCheckoutButton({
         <span>{loading === "paypal" ? message("Loading…", "Загрузка…") : message("Pay with PayPal", "Оплатить через PayPal")}</span>
         <span aria-hidden="true">↗</span>
       </button>
-      <div className="paypal-card-button-wrap" aria-label={message("Pay by debit or credit card", "Оплата банковской картой")}>
+      <div className="paypal-card-button-wrap" aria-label={message("Pay by debit or credit card", "Оплата дебетовой или кредитной картой")}>
+        {ru && <p className="paypal-card-button-label">Оплата дебетовой или кредитной картой</p>}
         <div ref={cardContainer} />
       </div>
       {error && <p className="paypal-checkout-error" role="alert">{error}</p>}

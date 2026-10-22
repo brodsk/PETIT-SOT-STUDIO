@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireAdmin } from "../../../../../lib/admin";
-import { getPinterestConnection } from "../../../../../lib/pinterest";
+import { getPinterestConnection, pinterestApiMode } from "../../../../../lib/pinterest";
 
 export async function GET() {
   const { supabase } = await requireAdmin();
@@ -14,6 +14,7 @@ export async function GET() {
       updatedAt: connection?.updated_at || null,
       appConfigured: Boolean(process.env.PINTEREST_APP_ID?.trim() && process.env.PINTEREST_APP_SECRET?.trim()),
       accessLevel: process.env.PINTEREST_ACCESS_LEVEL?.trim().toLowerCase() === "standard" ? "standard" : "trial",
+      apiMode: pinterestApiMode(),
     });
   } catch (error: any) {
     return NextResponse.json({ error: error?.message || "Не удалось проверить Pinterest." }, { status: 500 });

@@ -48,6 +48,8 @@ export default function PayPalCheckoutButton({
   const cardContainer = useRef<HTMLDivElement>(null);
   const appleRef = useRef<HTMLButtonElement>(null);
   const googleRef = useRef<HTMLDivElement>(null);
+  const appleClientRef = useRef<any>(null);
+  const appleConfigRef = useRef<any>(null);
   const ru = locale === "ru";
 
   const message = (en: string, ruText: string) => ru ? ruText : en;
@@ -115,7 +117,11 @@ export default function PayPalCheckoutButton({
           try {
             const apple = window.paypal.Applepay();
             const appleConfig = await apple.config();
-            if (!cancelled && appleConfig?.isEligible) setAppleAvailable(true);
+            if (!cancelled && appleConfig?.isEligible) {
+              appleClientRef.current = apple;
+              appleConfigRef.current = appleConfig;
+              setAppleAvailable(true);
+            }
           } catch (e) {
             console.info("Apple Pay is not available in this browser/account", e);
           }
@@ -212,15 +218,14 @@ export default function PayPalCheckoutButton({
     };
   }, [slug, ru, price]);
 
-  async function startApplePay() {
-    if (!window.paypal?.Applepay || !window.ApplePaySession) return;
+  function startApplePay() {
+    const apple = appleClientRef.current;
+    const config = appleConfigRef.current;
+    if (!apple || !config || !window.ApplePaySession) return;
     setLoading("apple");
     setError("");
     try {
-      const apple = window.paypal.Applepay();
-      const config = await apple.config();
-      if (!config?.isEligible) throw new Error("Apple Pay is not eligible");
-      const orderId = await createOrder();
+      // Apple requires session construction and begin() directly in the click gesture.
       const session = new window.ApplePaySession(4, {
         countryCode: config.countryCode,
         merchantCapabilities: config.merchantCapabilities,
@@ -244,6 +249,7 @@ export default function PayPalCheckoutButton({
       };
       session.onpaymentauthorized = async (event: any) => {
         try {
+          const orderId = await createOrder();
           const result = await apple.confirmOrder({
             orderId,
             token: event.payment.token,

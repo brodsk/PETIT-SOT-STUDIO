@@ -6,6 +6,7 @@ declare global {
   interface Window {
     paypal?: any;
     google?: any;
+    ApplePaySession?: any;
   }
 }
 

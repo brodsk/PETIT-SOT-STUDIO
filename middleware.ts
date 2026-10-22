@@ -9,6 +9,12 @@ function getPreferredLocale(request: NextRequest): Locale {
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+  // Apple Pay domain verification files must be served directly from /public,
+  // without locale rewrites or redirects.
+  if (pathname.startsWith("/.well-known/")) {
+    return NextResponse.next();
+  }
+
   const first = pathname.split("/").filter(Boolean)[0];
 
   // Public legal pages keep stable, unlocalized URLs.

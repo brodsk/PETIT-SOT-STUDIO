@@ -173,7 +173,13 @@ export default function PayPalCheckoutButton({
               allowedPaymentMethods: googleConfig.allowedPaymentMethods,
             });
             console.info("Google Pay readiness check:", { result: ready?.result, hasAllowedPaymentMethods: Boolean(googleConfig?.allowedPaymentMethods?.length), hasMerchantInfo: Boolean(googleConfig?.merchantInfo) });
-            if (!cancelled && ready.result && googleRef.current) {
+            if (!cancelled && !ready?.result) {
+              setError(message(
+                "Google Pay is not ready on this device/browser or is not enabled for this PayPal account. Check Google Wallet has an eligible card and PayPal production Google Pay onboarding is complete.",
+                "Google Pay не готов на этом устройстве/в браузере или не включён для аккаунта PayPal. Проверьте, что в Google Wallet есть подходящая карта и завершено подключение Google Pay для production в PayPal.",
+              ));
+            }
+            if (!cancelled && ready?.result && googleRef.current) {
               const button = paymentsClient.createButton({
                 onClick: async () => {
                   try {

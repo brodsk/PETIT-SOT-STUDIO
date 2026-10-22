@@ -111,6 +111,12 @@ export default function PayPalCheckoutButton({
           if (cardButton.isEligible()) await cardButton.render(cardContainer.current);
         }
 
+        // Load Apple’s web SDK too; it enables Apple Pay support in additional compatible browsers.
+        if (!window.ApplePaySession && window.paypal.Applepay) {
+          try { await loadScript("https://applepay.cdn-apple.com/jsapi/1.latest/apple-pay-sdk.js", "apple-pay-sdk"); }
+          catch (e) { console.info("Apple Pay web SDK unavailable", e); }
+        }
+
         // Apple Pay: only show the wallet after both browser/device and PayPal eligibility checks pass.
         if (window.ApplePaySession && window.ApplePaySession.canMakePayments?.() && window.paypal.Applepay) {
           try {

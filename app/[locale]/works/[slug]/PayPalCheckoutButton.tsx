@@ -57,7 +57,13 @@ export default function PayPalCheckoutButton({
   const [error, setError] = useState("");
   const [appleAvailable, setAppleAvailable] = useState(false);
   const [googleAvailable, setGoogleAvailable] = useState(false);
+  const [cardFieldsAvailable, setCardFieldsAvailable] = useState(false);
   const cardContainer = useRef<HTMLDivElement>(null);
+  const cardFieldsRef = useRef<any>(null);
+  const cardNameRef = useRef<HTMLDivElement>(null);
+  const cardNumberRef = useRef<HTMLDivElement>(null);
+  const cardExpiryRef = useRef<HTMLDivElement>(null);
+  const cardCvvRef = useRef<HTMLDivElement>(null);
   const googleRef = useRef<HTMLDivElement>(null);
   const appleClientRef = useRef<any>(null);
   const appleConfigRef = useRef<any>(null);
@@ -65,7 +71,7 @@ export default function PayPalCheckoutButton({
 
   const message = (en: string, ruText: string) => ru ? ruText : en;
 
-  async function createOrder(paymentMethod?: "googlepay") {
+  async function createOrder(paymentMethod?: "googlepay" | "cardfields") {
     const response = await fetch("/api/paypal/create-order", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -97,30 +103,86 @@ export default function PayPalCheckoutButton({
         if (!configResponse.ok || !config.clientId) throw new Error(config.error || "PayPal is not configured");
 
         await loadScript(
-          `https://www.paypal.com/sdk/js?client-id=${encodeURIComponent(config.clientId)}&currency=EUR&intent=capture&locale=en_US&components=buttons,funding-eligibility,applepay,googlepay&enable-funding=card`,
+          `https://www.paypal.com/sdk/js?client-id=${encodeURIComponent(config.clientId)}&currency=EUR&intent=capture&locale=en_US&components=buttons,card-fields,funding-eligibility,applepay,googlepay&enable-funding=card`,
           "paypal-payment-sdk",
         );
         if (cancelled || !window.paypal) return;
 
+        // Prefer PayPal-hosted Card Fields embedded directly in the artwork page.
+        // Fall back to the existing card button if Advanced Card Payments is unavailable.
         if (cardContainer.current) {
-          cardButton = window.paypal.Buttons({
-            fundingSource: window.paypal.FUNDING.CARD,
-            style: { layout: "vertical", color: "black", shape: "rect", height: 49, label: "pay", tagline: false },
-            createOrder: async () => {
-              setLoading("card");
-              setError("");
-              return await createOrder();
-            },
-            onApprove: ({ orderID }: { orderID: string }) => {
-              window.location.assign(`/checkout/success?token=${encodeURIComponent(orderID)}`);
-            },
-            onError: (reason: unknown) => {
-              console.error("PayPal card checkout error", reason);
-              setError(message("Card checkout could not be opened. Please try again or choose PayPal.", "Оплата картой не открылась. Попробуйте ещё раз или выберите PayPal."));
-              setLoading(null);
-            },
-          });
-          if (cardButton.isEligible()) await cardButton.render(cardContainer.current);
+          let fieldsRendered = false;
+          if (window.paypal.CardFields && cardNameRef.current && cardNumberRef.current && cardExpiryRef.current && cardCvvRef.current) {
+            try {
+              const fields = window.paypal.CardFields({
+                createOrder: async () => {
+                  setLoading("card");
+                  setError("");
+                  return await createOrder("cardfields");
+                },
+                onApprove: ({ orderID, orderId }: { orderID?: string; orderId?: string }) => {
+                  const id = orderID || orderId;
+                  if (id) window.location.assign(`/checkout/success?token=${encodeURIComponent(id)}`);
+                },
+                onError: (reason: unknown) => {
+                  console.error("PayPal Card Fields error", reason);
+                  setError(message("Card payment failed. Check the details or choose PayPal.", "Не удалось оплатить картой. Проверьте данные или выберите PayPal."));
+                  setLoading(null);
+                },
+                style: {
+                  input: {
+                    "font-size": "14px",
+                    "font-family": "Arial, Helvetica, sans-serif",
+                    "font-weight": "400",
+                    color: "#171717",
+                    background: "#eeeae3",
+                    border: "1px solid #aaa59d",
+                    "border-radius": "0",
+                    padding: "12px",
+                    height: "46px",
+                    outline: "none",
+                  },
+                  ".invalid": { color: "#9b3027" },
+                  ":focus": { color: "#171717", "box-shadow": "none", outline: "none" },
+                },
+              });
+              if (fields.isEligible()) {
+                cardFieldsRef.current = fields;
+                await Promise.all([
+                  fields.NameField({ placeholder: message("Name on card (optional)", "Имя на карте (необязательно)") }).render(cardNameRef.current),
+                  fields.NumberField({ placeholder: message("Card number", "Номер карты") }).render(cardNumberRef.current),
+                  fields.ExpiryField({ placeholder: message("MM / YY", "ММ / ГГ") }).render(cardExpiryRef.current),
+                  fields.CVVField({ placeholder: "CVV" }).render(cardCvvRef.current),
+                ]);
+                if (!cancelled) {
+                  setCardFieldsAvailable(true);
+                  fieldsRendered = true;
+                }
+              }
+            } catch (fieldsError) {
+              console.warn("PayPal Card Fields unavailable; using standard card checkout", fieldsError);
+            }
+          }
+          if (!fieldsRendered) {
+            cardButton = window.paypal.Buttons({
+              fundingSource: window.paypal.FUNDING.CARD,
+              style: { layout: "vertical", color: "black", shape: "rect", height: 49, label: "pay", tagline: false },
+              createOrder: async () => {
+                setLoading("card");
+                setError("");
+                return await createOrder();
+              },
+              onApprove: ({ orderID }: { orderID: string }) => {
+                window.location.assign(`/checkout/success?token=${encodeURIComponent(orderID)}`);
+              },
+              onError: (reason: unknown) => {
+                console.error("PayPal card checkout error", reason);
+                setError(message("Card checkout could not be opened. Please try again or choose PayPal.", "Оплата картой не открылась. Попробуйте ещё раз или выберите PayPal."));
+                setLoading(null);
+              },
+            });
+            if (cardButton.isEligible()) await cardButton.render(cardContainer.current);
+          }
         }
 
         // Load Apple’s web SDK too; it enables Apple Pay support in additional compatible browsers.
@@ -334,7 +396,31 @@ export default function PayPalCheckoutButton({
         <span>{loading === "paypal" ? message("Loading…", "Загрузка…") : message("Pay with PayPal", "Оплатить через PayPal")}</span>
         <span aria-hidden="true">↗</span>
       </button>
-      <div className="paypal-card-button-wrap" aria-label={message("Pay by debit or credit card", "Оплата банковской картой")}>
+      <div className="paypal-card-fields" aria-label={message("Pay by debit or credit card", "Оплата банковской картой")} style={{ display: cardFieldsAvailable ? "block" : "none" }}>
+        <label>{message("Name on card", "Имя на карте")} <span>{message("(optional)", "(необязательно)")}</span></label>
+        <div className="paypal-card-field" ref={cardNameRef} />
+        <label>{message("Card number", "Номер карты")}</label>
+        <div className="paypal-card-field" ref={cardNumberRef} />
+        <div className="paypal-card-fields-row">
+          <div><label>{message("Expiry date", "Срок действия")}</label><div className="paypal-card-field" ref={cardExpiryRef} /></div>
+          <div><label>CVV</label><div className="paypal-card-field" ref={cardCvvRef} /></div>
+        </div>
+        <button className="purchase-button paypal-purchase-button paypal-card-submit" type="button" disabled={loading !== null} onClick={async () => {
+          try {
+            setError("");
+            setLoading("card");
+            if (!cardFieldsRef.current) throw new Error("Card fields are not ready");
+            await cardFieldsRef.current.submit();
+          } catch (reason) {
+            console.error("PayPal card field submission failed", reason);
+            setError(message("Please check your card details and try again.", "Проверьте данные карты и попробуйте ещё раз."));
+            setLoading(null);
+          }
+        }}>
+          <span>{loading === "card" ? message("Processing…", "Обработка…") : message("Pay by card", "Оплатить картой")}</span><span aria-hidden="true">↗</span>
+        </button>
+      </div>
+      <div className="paypal-card-button-wrap" aria-label={message("Pay by debit or credit card", "Оплата банковской картой")} style={{ display: cardFieldsAvailable ? "none" : "block" }}>
         <div ref={cardContainer} />
       </div>
       {error && <p className="paypal-checkout-error" role="alert">{error}</p>}

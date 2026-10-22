@@ -334,9 +334,8 @@ export default function PayPalCheckoutButton({
         <span>{loading === "paypal" ? message("Loading…", "Загрузка…") : message("Pay with PayPal", "Оплатить через PayPal")}</span>
         <span aria-hidden="true">↗</span>
       </button>
-      <div className="paypal-card-button-wrap" aria-label={message("Pay by debit or credit card", "Дебетовая или кредитная карта")}>
+      <div className="paypal-card-button-wrap" aria-label={message("Pay by debit or credit card", "Оплата банковской картой")}>
         <div ref={cardContainer} />
-        {ru && <div aria-hidden="true" style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", background: "#000", color: "#fff", borderRadius: 4, fontSize: 15, fontWeight: 500, pointerEvents: "none" }}>Дебетовая или кредитная карта</div>}
       </div>
       {error && <p className="paypal-checkout-error" role="alert">{error}</p>}
       <p className="paypal-checkout-note">

@@ -85,7 +85,7 @@ export default function PayPalCheckoutButton({
         if (!configResponse.ok || !config.clientId) throw new Error(config.error || "PayPal is not configured");
 
         await loadScript(
-          `https://www.paypal.com/sdk/js?client-id=${encodeURIComponent(config.clientId)}&currency=EUR&intent=capture&locale=${ru ? "ru_RU" : "en_US"}&components=buttons,funding-eligibility,applepay,googlepay&enable-funding=card`,
+          `https://www.paypal.com/sdk/js?client-id=${encodeURIComponent(config.clientId)}&currency=EUR&intent=capture&locale=en_US&components=buttons,funding-eligibility,applepay,googlepay&enable-funding=card`,
           "paypal-payment-sdk",
         );
         if (cancelled || !window.paypal) return;

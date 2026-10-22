@@ -2489,3 +2489,14 @@ button,
   padding: 0 18px;
   line-height: 1.4;
 }
+
+
+/* Match PayPal button width to the Etsy/SAShE buttons in the same purchase box. */
+.work-page .purchase-box .paypal-checkout {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+  margin-left: 0;
+  margin-right: 0;
+  align-self: stretch;
+}

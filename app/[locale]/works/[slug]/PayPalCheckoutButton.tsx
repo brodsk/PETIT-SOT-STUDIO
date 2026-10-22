@@ -122,8 +122,8 @@ export default function PayPalCheckoutButton({
 
         await loadScript("https://pay.google.com/gp/p/js/pay.js", "google-pay-sdk-v6");
         const googlePaySession = sdk.createGooglePayOneTimePaymentSession();
-        const googlePayDetails = methods.getDetails("googlepay");
-        const googlePayConfig = googlePaySession.formatConfigForPaymentRequest(googlePayDetails.config);
+        // PayPal's current v6 Google Pay integration exposes its request config directly.
+        const googlePayConfig = await googlePaySession.getGooglePayConfig();
 
         const paymentsClient = new window.google.payments.api.PaymentsClient({
           environment: "PRODUCTION",
@@ -211,11 +211,12 @@ export default function PayPalCheckoutButton({
         googleRef.current.replaceChildren(button);
         setGoogleAvailable(true);
       } catch (e) {
+        const detail = e instanceof Error ? e.message : String(e);
         console.error("Google Pay setup failed", e);
         if (!cancelled) {
           setError(message(
-            "Google Pay could not initialize. PayPal and card checkout are still available.",
-            "Не удалось запустить Google Pay. PayPal и оплата картой остаются доступны.",
+            `Google Pay could not initialize: ${detail}. PayPal and card checkout are still available.`,
+            `Не удалось запустить Google Pay: ${detail}. PayPal и оплата картой остаются доступны.`,
           ));
         }
       }

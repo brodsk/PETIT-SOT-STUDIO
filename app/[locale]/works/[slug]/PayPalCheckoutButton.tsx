@@ -50,7 +50,7 @@ export default function PayPalCheckoutButton({ slug, locale }: { slug: string; l
         } else {
           script = document.createElement("script");
           script.dataset.paypalCardSdk = "true";
-          script.src = `https://www.paypal.com/sdk/js?client-id=${encodeURIComponent(config.clientId)}&currency=EUR&intent=capture&components=buttons,funding-eligibility&enable-funding=card`;
+          script.src = `https://www.paypal.com/sdk/js?client-id=${encodeURIComponent(config.clientId)}&currency=EUR&intent=capture&locale=${ru ? "ru_RU" : "en_US"}&components=buttons,funding-eligibility&enable-funding=card`;
           script.async = true;
           document.head.appendChild(script);
           await new Promise<void>((resolve, reject) => {
@@ -62,7 +62,7 @@ export default function PayPalCheckoutButton({ slug, locale }: { slug: string; l
         if (cancelled || !window.paypal || !cardContainer.current) return;
         cardButton = window.paypal.Buttons({
           fundingSource: window.paypal.FUNDING.CARD,
-          style: { layout: "vertical", color: "black", shape: "rect", height: 49, label: "pay" },
+          style: { layout: "vertical", color: "black", shape: "rect", height: 49, label: "pay", tagline: false },
           createOrder: async () => {
             setLoading("card");
             setError("");

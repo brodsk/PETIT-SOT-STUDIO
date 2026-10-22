@@ -40,10 +40,13 @@ export default function PayPalCheckoutButton({
   locale: string;
   price: number;
 }) {
-  const [loading, setLoading] = useState<"paypal" | "card" | "google" | null>(null);
+  const [loading, setLoading] = useState<"paypal" | "card" | "google" | "apple" | null>(null);
   const [error, setError] = useState("");
   const [googleAvailable, setGoogleAvailable] = useState(false);
+  const [appleAvailable, setAppleAvailable] = useState(false);
   const googleRef = useRef<HTMLDivElement>(null);
+  const appleSessionRef = useRef<any>(null);
+  const appleConfigRef = useRef<any>(null);
   const ru = locale === "ru";
   const message = (en: string, ruText: string) => ru ? ruText : en;
 
@@ -83,7 +86,7 @@ export default function PayPalCheckoutButton({
 
         const sdk = await window.paypal.createInstance({
           clientId: config.clientId,
-          components: ["googlepay-payments"],
+          components: ["googlepay-payments", "applepay-payments"],
           pageType: "checkout",
           locale: ru ? "ru-RU" : "en-US",
         });
@@ -93,7 +96,24 @@ export default function PayPalCheckoutButton({
         });
         console.info("PayPal v6 eligible payment methods", {
           googlepay: methods.isEligible("googlepay"),
+          applepay: methods.isEligible("applepay"),
         });
+
+        if (window.ApplePaySession?.canMakePayments?.() && methods.isEligible("applepay")) {
+          try {
+            await loadScript("https://applepay.cdn-apple.com/jsapi/v1/apple-pay-sdk.js", "apple-pay-sdk-v6");
+            const appleDetails = methods.getDetails("applepay");
+            const appleSession = sdk.createApplePayOneTimePaymentSession();
+            const appleConfig = appleSession.formatConfigForPaymentRequest(appleDetails.config);
+            if (!cancelled) {
+              appleSessionRef.current = appleSession;
+              appleConfigRef.current = appleConfig;
+              setAppleAvailable(true);
+            }
+          } catch (e) {
+            console.info("Apple Pay setup failed", e);
+          }
+        }
         if (!methods.isEligible("googlepay")) {
           console.info("Google Pay is not eligible for this buyer/merchant/amount.");
           return;
@@ -204,6 +224,54 @@ export default function PayPalCheckoutButton({
     return () => { cancelled = true; };
   }, [slug, ru, price]);
 
+  function startApplePay() {
+    const appleSession = appleSessionRef.current;
+    const config = appleConfigRef.current;
+    if (!appleSession || !config || !window.ApplePaySession) return;
+    setLoading("apple");
+    setError("");
+    try {
+      const session = new window.ApplePaySession(4, {
+        ...config,
+        countryCode: config.countryCode || "SK",
+        currencyCode: "EUR",
+        total: { label: "PETIT.SOT STUDIO", type: "final", amount: price.toFixed(2) },
+      });
+      session.onvalidatemerchant = async (event: any) => {
+        try {
+          const result = await appleSession.validateMerchant({ validationUrl: event.validationURL });
+          session.completeMerchantValidation(result.merchantSession);
+        } catch (e) {
+          console.error("Apple Pay merchant validation failed", e);
+          session.abort();
+          setError(message("Apple Pay validation failed. Please use another method.", "Не удалось подтвердить Apple Pay. Используйте другой способ оплаты."));
+          setLoading(null);
+        }
+      };
+      session.onpaymentauthorized = async (event: any) => {
+        try {
+          const orderId = await createOrder();
+          const result = await appleSession.confirmOrder({ orderId, token: event.payment.token, billingContact: event.payment.billingContact });
+          if (result.status === "PAYER_ACTION_REQUIRED") await appleSession.initiatePayerAction({ orderId });
+          await captureOrder(orderId);
+          session.completePayment(window.ApplePaySession.STATUS_SUCCESS);
+          window.location.assign("/checkout/success?token=" + encodeURIComponent(orderId));
+        } catch (e) {
+          console.error("Apple Pay payment failed", e);
+          session.completePayment(window.ApplePaySession.STATUS_FAILURE);
+          setError(message("Apple Pay payment failed. Please try another method.", "Не удалось оплатить через Apple Pay. Попробуйте другой способ."));
+          setLoading(null);
+        }
+      };
+      session.oncancel = () => setLoading(null);
+      session.begin();
+    } catch (e) {
+      console.error("Apple Pay could not start", e);
+      setError(message("Apple Pay could not be opened. Please use another method.", "Не удалось открыть Apple Pay. Используйте другой способ оплаты."));
+      setLoading(null);
+    }
+  }
+
   async function startPayPalCheckout(method: "paypal" | "card") {
     setLoading(method);
     setError("");
@@ -225,12 +293,17 @@ export default function PayPalCheckoutButton({
 
   return (
     <div className="paypal-checkout">
+      {appleAvailable && (
+        <button className="wallet-button apple-pay-button" type="button" onClick={() => void startApplePay()} disabled={loading !== null}>
+          {loading === "apple" ? message("Loading Apple Pay…", "Загрузка Apple Pay…") : " Pay"}
+        </button>
+      )}
       {googleAvailable && <div className="wallet-button google-pay-button" ref={googleRef} aria-label="Google Pay" />}
       <button className="purchase-button paypal-purchase-button" type="button" onClick={() => void startPayPalCheckout("paypal")} disabled={loading !== null}>
         <span>{loading === "paypal" ? message("Loading…", "Загрузка…") : message("Pay with PayPal", "Оплатить через PayPal")}</span>
         <span aria-hidden="true">↗</span>
       </button>
-      <button className="wallet-button card-checkout-button" type="button" onClick={() => void startPayPalCheckout("card")} disabled={loading !== null}>
+      <button className="purchase-button paypal-purchase-button card-checkout-button" type="button" onClick={() => void startPayPalCheckout("card")} disabled={loading !== null}>
         {loading === "card" ? message("Loading…", "Загрузка…") : message("Pay by debit or credit card", "Оплатить банковской картой")}
       </button>
       {error && <p className="paypal-checkout-error" role="alert">{error}</p>}

@@ -113,7 +113,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
       <section className="hero-gallery">
         <div className="hero-top"><span>OLGA TRIKHLEB</span><span className="hero-artist">{ru ? "Художница" : "Artist"} / {new Date().getFullYear()}</span></div>
         <div className="hero-title-wrap">
-          <div className="hero-wordmark">PETIT.SOT <span className="wordmark-divider">|</span> <span>STUDIO</span></div>
+          <h1 className="hero-wordmark">PETIT.SOT <span className="wordmark-divider">|</span> <span>STUDIO</span></h1>
           <span className="hero-orbit hero-orbit-a"></span><span className="hero-orbit hero-orbit-b"></span>
         </div>
         <div className="hero-bottom"><p>{ru ? "Оригинальные картины Ольги Трихлеб: городские сцены и пейзажи." : "Original paintings by Olga Trikhleb — city scenes and landscapes."}</p><Link className="arrow-link" href="/works">{ru ? "Смотреть работы" : "View works"} <span>↗</span></Link></div>

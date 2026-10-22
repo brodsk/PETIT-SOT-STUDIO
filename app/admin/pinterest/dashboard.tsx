@@ -6,6 +6,7 @@ type Status = {
   connected: boolean;
   appConfigured: boolean;
   accessLevel?: "trial" | "standard";
+  apiMode?: "sandbox" | "production";
   expiresAt?: string | null;
   scope?: string | null;
   boards?: Record<string, string>;
@@ -65,7 +66,8 @@ export default function PinterestDashboard() {
         <div className="admin-stat-card"><span>Переходы</span><strong>Сайт</strong><small>Каждый пин ведёт на страницу картины</small></div>
       </section>
 
-      {status?.connected && status.accessLevel !== "standard" && <section className="admin-artwork-empty"><span>Нужен Standard access для публикации</span><p>Аккаунт подключён, но у приложения пока Trial access. Pinterest блокирует создание пинов в настоящем аккаунте до одобрения Standard access. Остальные настройки и подготовку публикаций можно завершить сейчас.</p><p>После одобрения Standard access добавьте в Vercel переменную <code>PINTEREST_ACCESS_LEVEL=standard</code> и выполните redeploy.</p><p><a href="https://developers.pinterest.com/apps/" target="_blank" rel="noreferrer">Открыть Pinterest Developers ↗</a></p></section>}
+      {status?.connected && status.apiMode === "sandbox" && <section className="admin-artwork-empty"><span>Включён Sandbox — демонстрационный режим</span><p>Пины создаются в тестовой среде Pinterest и видны только тебе. Это подходит для записи демонстрации заявки на Standard access; публичных публикаций в этом режиме не будет.</p><p>Если переключишь режим в Vercel, переподключи Pinterest, чтобы сохранить токен именно для выбранной среды.</p></section>}
+      {status?.connected && status.apiMode !== "sandbox" && status.accessLevel !== "standard" && <section className="admin-artwork-empty"><span>Для демонстрации включи Sandbox</span><p>Сейчас запросы направляются в production API, а у приложения Trial access. В Vercel установи <code>PINTEREST_API_MODE=sandbox</code>, выполни redeploy и заново подключи Pinterest. Production-токен не подходит для Sandbox.</p><p>После одобрения Standard можно вернуть <code>PINTEREST_API_MODE=production</code> и установить <code>PINTEREST_ACCESS_LEVEL=standard</code>.</p><p><a href="https://developers.pinterest.com/apps/" target="_blank" rel="noreferrer">Открыть Pinterest Developers ↗</a></p></section>}
 
       {!status?.appConfigured && <section className="admin-artwork-empty"><span>Нужно зарегистрировать приложение Pinterest</span><p>Откройте Pinterest Developers, подключите приложение и добавьте в Vercel переменные PINTEREST_APP_ID и PINTEREST_APP_SECRET. Redirect URI должен быть ровно таким:</p><code>https://petitsot.com/api/admin/pinterest/callback</code><p><a href="https://developers.pinterest.com/apps/" target="_blank" rel="noreferrer">Открыть Pinterest Developers ↗</a></p></section>}
 

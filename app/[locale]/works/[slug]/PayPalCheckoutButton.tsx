@@ -53,7 +53,7 @@ export default function PayPalCheckoutButton({
 
   const message = (en: string, ruText: string) => ru ? ruText : en;
 
-  async function createOrder(paymentMethod?: "googlepay" | "applepay") {
+  async function createOrder(paymentMethod?: "googlepay") {
     const response = await fetch("/api/paypal/create-order", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -259,7 +259,7 @@ export default function PayPalCheckoutButton({
       };
       session.onpaymentauthorized = async (event: any) => {
         try {
-          const orderId = await createOrder("applepay");
+          const orderId = await createOrder();
           const result = await apple.confirmOrder({
             orderId,
             token: event.payment.token,

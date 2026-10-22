@@ -53,11 +53,11 @@ export default function PayPalCheckoutButton({
 
   const message = (en: string, ruText: string) => ru ? ruText : en;
 
-  async function createOrder() {
+  async function createOrder(paymentMethod?: "googlepay" | "applepay") {
     const response = await fetch("/api/paypal/create-order", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ slug }),
+      body: JSON.stringify({ slug, ...(paymentMethod ? { paymentMethod } : {}) }),
     });
     const data = await response.json();
     if (!response.ok || !data.orderId) throw new Error(data.error || "Could not start checkout");
@@ -144,7 +144,7 @@ export default function PayPalCheckoutButton({
                 onPaymentAuthorized: async (paymentData: any) => {
                   try {
                     setLoading("google");
-                    const orderId = await createOrder();
+                    const orderId = await createOrder("googlepay");
                     const confirmed = await googlePay.confirmOrder({
                       orderId,
                       paymentMethodData: paymentData.paymentMethodData,
@@ -209,8 +209,8 @@ export default function PayPalCheckoutButton({
           } catch (e) {
             console.error("Google Pay setup failed:", e);
             setError(message(
-              "Google Pay could not initialize. Please refresh the page or use another payment method.",
-              "Не удалось запустить Google Pay. Обновите страницу или выберите другой способ оплаты.",
+              `Google Pay is unavailable: ${e instanceof Error ? e.message : String(e)}. Please check PayPal eligibility and try again.`,
+              `Google Pay недоступен: ${e instanceof Error ? e.message : String(e)}. Проверьте доступность в PayPal и попробуйте снова.`,
             ));
           }
         }
@@ -259,7 +259,7 @@ export default function PayPalCheckoutButton({
       };
       session.onpaymentauthorized = async (event: any) => {
         try {
-          const orderId = await createOrder();
+          const orderId = await createOrder("applepay");
           const result = await apple.confirmOrder({
             orderId,
             token: event.payment.token,

@@ -35,7 +35,7 @@ export async function GET(request: Request) {
     .select("id,created_at")
     .eq("status", "available")
     .not("image_path", "is", null)
-    .order("created_at", { ascending: true })
+    .order("created_at", { ascending: false })
     .limit(50);
 
   if (error) {
@@ -54,7 +54,7 @@ export async function GET(request: Request) {
       results.push({ artworkId: artwork.id, status: "error", error: "Could not check existing pin state." });
       continue;
     }
-    if (pin?.state === "published" || pin?.state === "pending") continue;
+    if (pin) continue;
 
     try {
       const result = await publishArtworkPin(supabase, artwork.id);

@@ -18,6 +18,7 @@ export default function PayPalCheckoutButton({ slug, locale }: { slug: string; l
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
   const ru = locale === "ru";
+  const paypalLocale = ru ? "ru_RU" : "en_US";
 
   useEffect(() => {
     let active = true;
@@ -33,7 +34,7 @@ export default function PayPalCheckoutButton({ slug, locale }: { slug: string; l
 
         if (!window.paypal) {
           script = document.createElement("script");
-          script.src = `https://www.paypal.com/sdk/js?client-id=${encodeURIComponent(config.clientId)}&currency=EUR&intent=capture&components=buttons&enable-funding=card`;
+          script.src = `https://www.paypal.com/sdk/js?client-id=${encodeURIComponent(config.clientId)}&currency=EUR&intent=capture&components=buttons&enable-funding=card&locale=${paypalLocale}`;
           script.async = true;
           await new Promise<void>((resolve, reject) => {
             script!.onload = () => resolve();
@@ -44,6 +45,7 @@ export default function PayPalCheckoutButton({ slug, locale }: { slug: string; l
 
         if (!active || !window.paypal) return;
 
+        const paypal = window.paypal;
         const createOrder = async () => {
           const response = await fetch("/api/paypal/create-order", {
             method: "POST",
@@ -65,8 +67,8 @@ export default function PayPalCheckoutButton({ slug, locale }: { slug: string; l
           if (active) setError(ru ? "Не удалось открыть оплату. Попробуйте ещё раз." : "Could not open checkout. Please try again.");
         };
 
-        const paypalButtons = window.paypal.Buttons({
-          fundingSource: window.paypal.FUNDING.PAYPAL,
+        const paypalButtons = paypal.Buttons({
+          fundingSource: paypal.FUNDING.PAYPAL,
           style: { layout: "vertical", color: "gold", shape: "rect", label: "paypal", height: 48 },
           createOrder,
           onApprove,
@@ -74,8 +76,8 @@ export default function PayPalCheckoutButton({ slug, locale }: { slug: string; l
         });
         await paypalButtons.render("#paypal-button-container");
 
-        const cardButtons = window.paypal.Buttons({
-          fundingSource: window.paypal.FUNDING.CARD,
+        const cardButtons = paypal.Buttons({
+          fundingSource: paypal.FUNDING.CARD,
           style: { layout: "vertical", color: "black", shape: "rect", label: "pay", height: 48 },
           createOrder,
           onApprove,
@@ -104,7 +106,7 @@ export default function PayPalCheckoutButton({ slug, locale }: { slug: string; l
       active = false;
       if (script && !window.paypal) script.remove();
     };
-  }, [slug, ru]);
+  }, [slug, ru, paypalLocale]);
 
   return (
     <div className="paypal-checkout" aria-busy={loading}>

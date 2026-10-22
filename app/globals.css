@@ -2366,3 +2366,61 @@ button,
     transform: translate(-50%, -50%) !important;
   }
 }
+
+
+/* PayPal checkout — centered, evenly spaced payment choices. */
+.paypal-checkout {
+  width: 100%;
+  max-width: 360px;
+  margin: 24px auto 0;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 10px;
+}
+.paypal-checkout > p:first-child {
+  margin: 0 0 2px;
+  text-align: center;
+  font-size: 12px;
+  line-height: 1.5;
+  color: #77736c;
+}
+.paypal-checkout #paypal-button-container,
+.paypal-checkout #paypal-card-button-container {
+  width: 100%;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+}
+.paypal-checkout #paypal-button-container iframe,
+.paypal-checkout #paypal-card-button-container iframe {
+  display: block;
+  width: 100% !important;
+  max-width: 100% !important;
+}
+.paypal-checkout-note {
+  max-width: 320px;
+  margin: 5px auto 0;
+  color: #77736c;
+  font-size: 11px;
+  line-height: 1.55;
+  text-align: center;
+  text-wrap: pretty;
+}
+.paypal-checkout [role="alert"] {
+  margin: 2px 0;
+  color: #9b3027;
+  font-size: 12px;
+  line-height: 1.5;
+  text-align: center;
+}
+@media (max-width: 700px) {
+  .paypal-checkout {
+    max-width: 340px;
+    margin-top: 20px;
+    gap: 9px;
+  }
+  .paypal-checkout-note {
+    font-size: 10px;
+  }
+}

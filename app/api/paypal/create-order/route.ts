@@ -32,8 +32,8 @@ export async function POST(request: Request) {
   try {
     const body = await request.json().catch(() => null);
     const slug = typeof body?.slug === "string" ? body.slug.trim() : "";
-    const paymentMethod = body?.paymentMethod === "googlepay" ? "googlepay" : null;
-    if (body?.paymentMethod !== undefined && body.paymentMethod !== "googlepay") {
+    const paymentMethod = body?.paymentMethod === "googlepay" || body?.paymentMethod === "cardfields" ? body.paymentMethod : null;
+    if (body?.paymentMethod !== undefined && body.paymentMethod !== "googlepay" && body.paymentMethod !== "cardfields") {
       return NextResponse.json({ error: "Unsupported payment method" }, { status: 400 });
     }
     if (!slug || slug.length > 120 || !/^[a-zA-Z0-9_-]+$/.test(slug)) {
@@ -79,6 +79,14 @@ export async function POST(request: Request) {
         ...(paymentMethod === "googlepay" ? {
           payment_source: {
             google_pay: {
+              attributes: {
+                verification: { method: "SCA_WHEN_REQUIRED" },
+              },
+            },
+          },
+        } : paymentMethod === "cardfields" ? {
+          payment_source: {
+            card: {
               attributes: {
                 verification: { method: "SCA_WHEN_REQUIRED" },
               },

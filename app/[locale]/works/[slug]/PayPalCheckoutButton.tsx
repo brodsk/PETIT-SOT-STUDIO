@@ -14,10 +14,22 @@ function loadScript(src: string, marker: string): Promise<void> {
   return new Promise((resolve, reject) => {
     const existing = document.querySelector<HTMLScriptElement>(`script[data-sdk-marker="${marker}"]`);
     if (existing) {
-      if (existing.dataset.loaded === "true") return resolve();
-      existing.addEventListener("load", () => resolve(), { once: true });
-      existing.addEventListener("error", () => reject(new Error("Payment SDK failed to load")), { once: true });
-      return;
+      // A marker alone is not enough: client-side locale navigation can request a
+      // different PayPal SDK URL while the old script is still in the document.
+      if (existing.src !== src) {
+        existing.remove();
+        if (marker.startsWith("paypal-payment-sdk")) {
+          delete window.paypal;
+        }
+      } else {
+        if (existing.dataset.loaded === "true") return resolve();
+        existing.addEventListener("load", () => {
+          existing.dataset.loaded = "true";
+          resolve();
+        }, { once: true });
+        existing.addEventListener("error", () => reject(new Error("Payment SDK failed to load")), { once: true });
+        return;
+      }
     }
     const script = document.createElement("script");
     script.src = src;

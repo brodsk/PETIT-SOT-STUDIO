@@ -1,8 +1,15 @@
 import { randomBytes } from "crypto";
 
-const PINTEREST_API = "https://api.pinterest.com/v5";
 const PINTEREST_OAUTH = "https://www.pinterest.com/oauth/";
-const PINTEREST_TOKEN = "https://api.pinterest.com/v5/oauth/token";
+export function pinterestApiMode(): "sandbox" | "production" {
+  return process.env.PINTEREST_API_MODE?.trim().toLowerCase() === "sandbox" ? "sandbox" : "production";
+}
+function pinterestApiBase() {
+  return pinterestApiMode() === "sandbox" ? "https://api-sandbox.pinterest.com/v5" : "https://api.pinterest.com/v5";
+}
+function pinterestTokenUrl() {
+  return pinterestApiBase() + "/oauth/token";
+}
 
 const BOARD_NAMES = ["Original Oil Paintings by Olga Trikhleb"];
 
@@ -40,7 +47,7 @@ export async function exchangePinterestCode(code: string) {
     code,
     redirect_uri: pinterestRedirectUri(),
   });
-  const response = await fetch(PINTEREST_TOKEN, {
+  const response = await fetch(pinterestTokenUrl(), {
     method: "POST",
     headers: {
       Authorization: "Basic " + Buffer.from(clientId + ":" + clientSecret).toString("base64"),
@@ -90,7 +97,7 @@ export async function pinterestApi(supabase: any, path: string, init: RequestIni
       grant_type: "refresh_token",
       refresh_token: connection.refresh_token,
     });
-    const refreshed = await fetch(PINTEREST_TOKEN, {
+    const refreshed = await fetch(pinterestTokenUrl(), {
       method: "POST",
       headers: {
         Authorization: "Basic " + Buffer.from(clientId + ":" + clientSecret).toString("base64"),
@@ -123,7 +130,7 @@ export async function pinterestApi(supabase: any, path: string, init: RequestIni
   const headers = new Headers(init.headers);
   headers.set("Authorization", "Bearer " + accessToken);
   if (init.body && !headers.has("content-type")) headers.set("Content-Type", "application/json");
-  return fetch(PINTEREST_API + path, { ...init, headers, cache: "no-store" });
+  return fetch(pinterestApiBase() + path, { ...init, headers, cache: "no-store" });
 }
 
 async function readJson(response: Response) {
@@ -186,8 +193,8 @@ function chooseBoard(_artwork: any, boards: { name: string; id: string }[]) {
 }
 
 export async function publishArtworkPin(supabase: any, artworkId: string) {
-  if (process.env.PINTEREST_ACCESS_LEVEL?.trim().toLowerCase() !== "standard") {
-    throw new Error("Pinterest пока работает в режиме Trial. Реальная публикация станет доступна после одобрения Standard access и установки PINTEREST_ACCESS_LEVEL=standard в Vercel.");
+  if (pinterestApiMode() !== "sandbox" && process.env.PINTEREST_ACCESS_LEVEL?.trim().toLowerCase() !== "standard") {
+    throw new Error("Pinterest работает в режиме Trial. Для демонстрации включите PINTEREST_API_MODE=sandbox в Vercel, затем переподключите Pinterest. Реальные публикации в production требуют Standard access.");
   }
   const { data: artwork, error: artworkError } = await supabase
     .from("petit_sot_artworks")

@@ -6,6 +6,7 @@ const SITE_URL = "https://www.petitsot.com";
 const INSTAGRAM_URL = "https://www.instagram.com/petit.sot.art";
 const ETSY_URL = "https://petitsot.etsy.com";
 const SASHE_URL = "https://www.sashe.sk/petitsot";
+const PINTEREST_URL = "https://pin.it/LvhmSem3U";
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
   const { locale } = await params;
@@ -52,6 +53,11 @@ export default async function Contact({ params }: { params: Promise<{ locale: st
           <a href={SASHE_URL} target="_blank" rel="noopener noreferrer">
             <span>{ru ? "МАГАЗИН SAShE" : "SAShE SHOP"}</span>
             <strong>PETITSOT</strong>
+            <i aria-hidden="true">↗</i>
+          </a>
+          <a href={PINTEREST_URL} target="_blank" rel="noopener noreferrer">
+            <span>PINTEREST</span>
+            <strong>PETIT.SOT</strong>
             <i aria-hidden="true">↗</i>
           </a>
         </nav>

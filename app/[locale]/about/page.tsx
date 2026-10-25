@@ -63,11 +63,11 @@ export default async function About({ params }: { params: Promise<{ locale: stri
         <div className="about-section-copy">
           <h2>{ru ? "Фундамент для творческого взгляда." : "A foundation for a creative perspective."}</h2>
           <p>{ru
-            ? "Ольга окончила художественную школу в Северодонецке, где получила первые системные знания в искусстве и развила интерес к цвету, композиции и визуальному выражению."
-            : "Olga studied at an art school in Sievierodonetsk, where she built her early understanding of art and developed an interest in colour, composition and visual expression."}</p>
+            ? "Я окончила художественную школу в Северодонецке, где получила первые системные знания в искусстве и развила интерес к цвету, композиции и визуальному выражению."
+            : "I studied at an art school in Sievierodonetsk, where I built my early understanding of art and developed an interest in colour, composition and visual expression."}</p>
           <p>{ru
-            ? "В 2023 году она получила степень бакалавра по направлению «Архитектура и строительство» в Харьковском национальном университете городского хозяйства имени А. Н. Бекетова. Её образовательная программа — «Архитектура и градостроительство»."
-            : "In 2023, she earned a Bachelor's degree in Architecture and Construction from O. M. Beketov National University of Urban Economy in Kharkiv, completing the programme in Architecture and Town Planning."}</p>
+            ? "В 2023 году я получила степень бакалавра по направлению «Архитектура и строительство» в Харьковском национальном университете городского хозяйства имени А. Н. Бекетова. Моя образовательная программа — «Архитектура и градостроительство»."
+            : "In 2023, I earned a Bachelor's degree in Architecture and Construction from O. M. Beketov National University of Urban Economy in Kharkiv, completing the programme in Architecture and Town Planning."}</p>
         </div>
       </section>
 

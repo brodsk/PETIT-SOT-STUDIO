@@ -50,7 +50,7 @@ export default async function About({ params }: { params: Promise<{ locale: stri
         <div className="about-section-copy">
           <h2>{ru ? "Живопись как способ смотреть внимательнее." : "A way of looking closer."}</h2>
           <p>{ru
-            ? "Мой художественный путь начался с обучения искусству в Северодонецке. Этот опыт стал основой моего визуального языка и интереса к тому, как настроение рождается из композиции, цвета и фактуры."
+            ? "Мой художественный путь начался с обучения искусству. Этот опыт стал основой моего визуального языка и интереса к тому, как настроение рождается из композиции, цвета и фактуры."
             : "My artistic path began with formal art studies in Sievierodonetsk. That experience helped shape my visual language and my interest in how mood emerges through composition, colour and texture."}</p>
           <p>{ru
             ? "Сегодня я продолжаю развивать собственную художественную практику. В каждой работе мне важно не только то, что изображено, но и чувство, которое картина оставляет зрителю."

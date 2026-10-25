@@ -51,7 +51,7 @@ export default async function About({ params }: { params: Promise<{ locale: stri
           <h2>{ru ? "Живопись как способ смотреть внимательнее." : "A way of looking closer."}</h2>
           <p>{ru
             ? "Мой художественный путь начался с обучения искусству. Этот опыт стал основой моего визуального языка и интереса к тому, как настроение рождается из композиции, цвета и фактуры."
-            : "My artistic path began with formal art studies in Sievierodonetsk. That experience helped shape my visual language and my interest in how mood emerges through composition, colour and texture."}</p>
+            : "My artistic path began with art studies. That experience helped shape my visual language and my interest in how mood emerges through composition, colour and texture."}</p>
           <p>{ru
             ? "Сегодня я продолжаю развивать собственную художественную практику. В каждой работе мне важно не только то, что изображено, но и чувство, которое картина оставляет зрителю."
             : "Today, I continue to develop my own practice. In every painting, I care not only about what is depicted, but also about the feeling the work leaves with the viewer."}</p>

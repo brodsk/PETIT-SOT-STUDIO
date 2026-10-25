@@ -15,7 +15,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   return {
     title, description,
     alternates: { canonical, languages: { en: `${SITE_URL}/about`, ru: `${SITE_URL}/ru/about`, "x-default": `${SITE_URL}/about` } },
-    openGraph: { title, description, url: canonical, images: [{ url: "/olga-trikhleb.jpg", alt: "Olga Trikhleb, artist behind PETIT.SOT" }] },
+    openGraph: { title, description, url: canonical, images: [{ url: "/IMG_20261025_113638_516.jpg", alt: "Olga Trikhleb, artist behind PETIT.SOT" }] },
   };
 }
 
@@ -37,7 +37,7 @@ export default async function About({ params }: { params: Promise<{ locale: stri
 
       <section className="about-portrait" aria-label={ru ? "О художнице" : "Portrait of the artist"}>
         <div className="about-portrait-image">
-          <Image src="/olga-trikhleb.jpg" alt={ru ? "Ольга Трихлеб на пленэре с кистью и альбомом" : "Olga Trikhleb outdoors with a paintbrush and sketchbook"} fill priority sizes="(max-width: 700px) 100vw, 58vw" />
+          <Image src="/IMG_20261025_113638_516.jpg" alt={ru ? "Ольга Трихлеб на пленэре с кистью и альбомом" : "Olga Trikhleb outdoors with a paintbrush and sketchbook"} fill priority sizes="(max-width: 700px) 100vw, 58vw" />
         </div>
         <div className="about-portrait-caption">
           <span>{ru ? "Ольга Трихлеб" : "Olga Trikhleb"}</span>

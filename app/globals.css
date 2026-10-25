@@ -2599,3 +2599,49 @@ button,
   opacity: .58;
   cursor: wait;
 }
+
+
+/* About portrait — restrained editorial treatment, consistent with PETIT.SOT. */
+.about-portrait {
+  width: min(100%, 1120px);
+  margin: 0 auto 13vh;
+}
+.about-portrait-image {
+  position: relative;
+  width: 100%;
+  max-width: 790px;
+  aspect-ratio: 3 / 4;
+  margin-left: auto;
+  overflow: hidden;
+  background: #eeeae3;
+}
+.about-portrait-image img {
+  object-fit: cover;
+  object-position: center 42%;
+  filter: saturate(.9);
+}
+.about-portrait-caption {
+  max-width: 790px;
+  margin: 12px 0 0 auto;
+  padding-top: 10px;
+  border-top: 1px solid rgba(23,23,23,.25);
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  font-size: 9px;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+@media (max-width: 700px) {
+  .about-portrait {
+    margin-bottom: 82px;
+  }
+  .about-portrait-image {
+    max-width: none;
+    aspect-ratio: 4 / 5;
+  }
+  .about-portrait-caption {
+    font-size: 8px;
+    gap: 8px;
+  }
+}

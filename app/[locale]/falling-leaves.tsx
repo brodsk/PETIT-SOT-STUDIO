@@ -6,17 +6,19 @@ import type { CSSProperties } from "react";
 const leaves = [
   {
     name: "maple",
-    shape: "M50 7 C54 15 57 23 59 31 C67 23 75 18 84 17 C81 26 79 33 82 40 C89 41 94 44 98 49 C88 52 81 57 77 65 C69 62 62 63 56 70 C55 80 53 88 50 97 C46 87 43 78 42 69 C34 74 27 78 19 78 C20 69 17 63 8 58 C17 54 22 48 23 41 C30 42 36 38 40 31 C42 22 46 14 50 7Z",
-    veins: "M50 103 C50 77 50 48 50 17 M50 55 C40 46 32 39 25 33 M50 64 C62 52 73 43 85 36 M50 77 C38 70 29 66 18 62 M50 82 C62 75 70 70 79 66",
+    // Five-lobed sugar-maple silhouette with pointed tips and softly serrated edges.
+    shape: "M50 5 C53 13 54 20 55 27 C62 19 70 14 79 12 C77 21 74 28 70 35 C79 32 88 33 96 37 C89 44 82 49 73 52 C83 55 89 61 93 69 C82 70 74 68 66 64 C69 74 68 84 64 94 C57 86 53 78 50 68 C46 79 40 88 32 96 C28 85 29 75 33 65 C24 71 14 73 5 70 C10 60 17 55 27 51 C17 48 9 42 4 34 C15 31 24 33 32 37 C27 28 25 19 27 10 C37 15 44 22 48 31 C48 21 48 12 50 5Z",
+    veins: "M50 110 C50 87 50 57 50 13 M50 49 C40 40 32 33 27 20 M50 55 C62 44 71 34 78 20 M50 66 C38 62 26 55 14 39 M50 70 C63 66 76 59 88 43 M50 83 C43 78 38 73 34 65 M50 85 C57 79 61 73 65 64",
   },
   {
     name: "oak",
-    shape: "M50 7 C57 12 57 20 64 22 C70 16 79 20 78 29 C89 29 91 39 83 45 C94 52 88 62 79 63 C84 74 75 81 66 76 C62 88 52 88 49 78 C41 88 32 82 34 73 C23 78 15 70 22 60 C10 55 13 44 24 41 C17 31 24 23 35 28 C38 18 44 14 50 7Z",
-    veins: "M50 101 C50 78 50 48 50 16 M50 48 C40 39 33 34 27 31 M50 58 C63 49 73 43 84 40 M50 70 C38 65 29 62 21 59 M50 78 C61 74 69 72 78 68",
+    // Rounded, irregular oak lobes rather than a scalloped geometric circle.
+    shape: "M50 5 C57 10 58 18 63 22 C68 17 76 18 78 26 C87 25 92 32 87 40 C96 46 94 55 84 59 C90 68 84 77 74 75 C74 86 64 91 57 82 C51 94 42 92 40 81 C31 88 22 83 25 73 C14 76 8 67 17 59 C7 52 11 43 22 41 C15 31 21 23 32 27 C34 16 43 12 50 21 C49 14 49 9 50 5Z",
+    veins: "M50 108 C50 82 50 51 50 14 M50 48 C40 39 34 32 29 25 M50 55 C62 46 71 39 80 31 M50 65 C37 61 28 56 18 48 M50 72 C63 67 74 62 86 53 M50 82 C42 77 36 72 29 66 M50 84 C58 78 65 73 72 66",
   },
   {
     name: "beech",
-    shape: "M50 5 C61 16 73 31 78 48 C84 69 68 91 50 108 C32 91 16 69 22 48 C27 31 39 16 50 5Z",
+    shape: "M50 5 C60 16 72 31 78 48 C84 69 68 91 50 108 C32 91 16 69 22 48 C28 31 40 16 50 5Z",
     veins: "M50 103 C50 75 50 43 50 13 M50 34 C41 29 35 25 30 20 M50 48 C60 42 67 36 73 29 M50 62 C39 57 32 52 26 45 M50 77 C61 70 68 64 75 56 M50 89 C41 83 36 78 32 72",
   },
   {
@@ -44,46 +46,48 @@ export default function FallingLeaves() {
     <div className="page-leaf-fall autumn-leaf-layer" aria-hidden="true">
       <style>{`
         .autumn-leaf-layer{z-index:8!important;overflow:hidden!important}
-        .autumn-leaf{position:absolute;top:-12%;left:var(--x);width:var(--size);height:calc(var(--size)*1.18);opacity:0;transform-origin:50% 20%;animation:autumn-drop var(--duration) linear var(--delay) infinite;will-change:top,transform,opacity}
-        .autumn-leaf svg{display:block;width:100%;height:100%;overflow:visible;filter:drop-shadow(1px 2px 2px rgba(48,30,15,.18));transform-origin:50% 50%;animation:autumn-tumble var(--flutter) ease-in-out var(--delay) infinite}
-        .autumn-leaf .leaf-body{fill:var(--fill);stroke:var(--edge);stroke-width:.8;stroke-linejoin:round}
-        .autumn-leaf .leaf-veins{fill:none;stroke:var(--vein);stroke-width:.85;stroke-linecap:round;opacity:.58}
-        @keyframes autumn-drop{
-          0%{top:-12%;transform:translate3d(0,0,0) rotate(var(--start-rot));opacity:0}
-          4%{opacity:var(--leaf-opacity)}
-          13%{top:10%;transform:translate3d(var(--drift-a),0,0) rotate(calc(var(--start-rot) + var(--spin-a)))}
-          29%{top:27%;transform:translate3d(var(--drift-b),0,0) rotate(calc(var(--start-rot) + var(--spin-b)))}
-          46%{top:45%;transform:translate3d(var(--drift-c),0,0) rotate(calc(var(--start-rot) + var(--spin-c)))}
-          63%{top:63%;transform:translate3d(var(--drift-d),0,0) rotate(calc(var(--start-rot) + var(--spin-d)))}
-          81%{top:82%;transform:translate3d(var(--drift-e),0,0) rotate(calc(var(--start-rot) + var(--spin-e)));opacity:var(--leaf-opacity)}
-          100%{top:105%;transform:translate3d(var(--drift-f),0,0) rotate(calc(var(--start-rot) + var(--spin-f)));opacity:0}
+        .autumn-leaf{position:absolute;top:-10%;left:var(--x);width:var(--size);height:calc(var(--size)*1.18);opacity:0;transform-origin:50% 20%;animation:leaf-drift var(--duration) cubic-bezier(.38,.04,.62,.98) var(--delay) infinite;will-change:transform,opacity}
+        .autumn-leaf svg{display:block;width:100%;height:100%;overflow:visible;filter:drop-shadow(1px 2px 2px rgba(48,30,15,.17));transform-origin:50% 50%;animation:leaf-flutter var(--flutter) ease-in-out var(--delay) infinite}
+        .autumn-leaf .leaf-body{fill:var(--fill);stroke:var(--edge);stroke-width:.7;stroke-linejoin:round}
+        .autumn-leaf .leaf-veins{fill:none;stroke:var(--vein);stroke-width:.65;stroke-linecap:round;opacity:.52}
+        .autumn-leaf .leaf-veins-fine{fill:none;stroke:var(--vein);stroke-width:.38;stroke-linecap:round;opacity:.32}
+        @keyframes leaf-drift{
+          0%{transform:translate3d(0,-4vh,0) rotate(var(--start-rot));opacity:0}
+          5%{opacity:var(--leaf-opacity)}
+          22%{transform:translate3d(var(--drift-a),22vh,0) rotate(calc(var(--start-rot) + var(--spin-a)))}
+          43%{transform:translate3d(var(--drift-b),45vh,0) rotate(calc(var(--start-rot) + var(--spin-b)))}
+          64%{transform:translate3d(var(--drift-c),68vh,0) rotate(calc(var(--start-rot) + var(--spin-c)))}
+          83%{transform:translate3d(var(--drift-d),91vh,0) rotate(calc(var(--start-rot) + var(--spin-d)));opacity:var(--leaf-opacity)}
+          100%{transform:translate3d(var(--drift-e),116vh,0) rotate(calc(var(--start-rot) + var(--spin-e)));opacity:0}
         }
-        @keyframes autumn-tumble{
-          0%,100%{transform:perspective(220px) rotateY(0deg) rotateZ(-8deg) scaleX(1)}
-          22%{transform:perspective(220px) rotateY(58deg) rotateZ(10deg) scaleX(.72)}
-          48%{transform:perspective(220px) rotateY(150deg) rotateZ(-5deg) scaleX(.96)}
-          73%{transform:perspective(220px) rotateY(245deg) rotateZ(9deg) scaleX(.7)}
+        @keyframes leaf-flutter{
+          0%,100%{transform:perspective(260px) rotateY(0deg) rotateZ(-5deg) scaleX(1)}
+          18%{transform:perspective(260px) rotateY(42deg) rotateZ(7deg) scaleX(.82)}
+          37%{transform:perspective(260px) rotateY(118deg) rotateZ(-11deg) scaleX(.58)}
+          54%{transform:perspective(260px) rotateY(205deg) rotateZ(5deg) scaleX(.88)}
+          72%{transform:perspective(260px) rotateY(282deg) rotateZ(-8deg) scaleX(.66)}
+          88%{transform:perspective(260px) rotateY(335deg) rotateZ(6deg) scaleX(.92)}
         }
         @media(max-width:700px){
           .autumn-leaf{width:var(--mobile-size);height:calc(var(--mobile-size)*1.18)}
-          .autumn-leaf svg{filter:drop-shadow(1px 1px 1px rgba(48,30,15,.16))}
+          .autumn-leaf svg{filter:drop-shadow(1px 1px 1px rgba(48,30,15,.14))}
         }
         @media(prefers-reduced-motion:reduce){.autumn-leaf-layer{display:none!important}}
       `}</style>
-      {Array.from({ length: 64 }, (_, index) => {
+      {Array.from({ length: 48 }, (_, index) => {
         // Seeded pseudo-random values keep the composition varied but stable between renders.
         const rand = (salt: number) => {
           const value = Math.sin((index + 1) * 127.1 + salt * 311.7) * 43758.5453;
           return value - Math.floor(value);
         };
         const paletteItem = palette[Math.floor(rand(1) * palette.length)];
-        // Favor oak and maple while keeping a few other leaf silhouettes for variety.
-        const leaf = leaves[[0, 1, 1, 0, 2, 1, 0, 3][Math.floor(rand(2) * 8)]];
+        // Oak and maple dominate the mix; a few beech and willow leaves add natural variety.
+        const leaf = leaves[[0, 1, 1, 0, 1, 0, 2, 3][Math.floor(rand(2) * 8)]];
         const x = 2 + rand(3) * 96;
         const size = 27 + rand(4) * 27;
         const mobileSize = 20 + rand(5) * 19;
-        const duration = 24 + rand(6) * 34;
-        const flutter = 1.8 + rand(7) * 2.8;
+        const duration = 19 + rand(6) * 25;
+        const flutter = 2.4 + rand(7) * 3.8;
         const delay = -(rand(8) * duration);
         const style = {
           "--x": `${x}%`,
@@ -92,20 +96,18 @@ export default function FallingLeaves() {
           "--duration": `${duration}s`,
           "--flutter": `${flutter}s`,
           "--delay": `${delay}s`,
-          "--drift-a": `${(rand(9) - 0.5) * 190}px`,
-          "--drift-b": `${(rand(10) - 0.5) * 260}px`,
-          "--drift-c": `${(rand(11) - 0.5) * 220}px`,
-          "--drift-d": `${(rand(12) - 0.5) * 280}px`,
-          "--drift-e": `${(rand(13) - 0.5) * 240}px`,
-          "--drift-f": `${(rand(14) - 0.5) * 300}px`,
-          "--start-rot": `${rand(15) * 360 - 180}deg`,
-          "--spin-a": `${rand(16) * 240 - 120}deg`,
-          "--spin-b": `${rand(17) * 520 - 260}deg`,
-          "--spin-c": `${rand(18) * 760 - 380}deg`,
-          "--spin-d": `${rand(19) * 980 - 490}deg`,
-          "--spin-e": `${rand(20) * 1280 - 640}deg`,
-          "--spin-f": `${rand(21) * 1600 - 800}deg`,
-          "--leaf-opacity": `${0.58 + rand(22) * 0.36}`,
+          "--drift-a": `${(rand(9) - 0.5) * 150}px`,
+          "--drift-b": `${(rand(10) - 0.5) * 210}px`,
+          "--drift-c": `${(rand(11) - 0.5) * 190}px`,
+          "--drift-d": `${(rand(12) - 0.5) * 230}px`,
+          "--drift-e": `${(rand(13) - 0.5) * 260}px`,
+          "--start-rot": `${rand(14) * 360 - 180}deg`,
+          "--spin-a": `${rand(15) * 220 - 110}deg`,
+          "--spin-b": `${rand(16) * 520 - 260}deg`,
+          "--spin-c": `${rand(17) * 850 - 425}deg`,
+          "--spin-d": `${rand(18) * 1150 - 575}deg`,
+          "--spin-e": `${rand(19) * 1500 - 750}deg`,
+          "--leaf-opacity": `${0.62 + rand(20) * 0.3}`,
           "--fill": paletteItem[0],
           "--edge": paletteItem[1],
           "--vein": paletteItem[2],
@@ -116,6 +118,8 @@ export default function FallingLeaves() {
             <svg viewBox="0 0 100 120" role="presentation">
               <path className="leaf-body" d={leaf.shape} />
               <path className="leaf-veins" d={leaf.veins} />
+              {leaf.name === "maple" && <path className="leaf-veins-fine" d="M50 49 L43 37 M50 55 L59 39 M50 66 L37 58 M50 70 L63 57 M50 82 L43 74 M50 85 L58 73" />}
+              {leaf.name === "oak" && <path className="leaf-veins-fine" d="M50 48 L43 35 M50 55 L59 43 M50 65 L38 57 M50 72 L63 61 M50 82 L42 74 M50 84 L59 74" />}
             </svg>
           </span>
         );

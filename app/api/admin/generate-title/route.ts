@@ -40,7 +40,7 @@ export async function POST(request: Request) {
       year ? "Year: " + year : "",
       width && height ? "Dimensions: " + width + " × " + height + (depth ? " × " + depth : "") + " cm" : "",
       description ? "Artist's artwork description: " + description : "",
-    ].filter(Boolean).join("\\n");
+    ].filter(Boolean).join("\n");
 
     const prompt =
       "You are an expert art curator and SEO copywriter for PETIT.SOT STUDIO, representing original paintings by artist Olga Trikhleb. Study the image and use the supplied artwork description and factual metadata. " +
@@ -48,7 +48,7 @@ export async function POST(request: Request) {
       "Use \"Original Acrylic Painting\" for acrylic works, and \"Original Artwork\" for other media. " +
       "The English title must identify the actual subject, setting, atmosphere or composition as specifically as the image and description support. It may mention a place only when that place is explicitly stated in the description or metadata; never invent a location, story, symbolism, or technique. " +
       "Use natural search-friendly English, not keyword stuffing. Keep the artwork name elegant and memorable; do not make the whole title a generic description. " +
-      (metadata ? "ARTWORK DETAILS:\\n" + metadata + "\\n" : "") +
+      (metadata ? "ARTWORK DETAILS:\n" + metadata + "\n" : "") +
       (currentTitle ? "Existing Russian title to avoid repeating: " + currentTitle + ". " : "") +
       "Example of the desired English style: \"Meadow — Original Oil Painting of a Mountain Landscape | PETIT.SOT\". " +
       "Return only valid JSON: {\"titles\":[{\"titleRu\":\"...\",\"titleEn\":\"...\"},{\"titleRu\":\"...\",\"titleEn\":\"...\"},{\"titleRu\":\"...\",\"titleEn\":\"...\"}]}. No explanations.";
@@ -69,7 +69,7 @@ export async function POST(request: Request) {
               { text: prompt },
               { inline_data: { mime_type: mimeType.toLowerCase(), data: base64Image } },
             ] }],
-            generationConfig: { temperature: 0.85, maxOutputTokens: 250, responseMimeType: "application/json" },
+            generationConfig: { temperature: 0.85, maxOutputTokens: 500, responseMimeType: "application/json" },
           }),
         },
       );

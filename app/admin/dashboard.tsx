@@ -168,7 +168,7 @@ export default function AdminDashboard({initialArtworks}:Props){
       const {data,error}=await supabase.from("petit_sot_artworks").update({status:"available",published_at:new Date().toISOString()}).eq("id",form.id).select().single();
       if(error)throw error;
       setArtworks(prev=>prev.map(x=>x.id===form.id?data:x));setSelected(data);
-      setMessage("Картина опубликована на сайте. Для Pinterest нажмите отдельную кнопку.");
+      setMessage("Картина опубликована на сайте.");
     }catch(err:any){setMessage(err?.message||"Не удалось опубликовать.");}
     setBusy(false);
   }

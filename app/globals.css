@@ -2709,106 +2709,116 @@ button,
 }
 
 
-/* Woodlandia-inspired autumn leaf fall — homepage hero. */
-.hero-gallery {
+/* Full-page autumn leaf fall — inspired by Woodlandia's natural motion. */
+div[data-locale] {
   position: relative;
   isolation: isolate;
-  overflow: hidden;
+  min-height: 100vh;
 }
-.hero-leaf-fall {
+.page-leaf-fall {
   position: absolute;
-  z-index: 0;
+  z-index: 2;
   inset: 0;
   overflow: hidden;
   pointer-events: none;
   user-select: none;
 }
-.hero-gallery > :not(.hero-leaf-fall) {
+div[data-locale] > .site-header,
+div[data-locale] > main,
+div[data-locale] > footer {
   position: relative;
-  z-index: 1;
+  z-index: 3;
 }
-.hero-leaf {
+.gallery-home {
+  background: transparent !important;
+}
+.page-leaf {
   position: absolute;
-  top: -9%;
+  top: -7%;
   left: var(--leaf-x);
   width: var(--leaf-size);
-  height: calc(var(--leaf-size) * 1.2);
+  height: calc(var(--leaf-size) * 1.18);
   opacity: 0;
-  transform-origin: 50% 15%;
-  animation: woodlandia-leaf-drop var(--leaf-time) linear var(--leaf-delay) infinite;
-  will-change: transform, opacity;
+  transform-origin: 50% 18%;
+  animation: woodlandia-page-fall var(--leaf-time) linear var(--leaf-delay) infinite;
+  will-change: top, transform, opacity;
 }
-.hero-leaf svg {
+.page-leaf svg {
   display: block;
   width: 100%;
   height: 100%;
   overflow: visible;
   transform-origin: 50% 50%;
-  animation: woodlandia-leaf-flutter var(--leaf-flutter) ease-in-out var(--leaf-delay) infinite;
-  filter: drop-shadow(1px 2px 2px rgba(55, 37, 20, .18));
+  animation: woodlandia-page-flutter var(--leaf-flutter) ease-in-out var(--leaf-delay) infinite;
+  filter: drop-shadow(1px 2px 2px rgba(55, 37, 20, .2));
 }
-.hero-leaf .leaf-shape {
+.page-leaf .leaf-shape {
   fill: var(--leaf-color);
   stroke: var(--leaf-edge);
   stroke-width: .8;
   stroke-linejoin: round;
 }
-.hero-leaf .leaf-veins {
+.page-leaf .leaf-veins {
   fill: none;
   stroke: var(--leaf-vein);
   stroke-width: 1;
   stroke-linecap: round;
-  opacity: .7;
+  opacity: .72;
 }
-.hero-leaf-1  { --leaf-x: 3%;  --leaf-size: 23px; --leaf-time: 13s; --leaf-flutter: 3.8s; --leaf-delay: -8s;  --leaf-color:#bd7137; --leaf-edge:#8d512b; --leaf-vein:#e6b17a; }
-.hero-leaf-2  { --leaf-x: 9%;  --leaf-size: 16px; --leaf-time: 17s; --leaf-flutter: 4.5s; --leaf-delay: -14s; --leaf-color:#d09a4f; --leaf-edge:#98652e; --leaf-vein:#f0c98b; }
-.hero-leaf-3  { --leaf-x: 15%; --leaf-size: 20px; --leaf-time: 15s; --leaf-flutter: 3.2s; --leaf-delay: -4s;  --leaf-color:#9b6339; --leaf-edge:#70452c; --leaf-vein:#d6a477; }
-.hero-leaf-4  { --leaf-x: 22%; --leaf-size: 13px; --leaf-time: 19s; --leaf-flutter: 4.8s; --leaf-delay: -11s; --leaf-color:#c17c3d; --leaf-edge:#8d542d; --leaf-vein:#edbd82; }
-.hero-leaf-5  { --leaf-x: 28%; --leaf-size: 25px; --leaf-time: 16s; --leaf-flutter: 3.6s; --leaf-delay: -6s;  --leaf-color:#b85f32; --leaf-edge:#824128; --leaf-vein:#e5a071; }
-.hero-leaf-6  { --leaf-x: 34%; --leaf-size: 17px; --leaf-time: 21s; --leaf-flutter: 5.1s; --leaf-delay: -18s; --leaf-color:#d2a15b; --leaf-edge:#95652f; --leaf-vein:#f2d39a; }
-.hero-leaf-7  { --leaf-x: 40%; --leaf-size: 21px; --leaf-time: 14s; --leaf-flutter: 3.5s; --leaf-delay: -2s;  --leaf-color:#a85d35; --leaf-edge:#75402a; --leaf-vein:#d89a6d; }
-.hero-leaf-8  { --leaf-x: 46%; --leaf-size: 15px; --leaf-time: 18s; --leaf-flutter: 4.2s; --leaf-delay: -12s; --leaf-color:#c88a43; --leaf-edge:#8e5d2e; --leaf-vein:#eec28a; }
-.hero-leaf-9  { --leaf-x: 52%; --leaf-size: 24px; --leaf-time: 20s; --leaf-flutter: 3.9s; --leaf-delay: -16s; --leaf-color:#a96c3d; --leaf-edge:#77472d; --leaf-vein:#e1ae7c; }
-.hero-leaf-10 { --leaf-x: 58%; --leaf-size: 14px; --leaf-time: 15s; --leaf-flutter: 4.7s; --leaf-delay: -5s;  --leaf-color:#d09a50; --leaf-edge:#93632e; --leaf-vein:#f0ca8e; }
-.hero-leaf-11 { --leaf-x: 64%; --leaf-size: 22px; --leaf-time: 17s; --leaf-flutter: 3.4s; --leaf-delay: -10s; --leaf-color:#bb6337; --leaf-edge:#81452a; --leaf-vein:#e9a47a; }
-.hero-leaf-12 { --leaf-x: 70%; --leaf-size: 18px; --leaf-time: 22s; --leaf-flutter: 5s;   --leaf-delay: -20s; --leaf-color:#bd8a4e; --leaf-edge:#89602f; --leaf-vein:#e8c38b; }
-.hero-leaf-13 { --leaf-x: 76%; --leaf-size: 25px; --leaf-time: 16s; --leaf-flutter: 3.7s; --leaf-delay: -7s;  --leaf-color:#a85b32; --leaf-edge:#713e27; --leaf-vein:#dc9b70; }
-.hero-leaf-14 { --leaf-x: 82%; --leaf-size: 15px; --leaf-time: 19s; --leaf-flutter: 4.4s; --leaf-delay: -13s; --leaf-color:#d0a05a; --leaf-edge:#96632f; --leaf-vein:#f2d29a; }
-.hero-leaf-15 { --leaf-x: 88%; --leaf-size: 20px; --leaf-time: 14s; --leaf-flutter: 3.3s; --leaf-delay: -3s;  --leaf-color:#b56a39; --leaf-edge:#80462b; --leaf-vein:#e8b17b; }
-.hero-leaf-16 { --leaf-x: 94%; --leaf-size: 13px; --leaf-time: 21s; --leaf-flutter: 4.9s; --leaf-delay: -17s; --leaf-color:#c58a45; --leaf-edge:#8d5b2c; --leaf-vein:#ebc28a; }
-.hero-leaf-17 { --leaf-x: 37%; --leaf-size: 17px; --leaf-time: 18s; --leaf-flutter: 3.6s; --leaf-delay: -9s;  --leaf-color:#a96438; --leaf-edge:#78432b; --leaf-vein:#dba174; }
-.hero-leaf-18 { --leaf-x: 73%; --leaf-size: 22px; --leaf-time: 23s; --leaf-flutter: 5.2s; --leaf-delay: -21s; --leaf-color:#c18a4c; --leaf-edge:#895c30; --leaf-vein:#eac38e; }
+.page-leaf-1 { --leaf-x:2%; --leaf-size:22px; --leaf-time:75s; --leaf-flutter:4.1s; --leaf-delay:-8s; --leaf-color:#bd7137; --leaf-edge:#8d512b; --leaf-vein:#e6b17a; }
+.page-leaf-2 { --leaf-x:7%; --leaf-size:15px; --leaf-time:92s; --leaf-flutter:4.8s; --leaf-delay:-31s; --leaf-color:#d09a4f; --leaf-edge:#98652e; --leaf-vein:#f0c98b; }
+.page-leaf-3 { --leaf-x:12%; --leaf-size:19px; --leaf-time:82s; --leaf-flutter:3.7s; --leaf-delay:-16s; --leaf-color:#9b6339; --leaf-edge:#70452c; --leaf-vein:#d6a477; }
+.page-leaf-4 { --leaf-x:17%; --leaf-size:13px; --leaf-time:105s; --leaf-flutter:5.2s; --leaf-delay:-56s; --leaf-color:#c17c3d; --leaf-edge:#8d542d; --leaf-vein:#edbd82; }
+.page-leaf-5 { --leaf-x:22%; --leaf-size:24px; --leaf-time:88s; --leaf-flutter:3.9s; --leaf-delay:-42s; --leaf-color:#b85f32; --leaf-edge:#824128; --leaf-vein:#e5a071; }
+.page-leaf-6 { --leaf-x:27%; --leaf-size:16px; --leaf-time:98s; --leaf-flutter:5.4s; --leaf-delay:-71s; --leaf-color:#d2a15b; --leaf-edge:#95652f; --leaf-vein:#f2d39a; }
+.page-leaf-7 { --leaf-x:32%; --leaf-size:21px; --leaf-time:79s; --leaf-flutter:3.6s; --leaf-delay:-24s; --leaf-color:#a85d35; --leaf-edge:#75402a; --leaf-vein:#d89a6d; }
+.page-leaf-8 { --leaf-x:37%; --leaf-size:15px; --leaf-time:91s; --leaf-flutter:4.6s; --leaf-delay:-62s; --leaf-color:#c88a43; --leaf-edge:#8e5d2e; --leaf-vein:#eec28a; }
+.page-leaf-9 { --leaf-x:42%; --leaf-size:23px; --leaf-time:108s; --leaf-flutter:4.2s; --leaf-delay:-91s; --leaf-color:#a96c3d; --leaf-edge:#77472d; --leaf-vein:#e1ae7c; }
+.page-leaf-10 { --leaf-x:47%; --leaf-size:14px; --leaf-time:84s; --leaf-flutter:5.1s; --leaf-delay:-35s; --leaf-color:#d09a50; --leaf-edge:#93632e; --leaf-vein:#f0ca8e; }
+.page-leaf-11 { --leaf-x:52%; --leaf-size:21px; --leaf-time:96s; --leaf-flutter:3.8s; --leaf-delay:-77s; --leaf-color:#bb6337; --leaf-edge:#81452a; --leaf-vein:#e9a47a; }
+.page-leaf-12 { --leaf-x:57%; --leaf-size:17px; --leaf-time:102s; --leaf-flutter:5.5s; --leaf-delay:-104s; --leaf-color:#bd8a4e; --leaf-edge:#89602f; --leaf-vein:#e8c38b; }
+.page-leaf-13 { --leaf-x:62%; --leaf-size:25px; --leaf-time:86s; --leaf-flutter:4s; --leaf-delay:-49s; --leaf-color:#a85b32; --leaf-edge:#713e27; --leaf-vein:#dc9b70; }
+.page-leaf-14 { --leaf-x:67%; --leaf-size:14px; --leaf-time:110s; --leaf-flutter:4.9s; --leaf-delay:-88s; --leaf-color:#d0a05a; --leaf-edge:#96632f; --leaf-vein:#f2d29a; }
+.page-leaf-15 { --leaf-x:72%; --leaf-size:20px; --leaf-time:93s; --leaf-flutter:3.5s; --leaf-delay:-18s; --leaf-color:#b56a39; --leaf-edge:#80462b; --leaf-vein:#e8b17b; }
+.page-leaf-16 { --leaf-x:77%; --leaf-size:13px; --leaf-time:100s; --leaf-flutter:5.3s; --leaf-delay:-116s; --leaf-color:#c58a45; --leaf-edge:#8d5b2c; --leaf-vein:#ebc28a; }
+.page-leaf-17 { --leaf-x:82%; --leaf-size:18px; --leaf-time:89s; --leaf-flutter:4.1s; --leaf-delay:-67s; --leaf-color:#a96438; --leaf-edge:#78432b; --leaf-vein:#dba174; }
+.page-leaf-18 { --leaf-x:87%; --leaf-size:22px; --leaf-time:107s; --leaf-flutter:5.6s; --leaf-delay:-96s; --leaf-color:#c18a4c; --leaf-edge:#895c30; --leaf-vein:#eac38e; }
+.page-leaf-19 { --leaf-x:92%; --leaf-size:16px; --leaf-time:95s; --leaf-flutter:3.8s; --leaf-delay:-39s; --leaf-color:#bd7137; --leaf-edge:#8d512b; --leaf-vein:#e6b17a; }
+.page-leaf-20 { --leaf-x:96%; --leaf-size:14px; --leaf-time:103s; --leaf-flutter:4.7s; --leaf-delay:-83s; --leaf-color:#d09a4f; --leaf-edge:#98652e; --leaf-vein:#f0c98b; }
+.page-leaf-21 { --leaf-x:4%; --leaf-size:19px; --leaf-time:90s; --leaf-flutter:5s; --leaf-delay:-53s; --leaf-color:#9b6339; --leaf-edge:#70452c; --leaf-vein:#d6a477; }
+.page-leaf-22 { --leaf-x:29%; --leaf-size:24px; --leaf-time:106s; --leaf-flutter:3.9s; --leaf-delay:-101s; --leaf-color:#c17c3d; --leaf-edge:#8d542d; --leaf-vein:#edbd82; }
+.page-leaf-23 { --leaf-x:59%; --leaf-size:16px; --leaf-time:81s; --leaf-flutter:5.2s; --leaf-delay:-27s; --leaf-color:#b85f32; --leaf-edge:#824128; --leaf-vein:#e5a071; }
+.page-leaf-24 { --leaf-x:89%; --leaf-size:23px; --leaf-time:99s; --leaf-flutter:4.3s; --leaf-delay:-73s; --leaf-color:#d2a15b; --leaf-edge:#95652f; --leaf-vein:#f2d39a; }
 
-@keyframes woodlandia-leaf-drop {
-  0%   { transform: translate3d(0, -8vh, 0) rotate(-25deg); opacity: 0; }
-  8%   { opacity: .95; }
-  22%  { transform: translate3d(42px, 20vh, 0) rotate(65deg); }
-  43%  { transform: translate3d(-32px, 43vh, 0) rotate(175deg); opacity: .9; }
-  66%  { transform: translate3d(38px, 68vh, 0) rotate(285deg); }
-  84%  { transform: translate3d(-24px, 91vh, 0) rotate(365deg); opacity: .8; }
-  100% { transform: translate3d(26px, 116vh, 0) rotate(470deg); opacity: 0; }
+@keyframes woodlandia-page-fall {
+  0%   { top: -8%; transform: translate3d(0, 0, 0) rotate(-22deg); opacity: 0; }
+  7%   { opacity: .92; }
+  18%  { top: 18%; transform: translate3d(44px, 0, 0) rotate(72deg); }
+  36%  { top: 36%; transform: translate3d(-34px, 0, 0) rotate(168deg); opacity: .9; }
+  55%  { top: 55%; transform: translate3d(38px, 0, 0) rotate(260deg); }
+  74%  { top: 74%; transform: translate3d(-28px, 0, 0) rotate(355deg); opacity: .86; }
+  91%  { top: 91%; transform: translate3d(35px, 0, 0) rotate(455deg); opacity: .75; }
+  100% { top: 101%; transform: translate3d(-18px, 0, 0) rotate(540deg); opacity: 0; }
 }
-@keyframes woodlandia-leaf-flutter {
-  0%, 100% { transform: perspective(180px) rotateY(0deg) rotateZ(-8deg) scaleX(1); }
-  25%      { transform: perspective(180px) rotateY(75deg) rotateZ(10deg) scaleX(.55); }
-  50%      { transform: perspective(180px) rotateY(165deg) rotateZ(-5deg) scaleX(.82); }
-  75%      { transform: perspective(180px) rotateY(275deg) rotateZ(12deg) scaleX(.48); }
+@keyframes woodlandia-page-flutter {
+  0%, 100% { transform: perspective(180px) rotateY(0deg) rotateZ(-9deg) scaleX(1); }
+  22%      { transform: perspective(180px) rotateY(78deg) rotateZ(13deg) scaleX(.52); }
+  48%      { transform: perspective(180px) rotateY(172deg) rotateZ(-7deg) scaleX(.88); }
+  73%      { transform: perspective(180px) rotateY(278deg) rotateZ(11deg) scaleX(.46); }
 }
 @media (max-width: 700px) {
-  .hero-leaf-2, .hero-leaf-4, .hero-leaf-6, .hero-leaf-8,
-  .hero-leaf-10, .hero-leaf-12, .hero-leaf-14, .hero-leaf-16,
-  .hero-leaf-18 { display: none; }
-  .hero-leaf { --leaf-size: 15px; }
-  .hero-leaf-1 { --leaf-x: 5%; }
-  .hero-leaf-3 { --leaf-x: 24%; }
-  .hero-leaf-5 { --leaf-x: 44%; }
-  .hero-leaf-7 { --leaf-x: 63%; }
-  .hero-leaf-9 { --leaf-x: 81%; }
-  .hero-leaf-11 { --leaf-x: 96%; }
-  .hero-leaf-13 { --leaf-x: 34%; }
-  .hero-leaf-15 { --leaf-x: 73%; }
-  .hero-leaf-17 { --leaf-x: 54%; }
+  .page-leaf { --leaf-size: 15px; }
+  .page-leaf-2, .page-leaf-4, .page-leaf-6, .page-leaf-8,
+  .page-leaf-10, .page-leaf-12, .page-leaf-14, .page-leaf-16,
+  .page-leaf-18, .page-leaf-20, .page-leaf-22, .page-leaf-24 { display: none; }
+  .page-leaf-3 { --leaf-x: 18%; }
+  .page-leaf-7 { --leaf-x: 39%; }
+  .page-leaf-11 { --leaf-x: 61%; }
+  .page-leaf-15 { --leaf-x: 82%; }
+  .page-leaf-19 { --leaf-x: 8%; }
+  .page-leaf-21 { --leaf-x: 53%; }
+  .page-leaf-23 { --leaf-x: 94%; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .hero-leaf-fall { display: none; }
+  .page-leaf-fall { display: none; }
 }

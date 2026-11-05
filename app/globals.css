@@ -2664,3 +2664,29 @@ button,
 .archive-enquiry .contact-form button:disabled{opacity:.5}
 .archive-enquiry .contact-form-status{font-size:10px;margin:0}
 @media(max-width:700px){.works-section{margin-top:70px}.works-section-heading{display:block;margin-bottom:35px}.works-section-heading h2{font-size:16vw;margin:22px 0}.works-section-heading p{max-width:270px}.works-archive-section{padding-top:55px}.archive-enquiry{margin-top:24px}.archive-enquiry h2{font-size:30px}}
+
+
+/* Artwork detail titles: consistent justified alignment across every painting. */
+.work-page .work-info > h1 {
+  text-align: justify !important;
+  text-align-last: left !important;
+  text-justify: inter-word;
+  hyphens: auto;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+
+/* AI title choices show the Russian artwork name and its English SEO title. */
+.admin-title-suggestion {
+  display: grid !important;
+  gap: 5px;
+  text-align: left;
+}
+.admin-title-suggestion strong {
+  font-weight: 500;
+}
+.admin-title-suggestion span {
+  font-size: 11px;
+  line-height: 1.45;
+  opacity: .72;
+}

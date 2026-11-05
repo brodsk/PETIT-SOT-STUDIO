@@ -267,7 +267,7 @@ export default function AdminDashboard({initialArtworks}:Props){
       }
       const response=await fetch("/api/admin/generate-title",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({imageDataUrl:dataUrl,currentTitle:form.title,medium:form.medium})});
       const data=await response.json().catch(()=>({}));
-      if(!response.ok)throw new Error(data.error||"Не удалось придумать названия.");
+      if(!response.ok)throw new Error([data.error,data.detail].filter(Boolean).join(": ")||"Не удалось придумать названия.");
       const titles=Array.isArray(data.titles)?data.titles.filter((x:any)=>typeof x==="string"&&x.trim()).slice(0,3):[];
       if(!titles.length)throw new Error("ИИ не вернул варианты названия.");
       setTitleSuggestions(titles);

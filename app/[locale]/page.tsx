@@ -112,13 +112,18 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }} />
       <section className="hero-gallery">
         <div className="hero-leaf-fall" aria-hidden="true">
-          <span className="hero-leaf hero-leaf-1"><svg viewBox="0 0 40 52"><path d="M20 2C8 8 2 19 5 31c2 9 9 15 15 19 6-4 13-10 15-19C38 19 32 8 20 2Zm0 6v36M20 25 10 16m10 19 11-12" /></svg></span>
-          <span className="hero-leaf hero-leaf-2"><svg viewBox="0 0 40 52"><path d="M20 2C8 8 2 19 5 31c2 9 9 15 15 19 6-4 13-10 15-19C38 19 32 8 20 2Zm0 6v36M20 25 10 16m10 19 11-12" /></svg></span>
-          <span className="hero-leaf hero-leaf-3"><svg viewBox="0 0 40 52"><path d="M20 2C8 8 2 19 5 31c2 9 9 15 15 19 6-4 13-10 15-19C38 19 32 8 20 2Zm0 6v36M20 25 10 16m10 19 11-12" /></svg></span>
-          <span className="hero-leaf hero-leaf-4"><svg viewBox="0 0 40 52"><path d="M20 2C8 8 2 19 5 31c2 9 9 15 15 19 6-4 13-10 15-19C38 19 32 8 20 2Zm0 6v36M20 25 10 16m10 19 11-12" /></svg></span>
-          <span className="hero-leaf hero-leaf-5"><svg viewBox="0 0 40 52"><path d="M20 2C8 8 2 19 5 31c2 9 9 15 15 19 6-4 13-10 15-19C38 19 32 8 20 2Zm0 6v36M20 25 10 16m10 19 11-12" /></svg></span>
-          <span className="hero-leaf hero-leaf-6"><svg viewBox="0 0 40 52"><path d="M20 2C8 8 2 19 5 31c2 9 9 15 15 19 6-4 13-10 15-19C38 19 32 8 20 2Zm0 6v36M20 25 10 16m10 19 11-12" /></svg></span>
-          <span className="hero-leaf hero-leaf-7"><svg viewBox="0 0 40 52"><path d="M20 2C8 8 2 19 5 31c2 9 9 15 15 19 6-4 13-10 15-19C38 19 32 8 20 2Zm0 6v36M20 25 10 16m10 19 11-12" /></svg></span>
+          <span className="hero-leaf hero-leaf-1"><svg viewBox="0 0 40 52"><path d="M20 2C16 8 7 13 5 22c-2 9 5 18 15 28 10-10 17-19 15-28C33 13 24 8 20 2Zm0 7v35M20 22 10 16m10 15 11-10" /></svg></span>
+          <span className="hero-leaf hero-leaf-2"><svg viewBox="0 0 40 52"><path d="M20 2C12 7 4 13 4 23c0 10 8 20 16 27 8-7 16-17 16-27C36 13 28 7 20 2Zm0 7v37M20 21 11 14m9 18 10-12" /></svg></span>
+          <span className="hero-leaf hero-leaf-3"><svg viewBox="0 0 40 52"><path d="M20 2C14 9 5 13 6 24c1 10 7 18 14 26 7-8 13-16 14-26C35 13 26 9 20 2Zm0 7v37M20 23 11 17m9 13 10-9" /></svg></span>
+          <span className="hero-leaf hero-leaf-4"><svg viewBox="0 0 40 52"><path d="M20 2C15 9 7 15 7 25c0 9 6 17 13 25 7-8 13-16 13-25C33 15 25 9 20 2Zm0 8v35M20 22 12 16m8 15 9-10" /></svg></span>
+          <span className="hero-leaf hero-leaf-5"><svg viewBox="0 0 40 52"><path d="M20 2C9 8 3 17 6 29c2 8 8 15 14 21 6-6 12-13 14-21C37 17 31 8 20 2Zm0 7v36M20 23 11 17m9 14 10-11" /></svg></span>
+          <span className="hero-leaf hero-leaf-6"><svg viewBox="0 0 40 52"><path d="M20 2C16 8 7 13 5 22c-2 9 5 18 15 28 10-10 17-19 15-28C33 13 24 8 20 2Zm0 7v35M20 22 10 16m10 15 11-10" /></svg></span>
+          <span className="hero-leaf hero-leaf-7"><svg viewBox="0 0 40 52"><path d="M20 2C12 7 4 13 4 23c0 10 8 20 16 27 8-7 16-17 16-27C36 13 28 7 20 2Zm0 7v37M20 21 11 14m9 18 10-12" /></svg></span>
+          <span className="hero-leaf hero-leaf-8"><svg viewBox="0 0 40 52"><path d="M20 2C14 9 5 13 6 24c1 10 7 18 14 26 7-8 13-16 14-26C35 13 26 9 20 2Zm0 7v37M20 23 11 17m9 13 10-9" /></svg></span>
+          <span className="hero-leaf hero-leaf-9"><svg viewBox="0 0 40 52"><path d="M20 2C15 9 7 15 7 25c0 9 6 17 13 25 7-8 13-16 13-25C33 15 25 9 20 2Zm0 8v35M20 22 12 16m8 15 9-10" /></svg></span>
+          <span className="hero-leaf hero-leaf-10"><svg viewBox="0 0 40 52"><path d="M20 2C9 8 3 17 6 29c2 8 8 15 14 21 6-6 12-13 14-21C37 17 31 8 20 2Zm0 7v36M20 23 11 17m9 14 10-11" /></svg></span>
+          <span className="hero-leaf hero-leaf-11"><svg viewBox="0 0 40 52"><path d="M20 2C16 8 7 13 5 22c-2 9 5 18 15 28 10-10 17-19 15-28C33 13 24 8 20 2Zm0 7v35M20 22 10 16m10 15 11-10" /></svg></span>
+          <span className="hero-leaf hero-leaf-12"><svg viewBox="0 0 40 52"><path d="M20 2C12 7 4 13 4 23c0 10 8 20 16 27 8-7 16-17 16-27C36 13 28 7 20 2Zm0 7v37M20 21 11 14m9 18 10-12" /></svg></span>
         </div>
         <div className="hero-top"><span>OLGA TRIKHLEB</span><span className="hero-artist">{ru ? "Художница" : "Artist"} / {new Date().getFullYear()}</span></div>
         <div className="hero-title-wrap">

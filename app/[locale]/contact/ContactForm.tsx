@@ -19,7 +19,7 @@ declare global {
 
 const TURNSTILE_SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || "";
 
-export default function ContactForm({ru}:{ru:boolean}) {
+export default function ContactForm({ru,initialMessage=""}:{ru:boolean;initialMessage?:string}) {
   const [status, setStatus] = useState<"idle"|"sending"|"sent"|"error">("idle");
   const [captchaToken, setCaptchaToken] = useState("");
   const [captchaReady, setCaptchaReady] = useState(!TURNSTILE_SITE_KEY);
@@ -120,7 +120,7 @@ export default function ContactForm({ru}:{ru:boolean}) {
       </label>
       <label>
         <span>{ru ? "Сообщение" : "Message"}</span>
-        <textarea name="message" required maxLength={4000} rows={6}/>
+        <textarea name="message" required maxLength={4000} rows={6} defaultValue={initialMessage}/>
       </label>
       {TURNSTILE_SITE_KEY && (
         <div className="contact-captcha-wrap">

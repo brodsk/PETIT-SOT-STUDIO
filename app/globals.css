@@ -2902,3 +2902,63 @@ div[data-locale] > footer {
     transition: none !important;
   }
 }
+
+
+/* Scroll-progress back-to-top control: the ring fills as the visitor moves down the page. */
+.back-to-top {
+  width: 58px !important;
+  height: 58px !important;
+  right: 22px !important;
+  bottom: 22px !important;
+  display: grid !important;
+  place-items: center !important;
+  color: #858585 !important;
+  transform: translateY(9px) !important;
+}
+.back-to-top.is-visible {
+  transform: translateY(0) !important;
+}
+.back-to-top svg {
+  width: 58px !important;
+  height: 58px !important;
+  overflow: visible !important;
+  stroke: none !important;
+  transition: none !important;
+}
+.back-to-top-progress {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 3.8;
+  stroke-linecap: butt;
+  transform: rotate(-90deg);
+  transform-origin: 32px 32px;
+}
+.back-to-top-arrow {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 4.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.back-to-top:hover {
+  color: #555 !important;
+  transform: translateY(-2px) !important;
+}
+.back-to-top:hover svg {
+  transform: none !important;
+}
+@media (max-width: 700px) {
+  .back-to-top {
+    width: 52px !important;
+    height: 52px !important;
+    right: 12px !important;
+    bottom: 12px !important;
+  }
+  .back-to-top svg {
+    width: 52px !important;
+    height: 52px !important;
+  }
+  .back-to-top-progress {
+    transform-origin: 32px 32px;
+  }
+}

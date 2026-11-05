@@ -2,6 +2,7 @@
 
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { createClient } from "../../lib/supabase/client";
+import heic2any from "heic2any";
 
 type Artwork={id:string;slug:string;title:string;title_en:string;year:number|null;medium:string|null;width_cm:number|null;height_cm:number|null;depth_cm:number|null;description:string;description_en:string;ai_description:string;price_eur:number;status:string;image_path:string|null;certificate_number:string|null;created_at:string;etsy_listing_id:number|null;etsy_state:string|null;etsy_error:string|null;etsy_listing_url:string|null};
 type ArtworkImage={id:string;artwork_id:string;image_path:string;sort_order:number;created_at:string};
@@ -206,9 +207,60 @@ export default function AdminDashboard({initialArtworks}:Props){
   }
 
   async function compressImage(source:Blob){
-    const max=1800;const canvas=document.createElement("canvas");const ctx=canvas.getContext("2d");if(!ctx)throw new Error("Не удалось подготовить изображение.");
-    try{const bitmap=await createImageBitmap(source);const scale=Math.min(1,max/Math.max(bitmap.width,bitmap.height));canvas.width=Math.max(1,Math.round(bitmap.width*scale));canvas.height=Math.max(1,Math.round(bitmap.height*scale));ctx.drawImage(bitmap,0,0,canvas.width,canvas.height);bitmap.close();return canvas.toDataURL("image/jpeg",0.82);}
-    catch{const url=URL.createObjectURL(source);try{const img=new Image();await new Promise<void>((resolve,reject)=>{img.onload=()=>resolve();img.onerror=()=>reject(new Error("Не удалось декодировать исходное изображение. Попробуйте JPEG или PNG."));img.src=url;});const scale=Math.min(1,max/Math.max(img.naturalWidth,img.naturalHeight));canvas.width=Math.max(1,Math.round(img.naturalWidth*scale));canvas.height=Math.max(1,Math.round(img.naturalHeight*scale));ctx.drawImage(img,0,0,canvas.width,canvas.height);return canvas.toDataURL("image/jpeg",0.82);}finally{URL.revokeObjectURL(url);}}
+    const max=1800;
+    const canvas=document.createElement("canvas");
+    const ctx=canvas.getContext("2d");
+    if(!ctx)throw new Error("Не удалось подготовить изображение.");
+
+    async function drawAndCompress(blob:Blob){
+      let bitmap:ImageBitmap|undefined;
+      try{
+        bitmap=await createImageBitmap(blob);
+        const scale=Math.min(1,max/Math.max(bitmap.width,bitmap.height));
+        canvas.width=Math.max(1,Math.round(bitmap.width*scale));
+        canvas.height=Math.max(1,Math.round(bitmap.height*scale));
+        ctx.drawImage(bitmap,0,0,canvas.width,canvas.height);
+        return canvas.toDataURL("image/jpeg",0.84);
+      }catch{
+        const url=URL.createObjectURL(blob);
+        try{
+          const img=new Image();
+          await new Promise<void>((resolve,reject)=>{
+            img.onload=()=>resolve();
+            img.onerror=()=>reject(new Error("Браузер не смог прочитать файл."));
+            img.src=url;
+          });
+          const scale=Math.min(1,max/Math.max(img.naturalWidth,img.naturalHeight));
+          canvas.width=Math.max(1,Math.round(img.naturalWidth*scale));
+          canvas.height=Math.max(1,Math.round(img.naturalHeight*scale));
+          ctx.drawImage(img,0,0,canvas.width,canvas.height);
+          return canvas.toDataURL("image/jpeg",0.84);
+        }finally{
+          URL.revokeObjectURL(url);
+        }
+      }finally{
+        bitmap?.close();
+      }
+    }
+
+    try{
+      return await drawAndCompress(source);
+    }catch(originalError){
+      const fileName=(source instanceof File?source.name:"").toLowerCase();
+      const isHeic=/heic|heif/.test(source.type.toLowerCase())||/\\.(heic|heif)$/.test(fileName);
+      try{
+        const converted=await heic2any({blob:source,toType:"image/jpeg",quality:0.9});
+        const jpeg=Array.isArray(converted)?converted[0]:converted;
+        return await drawAndCompress(jpeg);
+      }catch(conversionError){
+        const details=source instanceof File
+          ? `Файл: ${source.name}, тип: ${source.type||"не определён"}, размер: ${(source.size/1024/1024).toFixed(1)} МБ.`
+          : `Тип изображения: ${source.type||"не определён"}.`;
+        throw new Error(isHeic
+          ? "Не удалось преобразовать HEIC/HEIF-фото. "+details
+          : "Не удалось прочитать изображение даже после попытки конвертации. "+details+" Откройте фото и сохраните его как JPG.");
+      }
+    }
   }
 
   async function generateDescription(){

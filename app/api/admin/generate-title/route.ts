@@ -30,12 +30,28 @@ export async function POST(request: Request) {
 
     const medium = String(body.medium || "").trim();
     const currentTitle = String(body.currentTitle || "").trim();
+    const description = String(body.description || "").trim();
+    const year = String(body.year || "").trim();
+    const width = String(body.width_cm || "").trim();
+    const height = String(body.height_cm || "").trim();
+    const depth = String(body.depth_cm || "").trim();
+    const metadata = [
+      medium ? "Medium / technique: " + medium : "",
+      year ? "Year: " + year : "",
+      width && height ? "Dimensions: " + width + " × " + height + (depth ? " × " + depth : "") + " cm" : "",
+      description ? "Artist's artwork description: " + description : "",
+    ].filter(Boolean).join("\\n");
+
     const prompt =
-      "You are an experienced contemporary-art curator helping PETIT.SOT STUDIO name an original painting by artist Olga Trikhleb. Study the attached image carefully and propose exactly THREE distinct, memorable artwork titles in Russian. " +
-      "Titles should be concise (usually 1–5 words), evocative but restrained, specific to visible details, mood, color, light, composition or subject. Avoid generic clichés, excessive poetry, invented symbolism, claims about places or stories that cannot be inferred from the image, and titles that merely say 'Картина'. " +
-      (medium ? "Known medium: " + medium + ". " : "") +
-      (currentTitle ? "Existing title to avoid repeating: " + currentTitle + ". " : "") +
-      "Return only valid JSON with one property named titles, whose value is an array of exactly three Russian strings. Do not include explanations.";
+      "You are an expert art curator and SEO copywriter for PETIT.SOT STUDIO, representing original paintings by artist Olga Trikhleb. Study the image and use the supplied artwork description and factual metadata. " +
+      "Return exactly THREE distinct title pairs. Each pair must contain titleRu (a short, natural Russian artwork name, usually 1–5 words) and titleEn (a polished English SEO title in this exact structure: \"Artwork Name — Original Oil Painting of [specific visible subject or scene] | PETIT.SOT\"). " +
+      "Use \"Original Acrylic Painting\" for acrylic works, and \"Original Artwork\" for other media. " +
+      "The English title must identify the actual subject, setting, atmosphere or composition as specifically as the image and description support. It may mention a place only when that place is explicitly stated in the description or metadata; never invent a location, story, symbolism, or technique. " +
+      "Use natural search-friendly English, not keyword stuffing. Keep the artwork name elegant and memorable; do not make the whole title a generic description. " +
+      (metadata ? "ARTWORK DETAILS:\\n" + metadata + "\\n" : "") +
+      (currentTitle ? "Existing Russian title to avoid repeating: " + currentTitle + ". " : "") +
+      "Example of the desired English style: \"Meadow — Original Oil Painting of a Mountain Landscape | PETIT.SOT\". " +
+      "Return only valid JSON: {\"titles\":[{\"titleRu\":\"...\",\"titleEn\":\"...\"},{\"titleRu\":\"...\",\"titleEn\":\"...\"},{\"titleRu\":\"...\",\"titleEn\":\"...\"}]}. No explanations.";
 
     const configuredModel = process.env.GEMINI_MODEL?.trim();
     const models = Array.from(new Set([configuredModel, "gemini-3.5-flash-lite", "gemini-3.1-flash-lite"].filter(Boolean))) as string[];
@@ -72,10 +88,16 @@ export async function POST(request: Request) {
     const cleaned = raw.replace(/^```json\s*/i, "").replace(/^```\s*/i, "").replace(/\s*```$/, "").trim();
     const parsed = JSON.parse(cleaned);
     const titles = Array.isArray(parsed.titles)
-      ? parsed.titles.map((value: unknown) => String(value || "").trim()).filter(Boolean).slice(0, 3)
+      ? parsed.titles
+          .map((value: any) => ({
+            titleRu: String(value?.titleRu || "").trim(),
+            titleEn: String(value?.titleEn || "").trim(),
+          }))
+          .filter((value: { titleRu: string; titleEn: string }) => value.titleRu && value.titleEn && !/[А-Яа-яЁё]/.test(value.titleEn))
+          .slice(0, 3)
       : [];
     if (titles.length !== 3) {
-      return NextResponse.json({ error: "Gemini did not return three valid title suggestions.", detail: raw.slice(0, 800) }, { status: 502 });
+      return NextResponse.json({ error: "Gemini did not return three valid bilingual title suggestions.", detail: raw.slice(0, 800) }, { status: 502 });
     }
     return NextResponse.json({ titles });
   } catch (error) {

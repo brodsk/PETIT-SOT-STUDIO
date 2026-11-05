@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import LanguageSwitcher from "./language-switcher";
 import BackToTop from "../components/BackToTop";
+import FallingLeaves from "./falling-leaves";
 
 const SITE_URL = "https://www.petitsot.com";
 
@@ -53,6 +54,7 @@ export default async function LocaleLayout({
 
   return (
     <div data-locale={locale} lang={locale}>
+      <FallingLeaves />
       <header className="site-header">
         <Link href="/" className="wordmark">
           PETIT.SOT <span className="wordmark-divider">|</span> <span>STUDIO</span>

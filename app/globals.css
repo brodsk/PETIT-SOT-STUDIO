@@ -2690,3 +2690,20 @@ button,
   line-height: 1.45;
   opacity: .72;
 }
+
+
+/* Artwork detail title — smaller, quieter scale on desktop and mobile. */
+.work-page .work-info > h1 {
+  font-size: clamp(34px, 4.4vw, 66px) !important;
+  line-height: 1.02 !important;
+  margin-top: 14px !important;
+  margin-bottom: 48px !important;
+}
+@media (max-width: 700px) {
+  .work-page .work-info > h1 {
+    font-size: clamp(30px, 9.5vw, 46px) !important;
+    line-height: 1.04 !important;
+    margin-top: 10px !important;
+    margin-bottom: 36px !important;
+  }
+}

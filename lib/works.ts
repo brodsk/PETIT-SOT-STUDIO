@@ -30,7 +30,7 @@ export async function getWorks():Promise<PublicWork[]>{
  if(!process.env.NEXT_PUBLIC_SUPABASE_URL||!process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY)return fallbackWorks;
  try{
    const supabase=await createClient();
-   const {data,error}=await supabase.from("petit_sot_artworks").select("*").in("status",["available","sold"]).order("created_at",{ascending:false});
+   const {data,error}=await supabase.from("petit_sot_artworks").select("*").in("status",["available","sold","archived"]).order("created_at",{ascending:false});
    if(error)return fallbackWorks;
    if(!data||data.length===0)return [];
    const ids=data.map((w:any)=>w.id);

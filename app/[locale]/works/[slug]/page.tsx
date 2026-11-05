@@ -68,13 +68,15 @@ export async function generateMetadata({
     },
   };
   const seoArtwork = seoArtworkBySlug[slug];
-  const seoTitle = seoArtwork
+  const generatedSeoTitle = seoArtwork
     ? ru
       ? `${title} — ${isOil ? "картина маслом: " : ""}${seoArtwork.ru.subject}`
       : `${title} — ${isOil ? "Original Oil Painting" : isAcrylic ? "Original Acrylic Painting" : "Original Artwork"} | ${seoArtwork.en.subject}`
     : ru
       ? `${title} — ${isOil ? "картина маслом" : isAcrylic ? "акриловая картина" : "оригинальная работа"}`
       : `${title} — ${workTypeEn}`;
+  // AI-generated English titles already contain the complete SEO suffix.
+  const seoTitle = !ru && /\\|\\s*PETIT\\.SOT\\s*$/i.test(title) ? title : generatedSeoTitle;
   const description = seoArtwork
     ? ru
       ? `${seoArtwork.ru.description} Год: ${w.year}; размер: ${w.size}.`

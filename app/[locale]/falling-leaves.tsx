@@ -11,7 +11,7 @@ const veins = "M30 65 L30 17 M30 34 L14 25 M30 43 L46 34 M30 51 L15 46 M30 27 L4
 
 export default function FallingLeaves() {
   const pathname = usePathname();
-  if (pathname !== "/" && pathname !== "/ru") return null;
+  if (pathname !== "/" && pathname !== "/en" && pathname !== "/ru") return null;
 
   return (
     <div className="page-leaf-fall" aria-hidden="true">

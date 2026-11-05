@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import LanguageSwitcher from "./language-switcher";
 import BackToTop from "../components/BackToTop";
+import MotionEffects from "../components/MotionEffects";
 
 const SITE_URL = "https://www.petitsot.com";
 
@@ -65,6 +66,7 @@ export default async function LocaleLayout({
         </nav>
       </header>
       {children}
+      <MotionEffects />
       <BackToTop />
       <footer>
         <span>© {new Date().getFullYear()} PETIT.SOT STUDIO</span>

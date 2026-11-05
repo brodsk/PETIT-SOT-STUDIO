@@ -21,7 +21,7 @@ export default function AdminDashboard({initialArtworks}:Props){
   const [busy,setBusy]=useState(false);
   const [aiBusy,setAiBusy]=useState(false);
   const [titleAiBusy,setTitleAiBusy]=useState(false);
-  const [titleSuggestions,setTitleSuggestions]=useState<string[]>([]);
+  const [titleSuggestions,setTitleSuggestions]=useState<{titleRu:string;titleEn:string}[]>([]);
   const [message,setMessage]=useState("");
   const [etsy,setEtsy]=useState<{connected:boolean;shop_name?:string|null;etsy_shop_id?:number|null}|null>(null);
   const [etsyImporting,setEtsyImporting]=useState(false);
@@ -93,7 +93,7 @@ export default function AdminDashboard({initialArtworks}:Props){
         const tj=await tr.json();
         if(!tr.ok)throw new Error(tj.error||"Не удалось перевести работу на английский.");
         // Refresh the English title when the main title changes; preserve a manually edited English title otherwise.
-        if(!selected||form.title!==selected.title||!titleEn)titleEn=tj.titleEn||titleEn;
+        if(!selected||!titleEn||(form.title!==selected.title&&form.title_en===selected.title_en))titleEn=tj.titleEn||titleEn;
         descriptionEn=tj.descriptionEn||descriptionEn;
       }
       const payload={slug:form.slug,title:form.title,title_en:titleEn,year:form.year||null,medium:form.medium||null,width_cm:form.width_cm||null,height_cm:form.height_cm||null,depth_cm:form.depth_cm||null,description:form.description,description_en:descriptionEn,ai_description:form.ai_description,price_eur:Number(form.price_eur)||0,status:form.status,image_path:imagePath||null};
@@ -219,7 +219,7 @@ export default function AdminDashboard({initialArtworks}:Props){
         const scale=Math.min(1,max/Math.max(bitmap.width,bitmap.height));
         canvas.width=Math.max(1,Math.round(bitmap.width*scale));
         canvas.height=Math.max(1,Math.round(bitmap.height*scale));
-        ctx.drawImage(bitmap,0,0,canvas.width,canvas.height);
+        ctx!.drawImage(bitmap,0,0,canvas.width,canvas.height);
         return canvas.toDataURL("image/jpeg",0.84);
       }catch{
         const url=URL.createObjectURL(blob);
@@ -233,7 +233,7 @@ export default function AdminDashboard({initialArtworks}:Props){
           const scale=Math.min(1,max/Math.max(img.naturalWidth,img.naturalHeight));
           canvas.width=Math.max(1,Math.round(img.naturalWidth*scale));
           canvas.height=Math.max(1,Math.round(img.naturalHeight*scale));
-          ctx.drawImage(img,0,0,canvas.width,canvas.height);
+          ctx!.drawImage(img,0,0,canvas.width,canvas.height);
           return canvas.toDataURL("image/jpeg",0.84);
         }finally{
           URL.revokeObjectURL(url);
@@ -308,7 +308,7 @@ export default function AdminDashboard({initialArtworks}:Props){
 
   async function generateTitleSuggestions(){
     if(!image&&!form.image_path){setMessage("Сначала добавьте изображение картины.");return;}
-    setTitleAiBusy(true);setMessage("Анализирую картину и подбираю названия…");
+    setTitleAiBusy(true);setMessage("Анализирую сюжет, описание и технику картины…");
     try{
       let dataUrl="";
       if(image)dataUrl=await compressImage(image);
@@ -317,13 +317,28 @@ export default function AdminDashboard({initialArtworks}:Props){
         if(!imageResponse.ok)throw new Error("Не удалось прочитать загруженное изображение.");
         dataUrl=await compressImage(await imageResponse.blob());
       }
-      const response=await fetch("/api/admin/generate-title",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({imageDataUrl:dataUrl,currentTitle:form.title,medium:form.medium})});
+      const response=await fetch("/api/admin/generate-title",{
+        method:"POST",
+        headers:{"content-type":"application/json"},
+        body:JSON.stringify({
+          imageDataUrl:dataUrl,
+          currentTitle:form.title,
+          medium:form.medium,
+          description:form.description,
+          year:form.year,
+          width_cm:form.width_cm,
+          height_cm:form.height_cm,
+          depth_cm:form.depth_cm
+        })
+      });
       const data=await response.json().catch(()=>({}));
       if(!response.ok)throw new Error([data.error,data.detail].filter(Boolean).join(": ")||"Не удалось придумать названия.");
-      const titles=Array.isArray(data.titles)?data.titles.filter((x:any)=>typeof x==="string"&&x.trim()).slice(0,3):[];
-      if(!titles.length)throw new Error("ИИ не вернул варианты названия.");
+      const titles=Array.isArray(data.titles)
+        ?data.titles.filter((x:any)=>x&&typeof x.titleRu==="string"&&typeof x.titleEn==="string"&&x.titleRu.trim()&&x.titleEn.trim()).slice(0,3)
+        :[];
+      if(!titles.length)throw new Error("ИИ не вернул варианты названий.");
       setTitleSuggestions(titles);
-      setMessage("Выбери название — оно подставится в поле. Английская версия сформируется при сохранении.");
+      setMessage("Выбери вариант: короткое название для русской версии и SEO-заголовок для английской.");
     }catch(err:any){
       setMessage("Ошибка: "+(err?.message||"Не удалось придумать название."));
     }finally{setTitleAiBusy(false);}
@@ -420,7 +435,7 @@ export default function AdminDashboard({initialArtworks}:Props){
       <section className="admin-editor"><form onSubmit={save}>
         <div className="admin-editor-head"><div><button type="button" className="admin-back-gallery" onClick={()=>{setEditing(false);setMessage("");}}>← Все картины</button><span className="eyebrow">КАРТИНА</span><h2>{form.title||"Новая работа"}</h2></div><select aria-label="Статус" value={form.status} onChange={e=>patch("status",e.target.value)}><option value="draft">Черновик</option><option value="available">В продаже</option><option value="sold">Продана</option><option value="archived">Архив</option></select></div>
         <div className="admin-image-field">{imagePreview?<img src={imagePreview} alt="" />:imageUrl?<img src={imageUrl} alt="" />:<div><span>Изображение картины</span><small>JPG / PNG / WEBP · максимум 15 МБ</small></div>}<label>{image?"Заменить изображение":"Выбрать изображение"}<input type="file" accept="image/jpeg,image/png,image/webp" onChange={e=>chooseImage(e.target.files?.[0]||null)}/></label>{image&&<p className="admin-file-name">{image.name}</p>}</div><div className="admin-gallery-manager"><div className="admin-gallery-head"><div><span className="eyebrow">ГАЛЕРЕЯ</span><h3>Дополнительные фотографии</h3></div><label className="admin-gallery-add">+ Добавить фото<input type="file" accept="image/jpeg,image/png,image/webp" multiple onChange={e=>chooseGalleryImages(e.target.files)}/></label></div>{(galleryImages.length||newImages.length)?<div className="admin-gallery-grid">{galleryImages.map((item,index)=><div className="admin-gallery-item" key={item.id}><img src={supabase.storage.from("petit-sot-artworks").getPublicUrl(item.image_path).data.publicUrl} alt="" /><div className="admin-gallery-item-actions"><button type="button" onClick={()=>moveGalleryImage(index,-1)} disabled={busy||index===0}>←</button><span>{index+1}</span><button type="button" onClick={()=>moveGalleryImage(index,1)} disabled={busy||index===galleryImages.length-1}>→</button><button type="button" className="make-main" onClick={()=>makeGalleryImageMain(item)} disabled={busy||!form.image_path} title="Сделать главной">Главная</button><button type="button" className="delete" onClick={()=>removeGalleryImage(item)} disabled={busy}>×</button></div></div>)}{newImages.map((file,index)=><div className="admin-gallery-item pending" key={file.name+index}><img src={URL.createObjectURL(file)} alt="" /><div className="admin-gallery-item-actions"><span>Новое</span><button type="button" className="delete" onClick={()=>setNewImages(prev=>prev.filter((_,i)=>i!==index))}>×</button></div></div>)}</div>:<p className="admin-gallery-empty">Добавьте несколько фотографий — детали картины покажут их как галерею.</p>}</div>
-        <div className="admin-form-grid"><label>Название (основное)<input value={form.title} onChange={e=>patch("title",e.target.value)} required/></label><div><button type="button" className="ai-button" onClick={generateTitleSuggestions} disabled={titleAiBusy||aiBusy}>{titleAiBusy?"Подбираю названия…":"✦ Придумать название с ИИ"}</button><p>ИИ предложит три варианта по изображению картины. Вы сами выбираете подходящий.</p>{titleSuggestions.length>0&&<div style={{display:"grid",gap:8,marginTop:10}}>{titleSuggestions.map((title,index)=><button key={index} type="button" className="secondary" onClick={()=>{patch("title",title);setTitleSuggestions([]);setMessage("Название выбрано. Сохраните картину, чтобы применить изменения.");}}>{title}</button>)}</div>}</div><label>Название (English)<input value={form.title_en} onChange={e=>patch("title_en",e.target.value)} placeholder="Meadow — Original Oil Painting of a Mountain Landscape"/></label><label>Адрес страницы (Slug)<input value={form.slug} onChange={e=>patch("slug",e.target.value)} placeholder="например, untitled-i" required/></label><label>Год<input type="number" value={form.year??""} onChange={e=>patch("year",Number(e.target.value)||null)}/></label><label>Материал / техника<input value={form.medium??""} onChange={e=>patch("medium",e.target.value)} placeholder="например, масло на холсте"/></label><label>Ширина / см<input type="number" step="0.1" value={form.width_cm??""} onChange={e=>patch("width_cm",Number(e.target.value)||null)}/></label><label>Высота / см<input type="number" step="0.1" value={form.height_cm??""} onChange={e=>patch("height_cm",Number(e.target.value)||null)}/></label><label>Глубина / см<input type="number" step="0.1" value={form.depth_cm??""} onChange={e=>patch("depth_cm",Number(e.target.value)||null)}/></label><label>Цена / EUR<input type="number" step="0.01" min="0" value={form.price_eur===0?"":form.price_eur} onChange={e=>patch("price_eur",e.target.value===""?0:Number(e.target.value))}/></label></div>
+        <div className="admin-form-grid"><label>Название (основное)<input value={form.title} onChange={e=>patch("title",e.target.value)} required/></label><div><button type="button" className="ai-button" onClick={generateTitleSuggestions} disabled={titleAiBusy||aiBusy}>{titleAiBusy?"Подбираю названия…":"✦ Придумать название с ИИ"}</button><p>ИИ предложит три варианта по изображению картины. Вы сами выбираете подходящий.</p>{titleSuggestions.length>0&&<div style={{display:"grid",gap:8,marginTop:10}}>{titleSuggestions.map((suggestion,index)=><button key={index} type="button" className="secondary admin-title-suggestion" onClick={()=>{setSelected({...form,title:suggestion.titleRu,title_en:suggestion.titleEn} as Artwork);setTitleSuggestions([]);setMessage("Название и английский SEO-заголовок выбраны. Сохраните картину, чтобы применить изменения.");}}><strong>{suggestion.titleRu}</strong><span>{suggestion.titleEn}</span></button>)}</div>}</div><label>Название (English)<input value={form.title_en} onChange={e=>patch("title_en",e.target.value)} placeholder="Meadow — Original Oil Painting of a Mountain Landscape"/></label><label>Адрес страницы (Slug)<input value={form.slug} onChange={e=>patch("slug",e.target.value)} placeholder="например, untitled-i" required/></label><label>Год<input type="number" value={form.year??""} onChange={e=>patch("year",Number(e.target.value)||null)}/></label><label>Материал / техника<input value={form.medium??""} onChange={e=>patch("medium",e.target.value)} placeholder="например, масло на холсте"/></label><label>Ширина / см<input type="number" step="0.1" value={form.width_cm??""} onChange={e=>patch("width_cm",Number(e.target.value)||null)}/></label><label>Высота / см<input type="number" step="0.1" value={form.height_cm??""} onChange={e=>patch("height_cm",Number(e.target.value)||null)}/></label><label>Глубина / см<input type="number" step="0.1" value={form.depth_cm??""} onChange={e=>patch("depth_cm",Number(e.target.value)||null)}/></label><label>Цена / EUR<input type="number" step="0.01" min="0" value={form.price_eur===0?"":form.price_eur} onChange={e=>patch("price_eur",e.target.value===""?0:Number(e.target.value))}/></label></div>
         <div className="admin-description-head"><label>Описание (русский)<textarea value={form.description} onChange={e=>patch("description",e.target.value)} rows={8}/></label><div><button type="button" className="ai-button" onClick={generateDescription} disabled={aiBusy}>{aiBusy?"Анализирую картину…":"✦ Создать описание с ИИ"}</button><p>ИИ анализирует изображение и создаёт описание на русском и английском. Фактические данные не выдумываются.</p></div></div>
         {message&&<p className="admin-message">{message}</p>}
         <div className="admin-actions"><button type="button" onClick={publish} disabled={busy||!form.id}>Опубликовать на сайте ↗</button>{form.id&&form.status==="available"&&<button type="button" className="secondary" onClick={publishToPinterest} disabled={busy}>Опубликовать эту картину в Pinterest ↗</button>}{etsy?.connected&&form.id&&<button type="button" className="secondary" onClick={importSelectedToEtsy} disabled={busy||etsyImporting}>{"Создать новый черновик в Etsy ↗"}</button>}<button type="submit" disabled={busy}>{busy?"Сохраняю…":"Сохранить картину"} <span>↗</span></button>{form.id&&<><button type="button" className="secondary" onClick={passport} disabled={busy}>Создать паспорт PDF</button><button type="button" className="secondary" onClick={removeArtwork} disabled={busy}>Удалить картину</button></>}</div>

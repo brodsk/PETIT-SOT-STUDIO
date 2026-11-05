@@ -35,7 +35,7 @@ export async function POST(request: Request) {
       "Titles should be concise (usually 1–5 words), evocative but restrained, specific to visible details, mood, color, light, composition or subject. Avoid generic clichés, excessive poetry, invented symbolism, claims about places or stories that cannot be inferred from the image, and titles that merely say 'Картина'. " +
       (medium ? "Known medium: " + medium + ". " : "") +
       (currentTitle ? "Existing title to avoid repeating: " + currentTitle + ". " : "") +
-      "Return only valid JSON in exactly this shape: {\\"titles\\":[\\"Вариант 1\\",\\"Вариант 2\\",\\"Вариант 3\\"]}. Do not include explanations.";
+      "Return only valid JSON with one property named titles, whose value is an array of exactly three Russian strings. Do not include explanations.";
 
     const configuredModel = process.env.GEMINI_MODEL?.trim();
     const models = Array.from(new Set([configuredModel, "gemini-3.5-flash-lite", "gemini-3.1-flash-lite"].filter(Boolean))) as string[];

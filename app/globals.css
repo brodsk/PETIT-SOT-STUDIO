@@ -2645,3 +2645,22 @@ button,
     gap: 8px;
   }
 }
+
+/* Separate available collection and artwork archive */
+.works-section{margin-top:9vh}
+.works-section-heading{display:grid;grid-template-columns:16% 1fr 22%;align-items:end;margin-bottom:5vh;gap:20px}
+.works-section-heading h2{font-size:clamp(42px,7vw,100px);font-weight:400;letter-spacing:-.06em;line-height:.85;margin:0}
+.works-section-heading p{font-size:11px;line-height:1.5;max-width:230px;margin:0}
+.works-archive-section{border-top:1px solid #c8c4bc;padding-top:7vh}
+.archive-card-status{display:block;margin-top:12px;font-size:9px;letter-spacing:.1em;text-transform:uppercase;opacity:.55}
+.works-empty{padding:60px 0}
+.archive-enquiry{margin-top:28px;padding-top:24px;border-top:1px solid #c8c4bc}
+.archive-enquiry h2{font-size:clamp(25px,3vw,38px);font-weight:400;letter-spacing:-.04em;margin:0 0 22px}
+.archive-enquiry .contact-form{display:grid;gap:16px}
+.archive-enquiry .contact-form label{display:grid;gap:7px;font-size:9px;letter-spacing:.1em;text-transform:uppercase}
+.archive-enquiry .contact-form input,.archive-enquiry .contact-form textarea{width:100%;border:0;border-bottom:1px solid #aaa59d;background:transparent;padding:10px 0;font:inherit;font-size:13px;outline:none;border-radius:0}
+.archive-enquiry .contact-form textarea{resize:vertical;line-height:1.5}
+.archive-enquiry .contact-form button{display:flex;justify-content:space-between;align-items:center;border:0;background:#171717;color:#f7f6f2;padding:15px 18px;font-size:9px;letter-spacing:.12em;text-transform:uppercase;cursor:pointer}
+.archive-enquiry .contact-form button:disabled{opacity:.5}
+.archive-enquiry .contact-form-status{font-size:10px;margin:0}
+@media(max-width:700px){.works-section{margin-top:70px}.works-section-heading{display:block;margin-bottom:35px}.works-section-heading h2{font-size:16vw;margin:22px 0}.works-section-heading p{max-width:270px}.works-archive-section{padding-top:55px}.archive-enquiry{margin-top:24px}.archive-enquiry h2{font-size:30px}}

@@ -21,7 +21,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Artwork image is required." }, { status: 400 });
     }
 
-    const match = String(body.imageDataUrl).match(/^data:(image\/[a-zA-Z0-9.+-]+);base64,([\\s\\S]+)$/);
+    const match = String(body.imageDataUrl).match(/^data:(image\/[a-zA-Z0-9.+-]+);base64,([\s\S]+)$/);
     if (!match) return NextResponse.json({ error: "Invalid artwork image data." }, { status: 400 });
     const [, mimeType, base64Image] = match;
 

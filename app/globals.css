@@ -2707,3 +2707,66 @@ button,
     margin-bottom: 36px !important;
   }
 }
+
+
+/* A restrained falling-leaf detail, limited to the homepage hero. */
+.hero-gallery {
+  position: relative;
+  isolation: isolate;
+}
+.hero-leaf-fall {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  user-select: none;
+}
+.hero-gallery > :not(.hero-leaf-fall) {
+  position: relative;
+  z-index: 1;
+}
+.hero-leaf {
+  position: absolute;
+  top: -64px;
+  left: var(--leaf-left);
+  width: var(--leaf-size);
+  height: calc(var(--leaf-size) * 1.3);
+  opacity: 0;
+  animation: petit-leaf-fall var(--leaf-duration) linear var(--leaf-delay) infinite;
+}
+.hero-leaf svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  fill: var(--leaf-fill);
+  stroke: color-mix(in srgb, var(--leaf-fill), #5a4631 24%);
+  stroke-width: .8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.hero-leaf-1 { --leaf-left: 9%; --leaf-size: 17px; --leaf-duration: 17s; --leaf-delay: -8s; --leaf-fill: #b77b45; }
+.hero-leaf-2 { --leaf-left: 23%; --leaf-size: 13px; --leaf-duration: 21s; --leaf-delay: -15s; --leaf-fill: #c59a62; }
+.hero-leaf-3 { --leaf-left: 39%; --leaf-size: 19px; --leaf-duration: 19s; --leaf-delay: -4s; --leaf-fill: #98704c; }
+.hero-leaf-4 { --leaf-left: 56%; --leaf-size: 14px; --leaf-duration: 23s; --leaf-delay: -18s; --leaf-fill: #c18a4d; }
+.hero-leaf-5 { --leaf-left: 69%; --leaf-size: 18px; --leaf-duration: 18s; --leaf-delay: -11s; --leaf-fill: #a66e42; }
+.hero-leaf-6 { --leaf-left: 83%; --leaf-size: 12px; --leaf-duration: 22s; --leaf-delay: -6s; --leaf-fill: #c8a06c; }
+.hero-leaf-7 { --leaf-left: 94%; --leaf-size: 16px; --leaf-duration: 20s; --leaf-delay: -13s; --leaf-fill: #ad784c; }
+@keyframes petit-leaf-fall {
+  0% { transform: translate3d(0, -8vh, 0) rotate(-25deg); opacity: 0; }
+  12% { opacity: .48; }
+  48% { transform: translate3d(34px, 48vh, 0) rotate(150deg); }
+  88% { opacity: .36; }
+  100% { transform: translate3d(-26px, 112vh, 0) rotate(330deg); opacity: 0; }
+}
+@media (max-width: 700px) {
+  .hero-leaf-4, .hero-leaf-6, .hero-leaf-7 { display: none; }
+  .hero-leaf-1 { --leaf-left: 8%; }
+  .hero-leaf-2 { --leaf-left: 34%; }
+  .hero-leaf-3 { --leaf-left: 66%; }
+  .hero-leaf-5 { --leaf-left: 91%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero-leaf-fall { display: none; }
+}

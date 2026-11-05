@@ -44,19 +44,19 @@ export default function FallingLeaves() {
     <div className="page-leaf-fall autumn-leaf-layer" aria-hidden="true">
       <style>{`
         .autumn-leaf-layer{z-index:8!important;overflow:hidden!important}
-        .autumn-leaf{position:absolute;top:-9%;left:var(--x);width:var(--size);height:calc(var(--size)*1.18);opacity:0;transform-origin:50% 20%;animation:autumn-drop var(--duration) linear var(--delay) infinite;will-change:top,transform,opacity}
+        .autumn-leaf{position:absolute;top:-12%;left:var(--x);width:var(--size);height:calc(var(--size)*1.18);opacity:0;transform-origin:50% 20%;animation:autumn-drop var(--duration) linear var(--delay) infinite;will-change:top,transform,opacity}
         .autumn-leaf svg{display:block;width:100%;height:100%;overflow:visible;filter:drop-shadow(1px 2px 2px rgba(48,30,15,.18));transform-origin:50% 50%;animation:autumn-tumble var(--flutter) ease-in-out var(--delay) infinite}
         .autumn-leaf .leaf-body{fill:var(--fill);stroke:var(--edge);stroke-width:.8;stroke-linejoin:round}
         .autumn-leaf .leaf-veins{fill:none;stroke:var(--vein);stroke-width:.85;stroke-linecap:round;opacity:.58}
         @keyframes autumn-drop{
-          0%{top:-9%;transform:translate3d(0,0,0) rotate(-18deg);opacity:0}
-          5%{opacity:.92}
-          17%{top:15%;transform:translate3d(55px,0,0) rotate(48deg)}
-          34%{top:33%;transform:translate3d(-42px,0,0) rotate(138deg)}
-          51%{top:51%;transform:translate3d(61px,0,0) rotate(226deg)}
-          69%{top:69%;transform:translate3d(-48px,0,0) rotate(316deg)}
-          86%{top:86%;transform:translate3d(42px,0,0) rotate(408deg);opacity:.88}
-          100%{top:102%;transform:translate3d(-22px,0,0) rotate(490deg);opacity:0}
+          0%{top:-12%;transform:translate3d(0,0,0) rotate(var(--start-rot));opacity:0}
+          4%{opacity:var(--leaf-opacity)}
+          13%{top:10%;transform:translate3d(var(--drift-a),0,0) rotate(calc(var(--start-rot) + var(--spin-a)))}
+          29%{top:27%;transform:translate3d(var(--drift-b),0,0) rotate(calc(var(--start-rot) + var(--spin-b)))}
+          46%{top:45%;transform:translate3d(var(--drift-c),0,0) rotate(calc(var(--start-rot) + var(--spin-c)))}
+          63%{top:63%;transform:translate3d(var(--drift-d),0,0) rotate(calc(var(--start-rot) + var(--spin-d)))}
+          81%{top:82%;transform:translate3d(var(--drift-e),0,0) rotate(calc(var(--start-rot) + var(--spin-e)));opacity:var(--leaf-opacity)}
+          100%{top:105%;transform:translate3d(var(--drift-f),0,0) rotate(calc(var(--start-rot) + var(--spin-f)));opacity:0}
         }
         @keyframes autumn-tumble{
           0%,100%{transform:perspective(220px) rotateY(0deg) rotateZ(-8deg) scaleX(1)}
@@ -70,15 +70,21 @@ export default function FallingLeaves() {
         }
         @media(prefers-reduced-motion:reduce){.autumn-leaf-layer{display:none!important}}
       `}</style>
-      {Array.from({ length: 56 }, (_, index) => {
-        const paletteItem = palette[(index * 5 + 2) % palette.length];
-        const leaf = leaves[(index * 7 + Math.floor(index / 3)) % leaves.length];
-        const x = (index * 37.7 + (index % 4) * 9.3) % 99;
-        const size = 28 + ((index * 13) % 25);
-        const mobileSize = 21 + ((index * 11) % 17);
-        const duration = 52 + ((index * 17) % 43);
-        const flutter = 3.2 + ((index * 7) % 17) / 10;
-        const delay = -((index * 19) % 97);
+      {Array.from({ length: 64 }, (_, index) => {
+        // Seeded pseudo-random values keep the composition varied but stable between renders.
+        const rand = (salt: number) => {
+          const value = Math.sin((index + 1) * 127.1 + salt * 311.7) * 43758.5453;
+          return value - Math.floor(value);
+        };
+        const paletteItem = palette[Math.floor(rand(1) * palette.length)];
+        // Favor oak and maple while keeping a few other leaf silhouettes for variety.
+        const leaf = leaves[[0, 1, 1, 0, 2, 1, 0, 3][Math.floor(rand(2) * 8)]];
+        const x = 2 + rand(3) * 96;
+        const size = 27 + rand(4) * 27;
+        const mobileSize = 20 + rand(5) * 19;
+        const duration = 24 + rand(6) * 34;
+        const flutter = 1.8 + rand(7) * 2.8;
+        const delay = -(rand(8) * duration);
         const style = {
           "--x": `${x}%`,
           "--size": `${size}px`,
@@ -86,6 +92,20 @@ export default function FallingLeaves() {
           "--duration": `${duration}s`,
           "--flutter": `${flutter}s`,
           "--delay": `${delay}s`,
+          "--drift-a": `${(rand(9) - 0.5) * 190}px`,
+          "--drift-b": `${(rand(10) - 0.5) * 260}px`,
+          "--drift-c": `${(rand(11) - 0.5) * 220}px`,
+          "--drift-d": `${(rand(12) - 0.5) * 280}px`,
+          "--drift-e": `${(rand(13) - 0.5) * 240}px`,
+          "--drift-f": `${(rand(14) - 0.5) * 300}px`,
+          "--start-rot": `${rand(15) * 360 - 180}deg`,
+          "--spin-a": `${rand(16) * 240 - 120}deg`,
+          "--spin-b": `${rand(17) * 520 - 260}deg`,
+          "--spin-c": `${rand(18) * 760 - 380}deg`,
+          "--spin-d": `${rand(19) * 980 - 490}deg`,
+          "--spin-e": `${rand(20) * 1280 - 640}deg`,
+          "--spin-f": `${rand(21) * 1600 - 800}deg`,
+          "--leaf-opacity": `${0.58 + rand(22) * 0.36}`,
           "--fill": paletteItem[0],
           "--edge": paletteItem[1],
           "--vein": paletteItem[2],

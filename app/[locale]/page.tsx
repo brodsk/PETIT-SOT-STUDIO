@@ -111,6 +111,15 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
     <main className="gallery-home">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }} />
       <section className="hero-gallery">
+        <div className="hero-leaf-fall" aria-hidden="true">
+          <span className="hero-leaf hero-leaf-1"><svg viewBox="0 0 40 52"><path d="M20 2C8 8 2 19 5 31c2 9 9 15 15 19 6-4 13-10 15-19C38 19 32 8 20 2Zm0 6v36M20 25 10 16m10 19 11-12" /></svg></span>
+          <span className="hero-leaf hero-leaf-2"><svg viewBox="0 0 40 52"><path d="M20 2C8 8 2 19 5 31c2 9 9 15 15 19 6-4 13-10 15-19C38 19 32 8 20 2Zm0 6v36M20 25 10 16m10 19 11-12" /></svg></span>
+          <span className="hero-leaf hero-leaf-3"><svg viewBox="0 0 40 52"><path d="M20 2C8 8 2 19 5 31c2 9 9 15 15 19 6-4 13-10 15-19C38 19 32 8 20 2Zm0 6v36M20 25 10 16m10 19 11-12" /></svg></span>
+          <span className="hero-leaf hero-leaf-4"><svg viewBox="0 0 40 52"><path d="M20 2C8 8 2 19 5 31c2 9 9 15 15 19 6-4 13-10 15-19C38 19 32 8 20 2Zm0 6v36M20 25 10 16m10 19 11-12" /></svg></span>
+          <span className="hero-leaf hero-leaf-5"><svg viewBox="0 0 40 52"><path d="M20 2C8 8 2 19 5 31c2 9 9 15 15 19 6-4 13-10 15-19C38 19 32 8 20 2Zm0 6v36M20 25 10 16m10 19 11-12" /></svg></span>
+          <span className="hero-leaf hero-leaf-6"><svg viewBox="0 0 40 52"><path d="M20 2C8 8 2 19 5 31c2 9 9 15 15 19 6-4 13-10 15-19C38 19 32 8 20 2Zm0 6v36M20 25 10 16m10 19 11-12" /></svg></span>
+          <span className="hero-leaf hero-leaf-7"><svg viewBox="0 0 40 52"><path d="M20 2C8 8 2 19 5 31c2 9 9 15 15 19 6-4 13-10 15-19C38 19 32 8 20 2Zm0 6v36M20 25 10 16m10 19 11-12" /></svg></span>
+        </div>
         <div className="hero-top"><span>OLGA TRIKHLEB</span><span className="hero-artist">{ru ? "Художница" : "Artist"} / {new Date().getFullYear()}</span></div>
         <div className="hero-title-wrap">
           <h1 className="hero-wordmark">PETIT.SOT <span className="wordmark-divider">|</span> <span>STUDIO</span></h1>

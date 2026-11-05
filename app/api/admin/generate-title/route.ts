@@ -69,7 +69,7 @@ export async function POST(request: Request) {
 
     const data = JSON.parse(responseText);
     const raw = data.candidates?.[0]?.content?.parts?.map((part: any) => part.text).filter(Boolean).join("").trim() || "";
-    const cleaned = raw.replace(/^\`\`\`json\\s*/i, "").replace(/^\`\`\`\\s*/i, "").replace(/\\s*\`\`\`$/, "").trim();
+    const cleaned = raw.replace(/^```json\s*/i, "").replace(/^```\s*/i, "").replace(/\s*```$/, "").trim();
     const parsed = JSON.parse(cleaned);
     const titles = Array.isArray(parsed.titles)
       ? parsed.titles.map((value: unknown) => String(value || "").trim()).filter(Boolean).slice(0, 3)

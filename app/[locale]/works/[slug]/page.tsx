@@ -100,7 +100,7 @@ export async function generateMetadata({
     },
     openGraph: {
       type: "website",
-      title: `${title} — Olga Trikhleb`,
+      title: seoTitle,
       description,
       url: canonical,
       siteName: "PETIT.SOT STUDIO",
@@ -186,6 +186,32 @@ export default async function WorkPage({
       : {}),
     mainEntity: { "@id": `${canonical}#product` },
   };
+  const artworkSchema = {
+    "@context": "https://schema.org",
+    "@type": "VisualArtwork",
+    "@id": `${canonical}#artwork`,
+    name: title,
+    description,
+    url: canonical,
+    mainEntityOfPage: { "@id": `${canonical}#webpage` },
+    image: primaryImage ? [primaryImage] : [],
+    artist: {
+      "@type": "Person",
+      "@id": `${SITE_URL}/#artist`,
+      name: "Olga Trikhleb",
+      url: `${SITE_URL}/about`,
+      sameAs: ["https://www.instagram.com/petit.sot.art"],
+    },
+    creator: { "@id": `${SITE_URL}/#artist` },
+    artform: "Painting",
+    artMedium: localizeMedium(w.medium, ru ? "ru" : "en"),
+    ...(w.year && w.year !== "—" ? { dateCreated: w.year } : {}),
+    ...(w.widthCm ? { width: { "@type": "QuantitativeValue", value: w.widthCm, unitCode: "CMT", unitText: "cm" } } : {}),
+    ...(w.heightCm ? { height: { "@type": "QuantitativeValue", value: w.heightCm, unitCode: "CMT", unitText: "cm" } } : {}),
+    ...(w.depthCm ? { depth: { "@type": "QuantitativeValue", value: w.depthCm, unitCode: "CMT", unitText: "cm" } } : {}),
+    identifier: w.slug,
+    copyrightNotice: "© Olga Trikhleb",
+  };
   const schema = {
     "@context": "https://schema.org",
     "@type": "Product",
@@ -208,17 +234,14 @@ export default async function WorkPage({
     },
     category: "Contemporary artwork",
     material: localizeMedium(w.medium, ru ? "ru" : "en"),
-    ...(primaryImage ? { image: { "@type": "ImageObject", url: primaryImage, contentUrl: primaryImage, caption: title, creator: { "@type": "Person", name: "Olga Trikhleb" }, ...imageLicensing } } : {}),
     offers:
-      w.price > 0
+      w.available && w.price > 0
         ? {
             "@type": "Offer",
             url: w.etsyListingUrl || w.sasheListingUrl || canonical,
             priceCurrency: w.currency,
             price: w.price,
-            availability: w.available
-              ? "https://schema.org/InStock"
-              : "https://schema.org/OutOfStock",
+            availability: "https://schema.org/InStock",
           }
         : undefined,
   };
@@ -228,6 +251,10 @@ export default async function WorkPage({
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(webPageSchema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(artworkSchema) }}
       />
       <script
         type="application/ld+json"

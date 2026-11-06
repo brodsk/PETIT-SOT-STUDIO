@@ -93,7 +93,17 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
         "@id": `${SITE_URL}/#website`,
         url: SITE_URL,
         name: "PETIT.SOT STUDIO",
-        publisher: { "@id": `${SITE_URL}/#artist` },
+        publisher: { "@id": `${SITE_URL}/#studio` },
+      },
+      {
+        "@type": "Organization",
+        "@id": `${SITE_URL}/#studio`,
+        name: "PETIT.SOT STUDIO",
+        url: SITE_URL,
+        description: ru
+          ? "Студия оригинального искусства художницы Ольги Трихлеб."
+          : "An independent art studio presenting original paintings by artist Olga Trikhleb.",
+        founder: { "@id": `${SITE_URL}/#artist` },
       },
       {
         "@type": "Person",
@@ -101,6 +111,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
         name: "Olga Trikhleb",
         url: `${SITE_URL}/about`,
         jobTitle: ru ? "Художница" : "Visual artist",
+        worksFor: { "@id": `${SITE_URL}/#studio` },
         sameAs: ["https://www.instagram.com/petit.sot.art"],
         knowsAbout: ["Painting", "Contemporary art"],
       },

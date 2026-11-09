@@ -7,10 +7,10 @@ const SITE_URL = "https://www.petitsot.com";
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
   const { locale } = await params;
   const ru = locale === "ru";
-  const title = ru ? "Об Ольге Трихлеб и PETIT.SOT STUDIO в Тренчине" : "About Olga Trikhleb — PETIT.SOT STUDIO, Trenčín";
+  const title = ru ? "Ольга Трихлеб — художница из Тренчина, Словакия | PETIT.SOT" : "Olga Trikhleb — Artist in Trenčín, Slovakia | PETIT.SOT";
   const description = ru
-    ? "Ольга Трихлеб — художница и основательница независимой PETIT.SOT STUDIO в Тренчине, Словакия. Познакомьтесь с её художественным миром и оригинальными картинами."
-    : "Meet Olga Trikhleb, the artist behind PETIT.SOT STUDIO, an independent art studio based in Trenčín, Slovakia, and explore her original paintings.";
+    ? "Ольга Трихлеб — независимая художница из Тренчина, Словакия. Биография, художественная практика и оригинальные картины PETIT.SOT STUDIO."
+    : "Learn about Olga Trikhleb, an independent visual artist based in Trenčín, Slovakia. Discover her artistic practice and original paintings at PETIT.SOT STUDIO.";
   const canonical = `${SITE_URL}${ru ? "/ru" : ""}/about`;
   return {
     title, description,
@@ -22,8 +22,28 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
 export default async function About({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   const ru = locale === "ru";
+  const pageUrl = `${SITE_URL}${ru ? "/ru" : ""}/about`;
+  const artistSchema = {
+    "@context": "https://schema.org",
+    "@type": "ProfilePage",
+    "@id": `${pageUrl}#profile`,
+    url: pageUrl,
+    name: ru ? "Ольга Трихлеб — художница из Тренчина" : "Olga Trikhleb — Artist in Trenčín",
+    mainEntity: {
+      "@type": "Person",
+      "@id": `${SITE_URL}/#artist`,
+      name: "Olga Trikhleb",
+      url: `${SITE_URL}/about`,
+      jobTitle: "Visual artist",
+      homeLocation: { "@type": "City", name: "Trenčín", containedInPlace: { "@type": "Country", name: "Slovakia" } },
+      worksFor: { "@id": `${SITE_URL}/#studio` },
+      sameAs: ["https://www.instagram.com/petit.sot.art"],
+      knowsAbout: ["Painting", "Contemporary art", "Acrylic painting", "Landscape painting"],
+    },
+  };
   return (
     <main className="text-page about-page">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(artistSchema) }} />
       <section className="about-hero">
         <p className="eyebrow">{ru ? "Художница · Авторская живопись" : "Artist · Original paintings"}</p>
         <h1>{ru ? <>Ольга<br /><i>Трихлеб.</i></> : <>Olga<br /><i>Trikhleb.</i></>}</h1>
@@ -55,6 +75,9 @@ export default async function About({ params }: { params: Promise<{ locale: stri
           <p>{ru
             ? "Сегодня я продолжаю развивать собственную художественную практику. В каждой работе мне важно не только то, что изображено, но и чувство, которое картина оставляет зрителю."
             : "Today, I continue to develop my own practice. In every painting, I care not only about what is depicted, but also about the feeling the work leaves with the viewer."}</p>
+          <p>{ru
+            ? "Я независимая художница из Тренчина, Словакия. Моя студия PETIT.SOT STUDIO представляет авторскую живопись и участвует в современной художественной жизни города."
+            : "I am an independent visual artist based in Trenčín, Slovakia. Through PETIT.SOT STUDIO, I present original paintings and take part in the city’s contemporary art life."}</p>
         </div>
       </section>
 

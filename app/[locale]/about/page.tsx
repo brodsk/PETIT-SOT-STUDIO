@@ -7,10 +7,10 @@ const SITE_URL = "https://www.petitsot.com";
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
   const { locale } = await params;
   const ru = locale === "ru";
-  const title = ru ? "Об Ольге Трихлеб — PETIT.SOT" : "About Olga Trikhleb — PETIT.SOT";
+  const title = ru ? "Об Ольге Трихлеб и PETIT.SOT STUDIO в Тренчине" : "About Olga Trikhleb — PETIT.SOT STUDIO, Trenčín";
   const description = ru
-    ? "Ольга Трихлеб — художница PETIT.SOT. Познакомьтесь с её художественным миром и оригинальными картинами."
-    : "Meet Olga Trikhleb, the artist behind PETIT.SOT, and explore her world of original paintings.";
+    ? "Ольга Трихлеб — художница и основательница независимой PETIT.SOT STUDIO в Тренчине, Словакия. Познакомьтесь с её художественным миром и оригинальными картинами."
+    : "Meet Olga Trikhleb, the artist behind PETIT.SOT STUDIO, an independent art studio based in Trenčín, Slovakia, and explore her original paintings.";
   const canonical = `${SITE_URL}${ru ? "/ru" : ""}/about`;
   return {
     title, description,
@@ -84,7 +84,21 @@ export default async function About({ params }: { params: Promise<{ locale: stri
         </div>
       </section>
 
-      <section className="about-originals">
+
+      <section className="about-section">
+        <div className="about-section-label"><span>04</span><span>{ru ? "Место" : "The studio"}</span></div>
+        <div className="about-section-copy">
+          <h2>{ru ? "PETIT.SOT STUDIO в Тренчине." : "An independent studio in Trenčín."}</h2>
+          <p>{ru
+            ? "PETIT.SOT STUDIO — независимая художественная студия художницы Ольги Трихлеб, базирующаяся в Тренчине, Словакия. Здесь развивается её авторская практика и создаются оригинальные живописные работы."
+            : "PETIT.SOT STUDIO is an independent art studio by visual artist Olga Trikhleb, based in Trenčín, Slovakia. It is the home of her ongoing artistic practice and original paintings."}</p>
+          <p>{ru
+            ? "В 2026 году Тренчин носит титул Европейской культурной столицы (European Capital of Culture). Для студии это часть культурного контекста города, в котором она работает. PETIT.SOT STUDIO является независимым проектом и не заявляет об официальной аффилиации с программой Trenčín 2026."
+            : "In 2026, Trenčín holds the title of European Capital of Culture. This is part of the wider cultural context in which the studio is based. PETIT.SOT STUDIO is an independent project and is not claiming official affiliation with the Trenčín 2026 programme."}</p>
+          <p><a href="https://www.trencin2026.eu/en/home/" target="_blank" rel="noreferrer">{ru ? "Официальный сайт Trenčín 2026 ↗" : "Official Trenčín 2026 website ↗"}</a></p>
+        </div>
+      </section>
+\n      <section className="about-originals">
         <p className="eyebrow">{ru ? "PETIT.SOT · Оригинальные работы" : "PETIT.SOT · Original works"}</p>
         <p className="about-originals-statement">{ru
           ? "Картины, созданные вручную. Работы, которые остаются с вами."

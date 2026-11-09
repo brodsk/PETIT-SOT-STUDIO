@@ -1,7 +1,7 @@
 import { createClient } from "./supabase/server";
 import { localizeMedium } from "./medium";
 
-export type PublicWork={slug:string;title:string;titleRu:string;titleEn:string;year:string;medium:string;size:string;widthCm?:number;heightCm?:number;depthCm?:number;description:string;descriptionRu:string;descriptionEn:string;price:number;currency:string;available:boolean;imageUrl?:string;images:string[];id?:string;etsyListingUrl?:string|null;sasheListingUrl?:string|null};
+export type PublicWork={slug:string;title:string;titleRu:string;titleEn:string;year:string;medium:string;size:string;widthCm?:number;heightCm?:number;depthCm?:number;description:string;descriptionRu:string;descriptionEn:string;price:number;currency:string;status:string;available:boolean;sold:boolean;imageUrl?:string;images:string[];id?:string;etsyListingUrl?:string|null;sasheListingUrl?:string|null};
 
 export const fallbackWorks:PublicWork[]=[];
 
@@ -25,7 +25,7 @@ function mapWork(w:any,supabase:any,extraImages:string[]=[]):PublicWork{
  const sasheListingUrl=SASHE_LISTINGS[slug] || SASHE_LISTINGS[slug.replace(/_/g,"-")] || null;
  const titleEn=String(w.title_en||w.title||"").trim().replaceAll("Olya Trikhleb","Olga Trikhleb").replaceAll("Olga Trihleb","Olga Trikhleb");
  const descriptionEn=String(w.description_en||w.ai_description||w.description||"").replaceAll("Olya Trikhleb","Olga Trikhleb").replaceAll("Olga Trihleb","Olga Trikhleb");
- return {id:w.id,slug:w.slug,title:w.title,titleRu:w.title,titleEn,year:String(w.year??"—"),medium:w.medium||"—",size:size?size+" cm":"—",widthCm:w.width_cm!=null?Number(w.width_cm):undefined,heightCm:w.height_cm!=null?Number(w.height_cm):undefined,depthCm:w.depth_cm!=null?Number(w.depth_cm):undefined,description:w.description||w.ai_description||"",descriptionRu:w.description||"",descriptionEn,price:Number(w.price_eur||0),currency:"EUR",available:w.status==="available",imageUrl,images:imageUrl?[imageUrl,...extraImages]:extraImages,etsyListingUrl:w.etsy_listing_url||null,sasheListingUrl};
+ return {id:w.id,slug:w.slug,title:w.title,titleRu:w.title,titleEn,year:String(w.year??"—"),medium:w.medium||"—",size:size?size+" cm":"—",widthCm:w.width_cm!=null?Number(w.width_cm):undefined,heightCm:w.height_cm!=null?Number(w.height_cm):undefined,depthCm:w.depth_cm!=null?Number(w.depth_cm):undefined,description:w.description||w.ai_description||"",descriptionRu:w.description||"",descriptionEn,price:Number(w.price_eur||0),currency:"EUR",status:String(w.status||"archived"),available:w.status==="available",sold:w.status==="sold",imageUrl,images:imageUrl?[imageUrl,...extraImages]:extraImages,etsyListingUrl:w.etsy_listing_url||null,sasheListingUrl};
 }
 
 export async function getWorks():Promise<PublicWork[]>{

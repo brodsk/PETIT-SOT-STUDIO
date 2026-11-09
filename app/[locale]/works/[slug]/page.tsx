@@ -67,7 +67,7 @@ export async function generateMetadata({
       ru: { subject: "пейзаж в тумане", description: "«Fog» — оригинальная картина Ольги Трихлеб с пейзажем в тумане. Посмотрите детали работы, размер и варианты покупки." },
     },
   };
-  const seoArtwork = seoArtworkBySlug[slug];
+  const seoArtwork = seoArtworkBySlug[slug.toLowerCase()];
   const generatedSeoTitle = seoArtwork
     ? ru
       ? `${title} — ${isOil ? "картина маслом: " : ""}${seoArtwork.ru.subject}`
@@ -76,7 +76,7 @@ export async function generateMetadata({
       ? `${title} — ${isOil ? "картина маслом" : isAcrylic ? "акриловая картина" : "оригинальная работа"}`
       : `${title} — ${workTypeEn}`;
   // AI-generated English titles already contain the complete SEO suffix.
-  const seoTitle = !ru && /\\|\\s*PETIT\\.SOT\\s*$/i.test(title) ? title : generatedSeoTitle;
+  const seoTitle = !ru && /\|\s*PETIT\.SOT\s*$/i.test(title) ? title : generatedSeoTitle;
   const description = seoArtwork
     ? ru
       ? `${seoArtwork.ru.description} Год: ${w.year}; размер: ${w.size}.`

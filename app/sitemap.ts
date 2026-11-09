@@ -20,7 +20,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const staticPaths = [
     { path: "/", changeFrequency: "weekly" as const, priority: 1 },
     { path: "/works", changeFrequency: "weekly" as const, priority: 0.9 },
-    { path: "/about", changeFrequency: "monthly" as const, priority: 0.7 },
+    { path: "/about", changeFrequency: "monthly" as const, priority: 0.8 },
+    { path: "/trencin-art-studio", changeFrequency: "monthly" as const, priority: 0.8 },
     { path: "/contact", changeFrequency: "monthly" as const, priority: 0.6 },
   ];
 

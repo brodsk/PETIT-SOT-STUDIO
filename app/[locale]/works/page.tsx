@@ -11,10 +11,10 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale } = await params;
   const ru = locale === "ru";
-  const title = ru ? "Оригинальные картины — Ольга Трихлеб" : "Original Paintings by Olga Trikhleb";
+  const title = ru ? "Оригинальные картины Ольги Трихлеб — художница из Тренчина" : "Original Paintings by Olga Trikhleb — Trenčín Artist";
   const description = ru
-    ? "Оригинальные картины Ольги Трихлеб: городские сцены, пейзажи и повседневные сюжеты. Посмотрите размеры, технику и варианты покупки."
-    : "Explore original paintings by Olga Trikhleb, from city scenes to landscapes. View each artwork’s medium, size and purchase options.";
+    ? "Оригинальная живопись Ольги Трихлеб, независимой художницы из Тренчина, Словакия. Городские сцены, пейзажи и современные картины."
+    : "Explore original paintings by Olga Trikhleb, an independent artist based in Trenčín, Slovakia. Discover contemporary paintings, city scenes and landscapes.";
 
   const canonical = `${SITE_URL}${ru ? "/ru" : ""}/works`;
   const works = await getWorks();
@@ -77,7 +77,7 @@ export default async function Works({ params }: { params: Promise<{ locale: stri
   };
   return <main className="archive gallery-archive">
     <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
-    <div className="archive-mast"><span className="eyebrow">{ru ? "Архив" : "Archive"}</span><h1>{ru ? "Работы" : "Works"}</h1><p>{ru ? "Оригинальные картины Ольги Трихлеб: городские сцены, пейзажи и повседневные сюжеты. У каждой работы указаны техника, размер, год и доступность." : "Explore original paintings by Olga Trikhleb, from city scenes and landscapes to everyday moments. Each work includes its medium, size, year and availability."}</p></div>
+    <div className="archive-mast"><span className="eyebrow">{ru ? "Архив · Тренчин, Словакия" : "Archive · Trenčín, Slovakia"}</span><h1>{ru ? "Работы" : "Works"}</h1><p>{ru ? "Оригинальные картины Ольги Трихлеб — независимой художницы из Тренчина: городские сцены, пейзажи и повседневные сюжеты. У каждой работы указаны техника, размер, год и доступность." : "Explore original paintings by Olga Trikhleb, an independent Trenčín-based artist, from city scenes and landscapes to everyday moments. Each work includes its medium, size, year and availability."}</p></div>
     {(() => {
       const availableWorks = works.filter((work) => work.available);
       const archivedWorks = works.filter((work) => !work.available);

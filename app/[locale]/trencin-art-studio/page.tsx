@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 
 const SITE_URL = "https://www.petitsot.com";
 
@@ -9,6 +10,7 @@ export async function generateMetadata({
   params: Promise<{ locale: string }>;
 }): Promise<Metadata> {
   const { locale } = await params;
+  if (locale === "ru") redirect("/ru/about");
   const ru = locale === "ru";
   const title = ru
     ? "Художники Тренчина — Ольга Трихлеб | PETIT.SOT STUDIO"
@@ -46,6 +48,7 @@ export default async function TrencinArtStudio({
   params: Promise<{ locale: string }>;
 }) {
   const { locale } = await params;
+  if (locale === "ru") redirect("/ru/about");
   const ru = locale === "ru";
   const pageUrl = `${SITE_URL}${ru ? "/ru" : ""}/trencin-art-studio`;
   const schema = {

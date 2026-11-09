@@ -65,11 +65,6 @@ export default async function TrencinArtStudio({
       location: {
         "@type": "Place",
         name: "Trenčín, Slovakia",
-        address: {
-          "@type": "PostalAddress",
-          addressLocality: "Trenčín",
-          addressCountry: "SK",
-        },
       },
     },
     mentions: {

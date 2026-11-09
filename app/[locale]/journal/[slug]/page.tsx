@@ -153,7 +153,7 @@ export default async function JournalArticlePage({ params }: { params: Promise<{
     dateModified: PUBLISHED,
     inLanguage: ru ? "ru" : "en",
     mainEntityOfPage: { "@type": "WebPage", "@id": canonical },
-    author: { "@type": "Person", "@id": `${SITE_URL}/#artist`, name: "Olga Trikhleb", url: `${SITE_URL}/about` },
+    author: { "@type": "Organization", "@id": `${SITE_URL}/#studio`, name: "PETIT.SOT STUDIO", url: SITE_URL },
     publisher: { "@type": "Organization", "@id": `${SITE_URL}/#studio`, name: "PETIT.SOT STUDIO", url: SITE_URL },
   };
   const breadcrumb = {
@@ -173,7 +173,7 @@ export default async function JournalArticlePage({ params }: { params: Promise<{
         <section className="about-hero">
           <p className="eyebrow">PETIT.SOT STUDIO · {ru ? "ГИД ПО ИСКУССТВУ" : "ART GUIDE"}</p>
           <h1>{content.title}</h1>
-          <div className="about-lead"><span className="about-index">PETIT.SOT / JOURNAL</span><p>{content.intro}</p></div>
+          <div className="about-lead"><span className="about-index">PETIT.SOT / JOURNAL</span><p>{content.intro}</p></div>\n          <p className="eyebrow">{ru ? "Материал PETIT.SOT STUDIO" : "A PETIT.SOT STUDIO guide"}</p>
         </section>
         {content.sections.map((section, index) => (
           <section className="about-section" key={section.heading}>

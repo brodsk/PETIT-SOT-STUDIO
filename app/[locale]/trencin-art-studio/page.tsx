@@ -11,11 +11,11 @@ export async function generateMetadata({
   const { locale } = await params;
   const ru = locale === "ru";
   const title = ru
-    ? "PETIT.SOT STUDIO в Тренчине, Словакия — независимая художественная студия"
-    : "Art Studio in Trenčín, Slovakia — PETIT.SOT STUDIO";
+    ? "Художники Тренчина — Ольга Трихлеб | PETIT.SOT STUDIO"
+    : "Artists in Trenčín & Local Art — Olga Trikhleb | PETIT.SOT";
   const description = ru
-    ? "PETIT.SOT STUDIO — независимая художественная студия Ольги Трихлеб в Тренчине, Словакия. Оригинальная живопись и современное искусство в городе — Европейской культурной столице 2026 года."
-    : "Discover PETIT.SOT STUDIO, an independent art studio by Olga Trikhleb based in Trenčín, Slovakia — European Capital of Culture 2026. Explore original paintings and contemporary art.";
+    ? "Ищете художников Тренчина? Познакомьтесь с Ольгой Трихлеб — независимой художницей из Тренчина. Оригинальная живопись, современные картины и PETIT.SOT STUDIO."
+    : "Looking for artists in Trenčín? Discover Olga Trikhleb, an independent local visual artist, and explore original paintings and contemporary art at PETIT.SOT STUDIO.";
   const canonical = `${SITE_URL}${ru ? "/ru" : ""}/trencin-art-studio`;
 
   return {
@@ -67,6 +67,17 @@ export default async function TrencinArtStudio({
         name: "Trenčín, Slovakia",
       },
     },
+    mainEntity: {
+      "@type": "Person",
+      "@id": `${SITE_URL}/#artist`,
+      name: "Olga Trikhleb",
+      url: `${SITE_URL}/about`,
+      jobTitle: "Visual artist",
+      homeLocation: { "@type": "City", name: "Trenčín", containedInPlace: { "@type": "Country", name: "Slovakia" } },
+      worksFor: { "@id": `${SITE_URL}/#studio` },
+      sameAs: ["https://www.instagram.com/petit.sot.art"],
+      knowsAbout: ["Painting", "Contemporary art", "Acrylic painting", "Landscape painting"],
+    },
     mentions: {
       "@type": "Thing",
       name: "European Capital of Culture 2026",
@@ -98,6 +109,9 @@ export default async function TrencinArtStudio({
           <p>{ru
             ? "В каталоге представлены оригинальные работы — городские сцены, пейзажи и фрагменты повседневной жизни. Каждая картина создаётся как самостоятельное произведение."
             : "The collection includes original paintings of city scenes, landscapes and fragments of everyday life. Each painting is created as an individual artwork."}</p>
+          <p>{ru
+            ? "Ольга Трихлеб — независимая художница, работающая в Тренчине. Её практика связывает местный культурный контекст с авторской живописью и современным визуальным искусством."
+            : "Olga Trikhleb is an independent artist based in Trenčín. Her practice connects the local cultural context with original painting and contemporary visual art."}</p>
           <Link className="arrow-link" href="/about">{ru ? "Познакомиться с художницей" : "Meet the artist"} <span>↗</span></Link>
         </div>
       </section>

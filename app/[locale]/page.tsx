@@ -105,6 +105,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
           : "An independent art studio by artist Olga Trikhleb, based in Trenčín, Slovakia.",
         location: { "@type": "Place", name: "Trenčín, Slovakia" },
         areaServed: { "@type": "City", name: "Trenčín" },
+        sameAs: ["https://www.instagram.com/petit.sot.art", "https://petitsot.etsy.com", "https://www.sashe.sk/petitsot"],
         founder: { "@id": `${SITE_URL}/#artist` },
       },
       {

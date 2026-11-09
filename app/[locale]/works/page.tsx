@@ -86,7 +86,7 @@ export default async function Works({ params }: { params: Promise<{ locale: stri
           <div className="archive-image art-placeholder">{w.imageUrl ? <img src={w.imageUrl} alt={(ru ? w.titleRu : w.titleEn) + " — " + localizeMedium(w.medium, ru ? "ru" : "en") + ", " + w.year + (ru ? ", оригинальная картина Ольги Трихлеб" : ", original painting by Olga Trikhleb")} loading="lazy" decoding="async" /> : <><span>{String(i + 1).padStart(2, "0")}</span><small>IMAGE</small></>}</div>
           <div className="archive-card-meta"><span>{ru ? w.titleRu : w.titleEn}</span><span>{w.year}</span></div>
           <p>{localizeMedium(w.medium, ru ? "ru" : "en")}</p>
-          {!w.available && <span className="archive-card-status">{ru ? "Архив · цена по запросу" : "Archive · price on request"}</span>}
+          {!w.available && <span className={`archive-card-status ${w.sold ? "archive-card-sold" : ""}`}>{w.sold ? (ru ? "ПРОДАНА" : "SOLD") : (ru ? "Архив · цена по запросу" : "Archive · price on request")}</span>}
         </Link>)}
       </div>;
       return <>

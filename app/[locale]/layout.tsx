@@ -70,7 +70,7 @@ export default async function LocaleLayout({
       <BackToTop />
       <footer>
         <span>© {new Date().getFullYear()} PETIT.SOT STUDIO</span>
-        <span>{ru ? "Независимая художественная студия · Тренчин, Словакия" : "Independent art studio · Trenčín, Slovakia"}</span>
+        <Link href="/trencin-art-studio">{ru ? "Независимая художественная студия · Тренчин, Словакия" : "Independent art studio · Trenčín, Slovakia"}</Link>
         <a href="https://www.instagram.com/petit.sot.art" target="_blank" rel="noreferrer">
           Instagram ↗
         </a>

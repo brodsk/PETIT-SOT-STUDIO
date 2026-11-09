@@ -12,11 +12,11 @@ export async function generateMetadata({
   const { locale } = await params;
   const ru = locale === "ru";
   const title = ru
-    ? "Оригинальные картины Ольги Трихлеб"
-    : "Original Paintings by Olga Trikhleb";
+    ? "PETIT.SOT STUDIO — Художественная студия в Тренчине, Словакия"
+    : "PETIT.SOT STUDIO — Independent Art Studio in Trenčín, Slovakia";
   const description = ru
-    ? "Оригинальные картины Ольги Трихлеб: городские сцены, пейзажи и повседневные сюжеты. Изучите работы и варианты покупки."
-    : "Discover original paintings by contemporary artist Olga Trikhleb, from city scenes to landscapes. Explore each work and purchase options.";
+    ? "PETIT.SOT STUDIO — независимая художественная студия Ольги Трихлеб в Тренчине, Словакия. Оригинальная живопись в городе — Европейской культурной столице 2026 года."
+    : "PETIT.SOT STUDIO is an independent art studio by Olga Trikhleb, based in Trenčín, Slovakia — European Capital of Culture 2026. Discover original paintings.";
 
   const canonical = ru ? `${SITE_URL}/ru` : SITE_URL;
   const works = await getWorks();
@@ -71,7 +71,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
         "@type": "WebPage",
         "@id": `${pageUrl}#webpage`,
         url: pageUrl,
-        name: ru ? "Оригинальные картины Ольги Трихлеб" : "Original Paintings by Olga Trikhleb",
+        name: ru ? "PETIT.SOT STUDIO — художественная студия в Тренчине" : "PETIT.SOT STUDIO — Independent Art Studio in Trenčín",
         inLanguage: ru ? "ru" : "en",
         ...(primaryImage
           ? {
@@ -101,8 +101,10 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
         name: "PETIT.SOT STUDIO",
         url: SITE_URL,
         description: ru
-          ? "Студия оригинального искусства художницы Ольги Трихлеб."
-          : "An independent art studio presenting original paintings by artist Olga Trikhleb.",
+          ? "Независимая художественная студия Ольги Трихлеб, базирующаяся в Тренчине, Словакия."
+          : "An independent art studio by artist Olga Trikhleb, based in Trenčín, Slovakia.",
+        location: { "@type": "Place", name: "Trenčín, Slovakia" },
+        areaServed: { "@type": "City", name: "Trenčín" },
         founder: { "@id": `${SITE_URL}/#artist` },
       },
       {
@@ -127,7 +129,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
           <h1 className="hero-wordmark">PETIT.SOT <span className="wordmark-divider">|</span> <span>STUDIO</span></h1>
           <span className="hero-orbit hero-orbit-a"></span><span className="hero-orbit hero-orbit-b"></span>
         </div>
-        <div className="hero-bottom"><p>{ru ? "Оригинальные картины Ольги Трихлеб: городские сцены и пейзажи." : "Original paintings by Olga Trikhleb — city scenes and landscapes."}</p><Link className="arrow-link" href="/works">{ru ? "Смотреть работы" : "View works"} <span>↗</span></Link></div>
+        <div className="hero-bottom"><p>{ru ? "Независимая художественная студия в Тренчине, Словакия. Оригинальная живопись Ольги Трихлеб." : "Independent art studio based in Trenčín, Slovakia. Original paintings by Olga Trikhleb."}</p><Link className="arrow-link" href="/works">{ru ? "Смотреть работы" : "View works"} <span>↗</span></Link></div>
       </section>
 
       <section className="gallery-tiles gallery-tiles-all">

@@ -3,12 +3,12 @@ import { getWorks } from "../lib/works";
 
 const SITE_URL = "https://www.petitsot.com";
 
-function languageAlternates(path: string) {
+function languageAlternates(path: string, includeRussian = true) {
   const cleanPath = path === "/" ? "" : path;
   return {
     languages: {
       en: `${SITE_URL}${cleanPath}`,
-      ru: `${SITE_URL}/ru${cleanPath}`,
+      ...(includeRussian ? { ru: `${SITE_URL}/ru${cleanPath}` } : {}),
       "x-default": `${SITE_URL}${cleanPath}`,
     },
   };
@@ -29,20 +29,25 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { path: "/contact", changeFrequency: "monthly" as const, priority: 0.6 },
   ];
 
-  const staticPages: MetadataRoute.Sitemap = staticPaths.flatMap(({ path, changeFrequency, priority }) => [
-    {
+  const staticPages: MetadataRoute.Sitemap = staticPaths.flatMap(({ path, changeFrequency, priority }) => {
+    const includeRussian = path !== "/trencin-art-studio";
+    const englishPage = {
       url: `${SITE_URL}${path === "/" ? "" : path}`,
       changeFrequency,
       priority,
-      ...languageAlternates(path),
-    },
-    {
-      url: `${SITE_URL}/ru${path === "/" ? "" : path}`,
-      changeFrequency,
-      priority,
-      ...languageAlternates(path),
-    },
-  ]);
+      ...languageAlternates(path, includeRussian),
+    };
+    if (!includeRussian) return [englishPage];
+    return [
+      englishPage,
+      {
+        url: `${SITE_URL}/ru${path === "/" ? "" : path}`,
+        changeFrequency,
+        priority,
+        ...languageAlternates(path),
+      },
+    ];
+  });
 
   const artworkPages: MetadataRoute.Sitemap = works.flatMap((work) => {
     const path = `/works/${work.slug}`;

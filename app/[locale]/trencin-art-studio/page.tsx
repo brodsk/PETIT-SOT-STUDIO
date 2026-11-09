@@ -112,8 +112,8 @@ export default async function TrencinArtStudio({
         <div className="about-section-copy">
           <h2>{ru ? "Город в центре европейской культуры." : "A city at the heart of European culture."}</h2>
           <p>{ru
-            ? "В 2026 году Тренчин, Словакия, носит титул Европейской культурной столицы (European Capital of Culture 2026) вместе с городом Оулу в Финляндии. Годовая культурная программа подчёркивает роль искусства, творчества и местных сообществ."
-            : "In 2026, Trenčín, Slovakia, holds the European Capital of Culture title alongside Oulu in Finland. The year-long programme highlights the role of art, creativity and local communities."}</p>
+            ? "В 2026 году Тренчин, Словакия, носит титул Европейской культурной столицы (European Capital of Culture 2026; по-словацки — «Európske hlavné mesto kultúry 2026») вместе с городом Оулу в Финляндии. Годовая культурная программа подчёркивает роль искусства, творчества и местных сообществ."
+            : "In 2026, Trenčín, Slovakia, holds the European Capital of Culture title — locally known as “Európske hlavné mesto kultúry 2026” — alongside Oulu in Finland. The year-long programme highlights the role of art, creativity and local communities."}</p>
           <p>{ru
             ? "Для PETIT.SOT STUDIO это важный культурный контекст города, в котором находится студия. PETIT.SOT — независимый художественный проект и не заявляет об официальном партнёрстве или аффилиации с программой Trenčín 2026."
             : "For PETIT.SOT STUDIO, this is the cultural context of the city where the studio is based. PETIT.SOT is an independent art project and does not claim official partnership or affiliation with the Trenčín 2026 programme."}</p>

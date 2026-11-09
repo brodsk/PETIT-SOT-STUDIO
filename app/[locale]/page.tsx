@@ -12,11 +12,11 @@ export async function generateMetadata({
   const { locale } = await params;
   const ru = locale === "ru";
   const title = ru
-    ? "PETIT.SOT STUDIO — Художественная студия в Тренчине, Словакия"
-    : "PETIT.SOT STUDIO — Independent Art Studio in Trenčín, Slovakia";
+    ? "Художница из Тренчина — Ольга Трихлеб | PETIT.SOT STUDIO"
+    : "Artist in Trenčín, Slovakia — Olga Trikhleb | PETIT.SOT STUDIO";
   const description = ru
-    ? "PETIT.SOT STUDIO — независимая художественная студия Ольги Трихлеб в Тренчине, Словакия. Оригинальная живопись в городе — Европейской культурной столице 2026 года."
-    : "PETIT.SOT STUDIO is an independent art studio by Olga Trikhleb, based in Trenčín, Slovakia — European Capital of Culture 2026. Discover original paintings.";
+    ? "Ольга Трихлеб — художница из Тренчина, Словакия. PETIT.SOT STUDIO представляет оригинальную живопись, современные картины и независимое художественное творчество в городе — Европейской культурной столице 2026 года."
+    : "Meet Olga Trikhleb, an independent visual artist based in Trenčín, Slovakia. Explore original paintings and contemporary art from a local Trenčín artist in the European Capital of Culture 2026.";
 
   const canonical = ru ? `${SITE_URL}/ru` : SITE_URL;
   const works = await getWorks();
@@ -115,7 +115,8 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
         jobTitle: ru ? "Художница" : "Visual artist",
         worksFor: { "@id": `${SITE_URL}/#studio` },
         sameAs: ["https://www.instagram.com/petit.sot.art"],
-        knowsAbout: ["Painting", "Contemporary art"],
+        homeLocation: { "@type": "City", name: "Trenčín", containedInPlace: { "@type": "Country", name: "Slovakia" } },
+        knowsAbout: ["Painting", "Contemporary art", "Acrylic painting", "Landscape painting"],
       },
     ],
   };

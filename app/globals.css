@@ -2979,3 +2979,11 @@ div[data-locale] > footer {
     margin-bottom: 32px !important;
   }
 }
+
+
+/* About hero name: use the surname's Georgia serif italic for both name parts in every locale. */
+.about-page .about-hero h1,
+.about-page .about-hero h1 i {
+  font-family: Georgia, "Times New Roman", serif !important;
+  font-style: italic !important;
+}

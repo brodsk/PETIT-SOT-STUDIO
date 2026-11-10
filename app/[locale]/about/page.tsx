@@ -121,7 +121,7 @@ export default async function About({ params }: { params: Promise<{ locale: stri
           <p><a href="https://www.trencin2026.eu/en/home/" target="_blank" rel="noreferrer">{ru ? "Официальный сайт Trenčín 2026 ↗" : "Official Trenčín 2026 website ↗"}</a></p>
         </div>
       </section>
-\n      <section className="about-originals">
+      <section className="about-originals">
         <p className="eyebrow">{ru ? "PETIT.SOT · Оригинальные работы" : "PETIT.SOT · Original works"}</p>
         <p className="about-originals-statement">{ru
           ? "Картины, созданные вручную. Работы, которые остаются с вами."

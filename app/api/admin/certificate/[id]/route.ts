@@ -77,7 +77,7 @@ export async function GET(_request:Request,{params}:{params:Promise<{id:string}>
    }
   }catch(error){console.error("Certificate artwork image could not be embedded:",error);}
  }
- const imageBox={x:43,y:218,width:278,height:166};
+ const imageBox={x:43,y:218,width:190,height:166};
  page.drawRectangle({x:imageBox.x-1,y:imageBox.y-1,width:imageBox.width+2,height:imageBox.height+2,borderColor:rule,borderWidth:.5});
  if(artworkImage){
   const scale=Math.min(imageBox.width/artworkImage.width,imageBox.height/artworkImage.height);
@@ -87,11 +87,11 @@ export async function GET(_request:Request,{params}:{params:Promise<{id:string}>
   page.drawText("ARTWORK IMAGE",{x:124,y:292,size:10,font:regular,color:muted});
  }
 
- const artistX=354;
+ const artistX=260;
  page.drawText("ARTIST",{x:artistX,y:375,size:7,font:bold,color:muted});
  page.drawText("OLGA TRIKHLEB",{x:artistX,y:356,size:15,font:regular,color:ink});
  const statement="An original work created by the artist. This certificate identifies the unique artwork listed below.";
- for(const [i,line] of wrapText(statement,regular,8,230).entries()){
+ for(const [i,line] of wrapText(statement,regular,8,270).entries()){
   page.drawText(line,{x:artistX,y:332-i*12,size:8,font:regular,color:muted});
  }
 
@@ -109,14 +109,14 @@ export async function GET(_request:Request,{params}:{params:Promise<{id:string}>
  }
 
  page.drawLine({start:{x:42,y:198},end:{x:678,y:198},thickness:.7,color:rule});
- const title=ascii(w.title_en||w.title||"Untitled");
+ const title=ascii(w.title||"Untitled");
  page.drawText("TITLE",{x:43,y:177,size:7,font:bold,color:muted});
  page.drawText(title||"Untitled",{x:158,y:175,size:11,font:italic,color:ink});
  page.drawLine({start:{x:43,y:164},end:{x:678,y:164},thickness:.45,color:rule});
 
  const dimensions=[w.width_cm,w.height_cm].filter((v:any)=>v!==null&&v!==undefined&&v!=="").join(" x ");
  const rows:[string,string][]=[
-  ["MEDIUM",ascii(w.medium||"-")||"-"],
+  ["MEDIUM",ascii(w.medium||"Not specified")||"Not specified"],
   ["DIMENSIONS",dimensions?dimensions+" CM":"-"],
   ["YEAR",String(w.year||"-")],
   ["EDITION","UNIQUE ORIGINAL ARTWORK"],

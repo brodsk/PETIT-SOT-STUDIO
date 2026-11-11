@@ -16,6 +16,48 @@ function ascii(value:unknown){
   .replace(/[^\x20-\x7E]/g,"");
 }
 
+async function translateMediumToEnglish(value:unknown){
+ const source=String(value??"").trim();
+ if(!source)return "Not specified";
+ if(!/[А-Яа-яЁё]/.test(source))return source;
+ const apiKey=process.env.GEMINI_API_KEY;
+ if(apiKey){
+  try{
+   const model=process.env.GEMINI_MODEL||"gemini-3.5-flash-lite";
+   const response=await fetch("https://generativelanguage.googleapis.com/v1beta/models/"+encodeURIComponent(model)+":generateContent",{
+    method:"POST",
+    headers:{"Content-Type":"application/json","x-goog-api-key":apiKey},
+    body:JSON.stringify({
+     contents:[{role:"user",parts:[{text:"Translate this artwork medium/material description from Russian into concise, natural English for a fine-art certificate. Preserve the exact technique and materials; do not add facts. Return only the translated phrase, with no quotes or explanation.\n\n"+source}]}],
+     generationConfig:{temperature:0.1,maxOutputTokens:100}
+    }),
+    signal:AbortSignal.timeout(10000)
+   });
+   if(response.ok){
+    const data=await response.json();
+    const translated=String(data.candidates?.[0]?.content?.parts?.map((part:any)=>part.text).filter(Boolean).join(" ")||"").trim().replace(/^["']|["']$/g,"");
+    if(translated&&!/[А-Яа-яЁё]/.test(translated))return translated;
+   }
+  }catch(error){console.error("Certificate medium translation failed:",error);}
+ }
+ const normalized=source.toLowerCase().replace(/ё/g,"е").replace(/\\s+/g," ").trim();
+ const known:Record<string,string>={
+  "масло на холсте":"Oil on canvas",
+  "масло, холст":"Oil on canvas",
+  "масло холст":"Oil on canvas",
+  "акрил на холсте":"Acrylic on canvas",
+  "акрил, холст":"Acrylic on canvas",
+  "акрил холст":"Acrylic on canvas",
+  "акварель на бумаге":"Watercolor on paper",
+  "акварель, бумага":"Watercolor on paper",
+  "гуашь на бумаге":"Gouache on paper",
+  "пастель на бумаге":"Pastel on paper",
+  "масло":"Oil paint",
+  "акрил":"Acrylic paint"
+ };
+ return known[normalized]||"Medium details available from the artist";
+}
+
 function wrapText(value:string,font:any,size:number,maxWidth:number){
  const words=value.split(/\s+/).filter(Boolean);
  const lines:string[]=[];
@@ -116,7 +158,7 @@ export async function GET(_request:Request,{params}:{params:Promise<{id:string}>
 
  const dimensions=[w.width_cm,w.height_cm].filter((v:any)=>v!==null&&v!==undefined&&v!=="").join(" x ");
  const rows:[string,string][]=[
-  ["MEDIUM",ascii(w.medium||"Not specified")||"Not specified"],
+  ["MEDIUM",ascii(await translateMediumToEnglish(w.medium))||"Not specified"],
   ["DIMENSIONS",dimensions?dimensions+" CM":"-"],
   ["YEAR",String(w.year||"-")],
   ["EDITION","UNIQUE ORIGINAL ARTWORK"],

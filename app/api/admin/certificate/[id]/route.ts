@@ -90,7 +90,7 @@ export async function GET(_request:Request,{params}:{params:Promise<{id:string}>
  const artistX=354;
  page.drawText("ARTIST",{x:artistX,y:375,size:7,font:bold,color:muted});
  page.drawText("OLGA TRIKHLEB",{x:artistX,y:356,size:15,font:regular,color:ink});
- const statement="An original work created and signed by the artist. This certificate identifies the unique artwork listed below.";
+ const statement="An original work created by the artist. This certificate identifies the unique artwork listed below.";
  for(const [i,line] of wrapText(statement,regular,8,230).entries()){
   page.drawText(line,{x:artistX,y:332-i*12,size:8,font:regular,color:muted});
  }

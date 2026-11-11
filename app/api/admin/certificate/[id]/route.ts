@@ -16,6 +16,19 @@ function ascii(value:unknown){
   .replace(/[^\x20-\x7E]/g,"");
 }
 
+function wrapText(value:string,font:any,size:number,maxWidth:number){
+ const words=value.split(/\s+/).filter(Boolean);
+ const lines:string[]=[];
+ let line="";
+ for(const word of words){
+  const next=line?line+" "+word:word;
+  if(font.widthOfTextAtSize(next,size)>maxWidth&&line){lines.push(line);line=word;}
+  else line=next;
+ }
+ if(line)lines.push(line);
+ return lines;
+}
+
 export async function GET(_request:Request,{params}:{params:Promise<{id:string}>}){
  const supabase=await createClient();
  const {data:{user}}=await supabase.auth.getUser();
@@ -34,66 +47,94 @@ export async function GET(_request:Request,{params}:{params:Promise<{id:string}>
  }
 
  const pdf=await PDFDocument.create();
- const page=pdf.addPage([595.28,841.89]);
- const font=await pdf.embedFont(StandardFonts.Helvetica);
+ const page=pdf.addPage([720,540]);
+ const regular=await pdf.embedFont(StandardFonts.Helvetica);
+ const bold=await pdf.embedFont(StandardFonts.HelveticaBold);
  const italic=await pdf.embedFont(StandardFonts.HelveticaOblique);
- const black=rgb(.09,.09,.09);
- const grey=rgb(.4,.4,.4);
+ const ink=rgb(.12,.12,.11);
+ const muted=rgb(.43,.42,.39);
+ const paper=rgb(.965,.953,.925);
+ const rule=rgb(.72,.70,.65);
+ page.drawRectangle({x:0,y:0,width:720,height:540,color:paper});
+ page.drawRectangle({x:22,y:22,width:676,height:496,borderColor:rule,borderWidth:.65});
+ page.drawLine({start:{x:42,y:477},end:{x:678,y:477},thickness:.7,color:rule});
+ page.drawText("PETIT.SOT STUDIO",{x:42,y:493,size:8,font:bold,color:muted});
+ page.drawText("ORIGINAL ARTWORK",{x:678-regular.widthOfTextAtSize("ORIGINAL ARTWORK",7),y:493,size:7,font:regular,color:muted});
+ page.drawText("CERTIFICATE OF AUTHENTICITY",{x:42,y:437,size:25,font:regular,color:ink});
+ page.drawText("This document certifies that the artwork shown is an original, one-of-a-kind work.",{x:43,y:416,size:8,font:regular,color:muted});
+ page.drawText("All copyright and reproduction rights remain with the artist unless otherwise agreed in writing.",{x:43,y:403,size:8,font:regular,color:muted});
 
- page.drawText("PETIT.SOT STUDIO",{x:44,y:792,size:14,font,color:black});
- page.drawText("CERTIFICATE / ARTWORK PASSPORT",{x:44,y:767,size:8,font,color:grey});
-
- let y=720;
+ let artworkImage:any=null;
  if(w.image_path){
-  const imageUrl=supabase.storage.from("petit-sot-artworks").getPublicUrl(w.image_path).data.publicUrl;
-  const imageRes=await fetch(imageUrl,{cache:"no-store"});
-  if(imageRes.ok){
-   const imageBytes=await imageRes.arrayBuffer();
-   const type=imageRes.headers.get("content-type")||"";
-   let image:any=null;
-   if(type.includes("png"))image=await pdf.embedPng(imageBytes);
-   else if(type.includes("jpeg")||type.includes("jpg"))image=await pdf.embedJpg(imageBytes);
-   if(image){
-    const scale=Math.min(507/image.width,420/image.height);
-    page.drawImage(image,{x:44,y:y-420,width:image.width*scale,height:image.height*scale});
-    y-=445;
+  try{
+   const imageUrl=supabase.storage.from("petit-sot-artworks").getPublicUrl(w.image_path).data.publicUrl;
+   const imageRes=await fetch(imageUrl,{cache:"no-store"});
+   if(imageRes.ok){
+    const bytes=await imageRes.arrayBuffer();
+    const type=(imageRes.headers.get("content-type")||"").toLowerCase();
+    if(type.includes("png"))artworkImage=await pdf.embedPng(bytes);
+    else if(type.includes("jpeg")||type.includes("jpg"))artworkImage=await pdf.embedJpg(bytes);
    }
-  }
+  }catch(error){console.error("Certificate artwork image could not be embedded:",error);}
+ }
+ const imageBox={x:43,y:218,width:278,height:166};
+ page.drawRectangle({x:imageBox.x-1,y:imageBox.y-1,width:imageBox.width+2,height:imageBox.height+2,borderColor:rule,borderWidth:.5});
+ if(artworkImage){
+  const scale=Math.min(imageBox.width/artworkImage.width,imageBox.height/artworkImage.height);
+  const width=artworkImage.width*scale,height=artworkImage.height*scale;
+  page.drawImage(artworkImage,{x:imageBox.x+(imageBox.width-width)/2,y:imageBox.y+(imageBox.height-height)/2,width,height});
+ }else{
+  page.drawText("ARTWORK IMAGE",{x:124,y:292,size:10,font:regular,color:muted});
  }
 
+ const artistX=354;
+ page.drawText("ARTIST",{x:artistX,y:375,size:7,font:bold,color:muted});
+ page.drawText("OLGA TRIKHLEB",{x:artistX,y:356,size:15,font:regular,color:ink});
+ const statement="An original work created and signed by the artist. This certificate identifies the unique artwork listed below.";
+ for(const [i,line] of wrapText(statement,regular,8,300).entries()){
+  page.drawText(line,{x:artistX,y:332-i*12,size:8,font:regular,color:muted});
+ }
+
+ const publicUrl=w.slug?`https://www.petitsot.com/works/${encodeURIComponent(w.slug)}`:"";
+ if(publicUrl){
+  try{
+   const qrUrl="https://api.qrserver.com/v1/create-qr-code/?size=220x220&format=png&margin=0&data="+encodeURIComponent(publicUrl);
+   const qrResponse=await fetch(qrUrl,{cache:"no-store",signal:AbortSignal.timeout(8000)});
+   if(qrResponse.ok){
+    const qr=await pdf.embedPng(await qrResponse.arrayBuffer());
+    page.drawImage(qr,{x:610,y:299,width:58,height:58});
+    page.drawText("VIEW ARTWORK",{x:605,y:287,size:6,font:bold,color:muted});
+   }
+  }catch(error){console.error("Certificate QR code could not be generated:",error);}
+ }
+
+ page.drawLine({start:{x:42,y:198},end:{x:678,y:198},thickness:.7,color:rule});
  const title=ascii(w.title_en||w.title||"Untitled");
- page.drawText(title||"Untitled",{x:44,y,size:27,font:italic,color:black});
- y-=34;
- page.drawText(`Olga Trikhleb · ${w.year||"-"}`,{x:44,y,size:10,font,color:black});
- y-=24;
+ page.drawText("TITLE",{x:43,y:177,size:7,font:bold,color:muted});
+ page.drawText(title||"Untitled",{x:158,y:175,size:11,font:italic,color:ink});
+ page.drawLine({start:{x:43,y:164},end:{x:678,y:164},thickness:.45,color:rule});
 
- const dimensions=[w.width_cm,w.height_cm].filter(Boolean).join(" x ");
- const lines:[string,string][]=[
-  ["Medium",ascii(w.medium||"-")||"-"],
-  ["Dimensions",dimensions?dimensions+" cm":"-"],
-  ["Price",`EUR ${Number(w.price_eur||0).toFixed(2)}`],
-  ["Certificate",ascii(cert)]
+ const dimensions=[w.width_cm,w.height_cm].filter((v:any)=>v!==null&&v!==undefined&&v!=="").join(" x ");
+ const rows:[string,string][]=[
+  ["MEDIUM",ascii(w.medium||"-")||"-"],
+  ["DIMENSIONS",dimensions?dimensions+" CM":"-"],
+  ["YEAR",String(w.year||"-")],
+  ["EDITION","UNIQUE ORIGINAL ARTWORK"],
+  ["CERTIFICATE NO.",ascii(cert)]
  ];
- for(const [label,value] of lines){
-  page.drawText(label.toUpperCase(),{x:44,y,size:7,font,color:grey});
-  page.drawText(ascii(value)||"-",{x:160,y,size:10,font,color:black});
-  y-=19;
+ let rowY=146;
+ for(const [label,value] of rows){
+  page.drawText(label,{x:43,y:rowY,size:7,font:bold,color:muted});
+  page.drawText(value.slice(0,76),{x:158,y:rowY-1,size:9,font:regular,color:ink});
+  page.drawLine({start:{x:43,y:rowY-8},end:{x:678,y:rowY-8},thickness:.35,color:rule});
+  rowY-=21;
  }
 
- y-=12;
- const desc=ascii(w.description_en||w.ai_description||w.description||"").slice(0,1000);
- const words=desc.split(/\s+/);
- let line="";
- const wrapped:string[]=[];
- for(const word of words){
-  const next=line?line+" "+word:word;
-  if(font.widthOfTextAtSize(next,9)>507){if(line)wrapped.push(line);line=word;}else line=next;
- }
- if(line)wrapped.push(line);
- for(const l of wrapped.slice(0,10)){page.drawText(l,{x:44,y,size:9,font,color:black});y-=13;}
-
- page.drawText("PETIT.SOT STUDIO - Olga Trikhleb",{x:44,y:35,size:7,font,color:grey});
- page.drawText(new Date().toLocaleDateString("en-GB"),{x:465,y:35,size:7,font,color:grey});
+ page.drawText("ARTIST SIGNATURE",{x:43,y:34,size:6,font:bold,color:muted});
+ page.drawLine({start:{x:145,y:43},end:{x:330,y:43},thickness:.6,color:rule});
+ page.drawText("OLGA TRIKHLEB",{x:145,y:29,size:8,font:italic,color:ink});
+ page.drawText("ISSUED BY PETIT.SOT STUDIO",{x:678-regular.widthOfTextAtSize("ISSUED BY PETIT.SOT STUDIO",6),y:34,size:6,font:regular,color:muted});
  const pdfBytes=await pdf.save();
- return new NextResponse(Buffer.from(pdfBytes),{headers:{"Content-Type":"application/pdf","Content-Disposition":`attachment; filename="${w.slug}-passport.pdf"`,"Cache-Control":"no-store"}});
+ const safeSlug=ascii(w.slug||"artwork").replace(/[^a-zA-Z0-9_-]/g,"-");
+ return new NextResponse(Buffer.from(pdfBytes),{headers:{"Content-Type":"application/pdf","Content-Disposition":`attachment; filename="${safeSlug}-certificate-of-authenticity.pdf"`,"Cache-Control":"no-store"}});
 }

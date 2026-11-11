@@ -171,10 +171,9 @@ export async function GET(_request:Request,{params}:{params:Promise<{id:string}>
   rowY-=21;
  }
 
- page.drawText("ARTIST SIGNATURE",{x:445,y:57,size:7,font:bold,color:muted});
- page.drawLine({start:{x:535,y:48},end:{x:670,y:48},thickness:.75,color:rule});
- page.drawText("OLGA TRIKHLEB",{x:535,y:29,size:8,font:italic,color:ink});
- page.drawText("ISSUED BY PETIT.SOT STUDIO",{x:678-regular.widthOfTextAtSize("ISSUED BY PETIT.SOT STUDIO",6),y:34,size:6,font:regular,color:muted});
+ page.drawText("ARTIST SIGNATURE",{x:43,y:41,size:7,font:bold,color:muted});
+ page.drawLine({start:{x:43,y:31},end:{x:485,y:31},thickness:.75,color:rule});
+ page.drawText("OLGA TRIKHLEB",{x:505,y:28,size:8,font:italic,color:ink});
  const pdfBytes=await pdf.save();
  const safeSlug=ascii(w.slug||"artwork").replace(/[^a-zA-Z0-9_-]/g,"-");
  return new NextResponse(Buffer.from(pdfBytes),{headers:{"Content-Type":"application/pdf","Content-Disposition":`attachment; filename="${safeSlug}-certificate-of-authenticity.pdf"`,"Cache-Control":"no-store"}});

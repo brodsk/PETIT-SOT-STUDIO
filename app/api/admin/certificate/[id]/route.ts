@@ -172,9 +172,9 @@ export async function GET(_request:Request,{params}:{params:Promise<{id:string}>
   rowY-=21;
  }
 
- page.drawText("ARTIST SIGNATURE",{x:43,y:34,size:6,font:bold,color:muted});
- page.drawLine({start:{x:145,y:43},end:{x:330,y:43},thickness:.6,color:rule});
- page.drawText("OLGA TRIKHLEB",{x:145,y:29,size:8,font:italic,color:ink});
+ page.drawText("ARTIST SIGNATURE",{x:43,y:57,size:7,font:bold,color:muted});
+ page.drawLine({start:{x:145,y:48},end:{x:420,y:48},thickness:.75,color:rule});
+ page.drawText("OLGA TRIKHLEB",{x:145,y:29,size:9,font:italic,color:ink});
  page.drawText("ISSUED BY PETIT.SOT STUDIO",{x:678-regular.widthOfTextAtSize("ISSUED BY PETIT.SOT STUDIO",6),y:34,size:6,font:regular,color:muted});
  const pdfBytes=await pdf.save();
  const safeSlug=ascii(w.slug||"artwork").replace(/[^a-zA-Z0-9_-]/g,"-");

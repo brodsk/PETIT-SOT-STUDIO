@@ -120,7 +120,6 @@ export async function GET(_request:Request,{params}:{params:Promise<{id:string}>
   }catch(error){console.error("Certificate artwork image could not be embedded:",error);}
  }
  const imageBox={x:43,y:218,width:190,height:166};
- page.drawRectangle({x:imageBox.x-1,y:imageBox.y-1,width:imageBox.width+2,height:imageBox.height+2,borderColor:rule,borderWidth:.5});
  if(artworkImage){
   const scale=Math.min(imageBox.width/artworkImage.width,imageBox.height/artworkImage.height);
   const width=artworkImage.width*scale,height=artworkImage.height*scale;
@@ -153,7 +152,7 @@ export async function GET(_request:Request,{params}:{params:Promise<{id:string}>
  page.drawLine({start:{x:42,y:198},end:{x:678,y:198},thickness:.7,color:rule});
  const title=ascii(w.title||"Untitled");
  page.drawText("TITLE",{x:43,y:177,size:7,font:bold,color:muted});
- page.drawText(title||"Untitled",{x:158,y:175,size:11,font:italic,color:ink});
+ page.drawText(title||"Untitled",{x:158,y:175,size:8.5,font:italic,color:ink,maxWidth:500});
  page.drawLine({start:{x:43,y:164},end:{x:678,y:164},thickness:.45,color:rule});
 
  const dimensions=[w.width_cm,w.height_cm].filter((v:any)=>v!==null&&v!==undefined&&v!=="").join(" x ");
@@ -172,9 +171,9 @@ export async function GET(_request:Request,{params}:{params:Promise<{id:string}>
   rowY-=21;
  }
 
- page.drawText("ARTIST SIGNATURE",{x:43,y:57,size:7,font:bold,color:muted});
- page.drawLine({start:{x:145,y:48},end:{x:420,y:48},thickness:.75,color:rule});
- page.drawText("OLGA TRIKHLEB",{x:145,y:29,size:9,font:italic,color:ink});
+ page.drawText("ARTIST SIGNATURE",{x:445,y:57,size:7,font:bold,color:muted});
+ page.drawLine({start:{x:535,y:48},end:{x:670,y:48},thickness:.75,color:rule});
+ page.drawText("OLGA TRIKHLEB",{x:535,y:29,size:8,font:italic,color:ink});
  page.drawText("ISSUED BY PETIT.SOT STUDIO",{x:678-regular.widthOfTextAtSize("ISSUED BY PETIT.SOT STUDIO",6),y:34,size:6,font:regular,color:muted});
  const pdfBytes=await pdf.save();
  const safeSlug=ascii(w.slug||"artwork").replace(/[^a-zA-Z0-9_-]/g,"-");

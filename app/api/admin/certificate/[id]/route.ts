@@ -137,7 +137,7 @@ export async function GET(_request:Request,{params}:{params:Promise<{id:string}>
   page.drawText(line,{x:artistX,y:332-i*12,size:8,font:regular,color:muted});
  }
 
- const publicUrl=w.slug?`https://www.petitsot.com/works/${encodeURIComponent(w.slug)}`:"";
+ const publicUrl=`https://www.petitsot.com/verify/${encodeURIComponent(cert)}`;
  if(publicUrl){
   try{
    const qrUrl="https://api.qrserver.com/v1/create-qr-code/?size=220x220&format=png&margin=0&data="+encodeURIComponent(publicUrl);
@@ -145,7 +145,7 @@ export async function GET(_request:Request,{params}:{params:Promise<{id:string}>
    if(qrResponse.ok){
     const qr=await pdf.embedPng(await qrResponse.arrayBuffer());
     page.drawImage(qr,{x:610,y:299,width:58,height:58});
-    page.drawText("VIEW ARTWORK",{x:605,y:287,size:6,font:bold,color:muted});
+    page.drawText("VERIFY CERTIFICATE",{x:605,y:287,size:6,font:bold,color:muted});
    }
   }catch(error){console.error("Certificate QR code could not be generated:",error);}
  }

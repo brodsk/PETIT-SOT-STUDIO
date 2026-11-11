@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { createClient } from "../../../../lib/supabase/server";
+import { localizeMedium } from "../../../../lib/medium";
 
 export const dynamic = "force-dynamic";
 
@@ -55,7 +56,7 @@ export default async function VerifyCertificatePage({params}:{params:Promise<{lo
       <h2>{title}</h2>
       <dl>
        <div><dt>{ru?"ГОД":"YEAR"}</dt><dd>{work.year||"—"}</dd></div>
-       <div><dt>{ru?"МАТЕРИАЛ":"MEDIUM"}</dt><dd>{work.medium||"—"}</dd></div>
+       <div><dt>{ru?"МАТЕРИАЛ":"MEDIUM"}</dt><dd>{localizeMedium(work.medium,"en")}</dd></div>
        <div><dt>{ru?"РАЗМЕР":"DIMENSIONS"}</dt><dd>{work.width_cm&&work.height_cm?`${work.width_cm} × ${work.height_cm} cm`:"—"}</dd></div>
        <div><dt>{ru?"НОМЕР СЕРТИФИКАТА":"CERTIFICATE NO."}</dt><dd>{work.certificate_number}</dd></div>
       </dl>

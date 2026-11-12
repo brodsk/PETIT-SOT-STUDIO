@@ -150,7 +150,8 @@ export async function GET(_request:Request,{params}:{params:Promise<{id:string}>
  }
 
  page.drawLine({start:{x:42,y:198},end:{x:678,y:198},thickness:.7,color:rule});
- const title=ascii(w.title||"Untitled");
+ const certificateTitle=String(w.title_en||w.title||"Untitled").split("|")[0].trim().split(/\\s+[—–]\\s+/)[0].trim();
+ const title=ascii(certificateTitle||w.title||"Untitled");
  page.drawText("TITLE",{x:43,y:177,size:7,font:bold,color:muted});
  page.drawText(title||"Untitled",{x:158,y:175,size:8.5,font:italic,color:ink,maxWidth:500});
  page.drawLine({start:{x:43,y:164},end:{x:678,y:164},thickness:.45,color:rule});

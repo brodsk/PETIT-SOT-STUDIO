@@ -27,18 +27,19 @@ as $$
 declare
   v_count integer;
   v_spent integer;
+  v_window_started_at timestamptz;
 begin
   insert into public.commission_ai_ip_limits(ip_hash, window_started_at, request_count)
   values (p_ip_hash, now(), 0)
   on conflict (ip_hash) do nothing;
 
   select request_count, window_started_at
-    into v_count, reserve_commission_ai_generation.window_started_at
+    into v_count, v_window_started_at
     from public.commission_ai_ip_limits
     where ip_hash = p_ip_hash
     for update;
 
-  if now() - reserve_commission_ai_generation.window_started_at >= interval '1 hour' then
+  if now() - v_window_started_at >= interval '1 hour' then
     update public.commission_ai_ip_limits
       set window_started_at = now(), request_count = 0
       where ip_hash = p_ip_hash;

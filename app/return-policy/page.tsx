@@ -13,17 +13,18 @@ export default function ReturnPolicyPage() {
     <main className="mx-auto w-full max-w-3xl px-6 py-16 text-neutral-900">
       <p className="mb-3 text-xs uppercase tracking-[0.2em] text-neutral-500">PETITSOT STUDIO</p>
       <h1 className="mb-4 text-4xl tracking-tight">Returns & Refunds</h1>
-      <p className="mb-10 text-sm text-neutral-500">Last updated: 20 October 2026</p>
+      <p className="mb-10 text-sm text-neutral-500">Last updated: 13 November 2026</p>
 
       <div className="space-y-8 leading-7">
         <section>
           <h2 className="mb-2 text-xl">1. Where your purchase is made</h2>
           <p>
-            PETITSOT.COM is an artist portfolio. When a work is available to buy, the purchase is completed
-            through the marketplace linked on that artwork's page, such as Etsy or Sashe; we do not currently
-            take payment or complete checkout on this website. Please start a return or refund request through
-            the same marketplace and the account used for the order, so the order can be identified and its
-            return process followed.
+            PETITSOT.COM is an artist portfolio and also accepts direct custom painting commissions. Purchases
+            of listed ready-made works may still be completed through a marketplace such as Etsy or Sashe;
+            those returns should be started through the same marketplace and account used for the order.
+            Custom painting commissions requested and accepted through this website are contracted directly
+            with PETIT.SOT STUDIO and paid securely through PayPal. The separate custom commission terms apply
+            to those orders.
           </p>
           <p className="mt-2">
             Marketplace procedures apply alongside any mandatory consumer rights that cannot legally be
@@ -68,8 +69,10 @@ export default function ReturnPolicyPage() {
         <section>
           <h2 className="mb-2 text-xl">4. Refunds</h2>
           <p>
-            Approved refunds are processed through the original marketplace and, where possible, the original
-            payment method. Where a statutory withdrawal applies, the refund is generally due within 14 days
+            For marketplace purchases, approved refunds are processed through the original marketplace and, where
+            possible, the original payment method. For direct custom commissions, any refund due will be arranged
+            through the original PayPal payment method where possible and in accordance with the agreed commission
+            terms and mandatory consumer law. Where a statutory withdrawal applies, the refund is generally due within 14 days
             after the seller is informed of the withdrawal; the seller may withhold it until the artwork is
             received back or you provide evidence that it has been sent back, whichever happens first. The
             refund includes the standard outbound delivery cost where required by law, but not additional

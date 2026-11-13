@@ -73,41 +73,45 @@ export async function POST(request:Request){
     }
     if(!await verifyTurnstile(captcha,ip))return NextResponse.json({error:"Please complete the security check and try again."},{status:400});
     const hfToken=process.env.HF_TOKEN;
-    if(!hfToken)return NextResponse.json({error:"The artwork preview service is not configured yet."},{status:503});
     const quote=calculate(width,height,complexity);
-    const prompt=[
-      "Create a refined original oil painting concept for PETIT.SOT STUDIO by artist Olga Trikhleb, with an atmospheric fine-art sensibility, expressive natural light, nuanced muted colours, layered brushwork and subtle oil-paint texture.",
-      "The image is a visual reference for a future hand-painted oil-on-canvas artwork, not a photograph and not a finished physical artwork.",
-      "Use visible painterly brushwork, subtle layered oil-paint texture, sophisticated natural colours, thoughtful composition and an atmospheric fine-art sensibility.",
-      "Do not imitate a living artist or reproduce an existing artwork. Do not add text, signatures, watermarks, frames, borders or logos.",
-      "The requested canvas proportion is "+width+" cm wide by "+height+" cm high. Compose the image in this exact aspect ratio.",
-      "Subject and composition requested by the customer: "+description,
-      style?"Preferred direction: "+style:"",
-      palette?"Preferred palette: "+palette:"",
-      "The result should look like a plausible original contemporary oil painting that Olga could interpret in her own hand, not a digitally perfect commercial illustration."
-    ].filter(Boolean).join("\n");
-    const hf=new InferenceClient(hfToken);
-    const ratio=width/height;
-    const longSide=1024;
-    const shortSide=Math.max(512,Math.round((longSide/Math.max(ratio,1/ratio))/64)*64);
-    const imageWidth=ratio>=1?longSide:shortSide;
-    const imageHeight=ratio>=1?shortSide:longSide;
-    const generated:unknown=await hf.textToImage({provider:"fal-ai",model:"black-forest-labs/FLUX.1-schnell",inputs:prompt,parameters:{guidance_scale:0,num_inference_steps:4,width:imageWidth,height:imageHeight}});
-    if(!generated)return NextResponse.json({error:"The image model returned no preview. Please try again."},{status:502});
-    let buffer:Buffer;let mime="image/png";
-    if(generated instanceof Blob){buffer=Buffer.from(await generated.arrayBuffer());mime=generated.type||mime;}
-    else if(typeof generated==="string"&&generated.startsWith("data:")){
-      const match=generated.match(/^data:([^;]+);base64,(.+)$/);
-      if(!match)return NextResponse.json({error:"The generated preview was invalid."},{status:502});
-      mime=match[1];buffer=Buffer.from(match[2],"base64");
-    }else return NextResponse.json({error:"The image model returned an unsupported format."},{status:502});
-    if(!buffer.length||buffer.length>15*1024*1024)return NextResponse.json({error:"The generated preview could not be saved."},{status:502});
+    let buffer:Buffer|null=null;let mime="image/png";let previewError:string|undefined;
+    if(hfToken){
+      try{
+        const prompt=[
+          "Create a refined original oil painting concept for PETIT.SOT STUDIO by artist Olga Trikhleb, with an atmospheric fine-art sensibility, expressive natural light, nuanced muted colours, layered brushwork and subtle oil-paint texture.",
+          "The image is a visual reference for a future hand-painted oil-on-canvas artwork, not a photograph and not a finished physical artwork.",
+          "Use visible painterly brushwork, subtle layered oil-paint texture, sophisticated natural colours, thoughtful composition and an atmospheric fine-art sensibility.",
+          "Do not imitate a living artist or reproduce an existing artwork. Do not add text, signatures, watermarks, frames, borders or logos.",
+          "The requested canvas proportion is "+width+" cm wide by "+height+" cm high. Compose the image in this exact aspect ratio.",
+          "Subject and composition requested by the customer: "+description,
+          style?"Preferred direction: "+style:"",
+          palette?"Preferred palette: "+palette:"",
+          "The result should look like a plausible original contemporary oil painting that Olga could interpret in her own hand, not a digitally perfect commercial illustration."
+        ].filter(Boolean).join("\n");
+        const hf=new InferenceClient(hfToken);
+        const ratio=width/height;
+        const longSide=1024;
+        const shortSide=Math.max(512,Math.round((longSide/Math.max(ratio,1/ratio))/64)*64);
+        const imageWidth=ratio>=1?longSide:shortSide;
+        const imageHeight=ratio>=1?shortSide:longSide;
+        const generated:unknown=await hf.textToImage({provider:"fal-ai",model:"black-forest-labs/FLUX.1-schnell",inputs:prompt,parameters:{guidance_scale:0,num_inference_steps:4,width:imageWidth,height:imageHeight}});
+        if(generated instanceof Blob){buffer=Buffer.from(await generated.arrayBuffer());mime=generated.type||mime;}
+        else if(typeof generated==="string"&&generated.startsWith("data:")){
+          const match=generated.match(/^data:([^;]+);base64,(.+)$/);
+          if(match){mime=match[1];buffer=Buffer.from(match[2],"base64");}
+        }
+        if(!buffer||!buffer.length||buffer.length>15*1024*1024)throw new Error("The image model returned an invalid preview.");
+      }catch(error){previewError=error instanceof Error?error.message:"Image generation is temporarily unavailable.";console.warn("Commission preview unavailable; keeping request available:",previewError);buffer=null;}
+    }else{previewError="The artwork preview service is not configured yet.";}
     const admin=createAdminClient();
     const reference="PS-C-"+new Date().getFullYear()+"-"+crypto.randomUUID().replace(/-/g,"").slice(0,12).toUpperCase();
-    const extension=mime.includes("webp")?"webp":mime.includes("jpeg")?"jpg":"png";
-    const path="commissions/"+reference+"/concept."+extension;
-    const upload=await admin.storage.from("petit-sot-artworks").upload(path,buffer,{contentType:mime,upsert:false});
-    if(upload.error)throw upload.error;
+    let path:string|null=null;
+    if(buffer){
+      const extension=mime.includes("webp")?"webp":mime.includes("jpeg")?"jpg":"png";
+      path="commissions/"+reference+"/concept."+extension;
+      const upload=await admin.storage.from("petit-sot-artworks").upload(path,buffer,{contentType:mime,upsert:false});
+      if(upload.error)throw upload.error;
+    }
     const {data:row,error}=await admin.from("petit_sot_commissions").insert({
       reference_code:reference,status:"new",customer_name:name,customer_email:email,customer_country:country||null,
       description,requested_style:style||"Olga Trikhleb oil painting",palette:palette||null,complexity,
@@ -116,8 +120,8 @@ export async function POST(request:Request){
     }).select("id,reference_code,estimated_price_eur,estimated_days_min,estimated_days_max").single();
     if(error){await admin.storage.from("petit-sot-artworks").remove([path]);throw error;}
     await notifyStudio(reference,name,email,description,quote.price);
-    const imageUrl=admin.storage.from("petit-sot-artworks").getPublicUrl(path).data.publicUrl;
-    return NextResponse.json({ok:true,commission:row,imageUrl,depositEstimate:Math.round(quote.price/2)});
+    const imageUrl=path?admin.storage.from("petit-sot-artworks").getPublicUrl(path).data.publicUrl:null;
+    return NextResponse.json({ok:true,commission:row,imageUrl,previewAvailable:Boolean(imageUrl),previewError:previewError?"temporarily_unavailable":null,depositEstimate:Math.round(quote.price/2)});
   }catch(error:any){
     console.error("Commission request failed",error);
     return NextResponse.json({error:error?.message||"Could not create your commission request."},{status:500});

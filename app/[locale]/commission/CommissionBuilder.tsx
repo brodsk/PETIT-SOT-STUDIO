@@ -10,7 +10,7 @@ type Result={commission:{id:string;reference_code:string;estimated_price_eur:num
 
 export default function CommissionBuilder({ru}:{ru:boolean}){
  const [name,setName]=useState("");const [email,setEmail]=useState("");const [country,setCountry]=useState("");
- const [description,setDescription]=useState("");const [width,setWidth]=useState("50");const [height,setHeight]=useState("70");
+ const [description,setDescription]=useState("");const [agree,setAgree]=useState(false);const [width,setWidth]=useState("50");const [height,setHeight]=useState("70");
  const [complexity,setComplexity]=useState("medium");const [style,setStyle]=useState("Atmospheric landscape");const [palette,setPalette]=useState("");
  const [website,setWebsite]=useState("");const [token,setToken]=useState("");const [captchaError,setCaptchaError]=useState(false);
  const [busy,setBusy]=useState(false);const [error,setError]=useState("");const [result,setResult]=useState<Result|null>(null);
@@ -69,8 +69,8 @@ export default function CommissionBuilder({ru}:{ru:boolean}){
     {SITE_KEY&&<div className={styles.captcha}><div ref={captchaRef}/>{captchaError&&<p>{ru?"Пройдите проверку безопасности.":"Please complete the security check."}</p>}</div>}
     <div className={styles.estimate}><div><span>{ru?"Предварительная оценка":"ESTIMATED PRICE"}</span><strong>€{Number.isFinite(estimate)?estimate.toLocaleString("en-IE"):"—"}</strong></div><div><span>{ru?"Срок изготовления и первичной просушки":"ESTIMATED PRODUCTION & INITIAL DRYING"}</span><strong>{minDays}–{minDays+7} {ru?"дней":"days"}</strong></div><p>{ru?"Расчёт предварительный и будет уточнён Ольгой после просмотра заявки. Срок включает создание и первичную просушку масляной живописи; фактическое время зависит от толщины красочного слоя.":"This is an indicative estimate, subject to Olga’s review. Timing includes painting and initial drying; actual drying depends on paint thickness and conditions."}</p></div>
     {error&&<p className={styles.error}>{error}</p>}
-    <button className={styles.submit} type="submit" disabled={busy||(Boolean(SITE_KEY)&&!token)}>{busy?(ru?"Создаём референс…":"Generating your concept…"):(ru?"Создать референс и отправить заявку":"Generate concept & submit request")} <span>↗</span></button>
-    <p className={styles.terms}>{ru?"Отправляя заявку, вы соглашаетесь, что это предварительный запрос, а не подтверждённый заказ. Предоплата 50% потребуется только после согласования Ольгой.":"Submitting this request does not create a confirmed order. A 50% deposit is requested only after Olga approves the concept and final quote."}</p>
+    <button className={styles.submit} type="submit" disabled={busy||!agree||(Boolean(SITE_KEY)&&!token)}>{busy?(ru?"Создаём референс…":"Generating your concept…"):(ru?"Создать референс и отправить заявку":"Generate concept & submit request")} <span>↗</span></button>
+    <label className={styles.consent}><input type="checkbox" checked={agree} onChange={e=>setAgree(e.target.checked)} required/><span>{ru?<>Я ознакомился с <a href="/commission-terms" target="_blank">условиями заказа картины</a> и понимаю, что AI-референс является предварительной концепцией.</>:<>I have read the <a href="/commission-terms" target="_blank">commission terms</a> and understand that the AI preview is a preliminary concept.</>}</span></label><p className={styles.terms}>{ru?"Отправляя заявку, вы соглашаетесь, что это предварительный запрос, а не подтверждённый заказ. Предоплата 50% потребуется только после согласования Ольгой.":"Submitting this request does not create a confirmed order. A 50% deposit is requested only after Olga approves the concept and final quote."}</p>
    </form>}
  </main>;
 }

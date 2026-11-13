@@ -12,7 +12,7 @@ export default function PrivacyPolicyPage() {
     <main className="mx-auto w-full max-w-3xl px-6 py-16 text-neutral-900">
       <p className="mb-3 text-xs uppercase tracking-[0.2em] text-neutral-500">PETITSOT STUDIO</p>
       <h1 className="mb-4 text-4xl tracking-tight">Privacy Policy</h1>
-      <p className="mb-10 text-sm text-neutral-500">Last updated: 19 October 2026</p>
+      <p className="mb-10 text-sm text-neutral-500">Last updated: 13 November 2026</p>
 
       <div className="space-y-8 leading-7">
         <section>
@@ -39,10 +39,30 @@ export default function PrivacyPolicyPage() {
             process account authorisation details and publication records to publish the studio's artwork.
           </p>
           <p className="mt-2">
+            If you submit a custom painting request, we process your name, email address, country if provided,
+            artwork description, preferred style and colours, requested dimensions, complexity selection,
+            generated concept preview, quote and order history. We use these details to prepare an estimate,
+            review and manage the commission, contact you, take payment and deliver the artwork. Please do not
+            include sensitive personal information in an artwork description.
+          </p>
+          <p className="mt-2">
+            To create the optional visual concept, the artwork description and selected visual preferences are
+            sent to a third-party AI image-generation service. The generated preview is stored with the
+            commission record. AI previews are concepts for discussion, not photographs of a finished painting
+            or a guarantee that the final hand-painted work will be identical.
+          </p>
+          <p className="mt-2">
+            PayPal processes deposit and balance payments. We receive payment status and transaction references,
+            but payment card details are handled by PayPal and are not stored in our commission database.
+            We may also use our configured email and Telegram services to notify the studio about a request and
+            send order or payment updates.
+          </p>
+          <p className="mt-2">
             We use this information to operate and secure the site, answer messages, manage requested
-            licensing enquiries, and maintain the administrator's publishing tools. Depending on the purpose,
-            the legal basis is our legitimate interest in running the portfolio, taking steps at your request
-            before a possible agreement, or meeting a legal obligation, as applicable under the GDPR.
+            licensing enquiries and commissions, and maintain the administrator's publishing tools. Depending
+            on the purpose, the legal basis is taking steps at your request before entering into a contract,
+            performing a contract, our legitimate interest in running and protecting the portfolio, or meeting
+            a legal obligation, as applicable under the GDPR.
           </p>
         </section>
 

@@ -87,7 +87,12 @@ export async function POST(request:Request){
       "The result should look like a plausible original contemporary oil painting that Olga could interpret in her own hand, not a digitally perfect commercial illustration."
     ].filter(Boolean).join("\n");
     const hf=new InferenceClient(hfToken);
-    const ratio=width/height;\n    const longSide=1024;\n    const shortSide=Math.max(512,Math.round((longSide/Math.max(ratio,1/ratio))/64)*64);\n    const imageWidth=ratio>=1?longSide:shortSide;\n    const imageHeight=ratio>=1?shortSide:longSide;\n    const generated=await hf.textToImage({provider:"fal-ai",model:"black-forest-labs/FLUX.1-schnell",inputs:prompt,parameters:{guidance_scale:0,num_inference_steps:4,width:imageWidth,height:imageHeight}});
+    const ratio=width/height;
+    const longSide=1024;
+    const shortSide=Math.max(512,Math.round((longSide/Math.max(ratio,1/ratio))/64)*64);
+    const imageWidth=ratio>=1?longSide:shortSide;
+    const imageHeight=ratio>=1?shortSide:longSide;
+    const generated=await hf.textToImage({provider:"fal-ai",model:"black-forest-labs/FLUX.1-schnell",inputs:prompt,parameters:{guidance_scale:0,num_inference_steps:4,width:imageWidth,height:imageHeight}});
     if(!generated)return NextResponse.json({error:"The image model returned no preview. Please try again."},{status:502});
     let buffer:Buffer;let mime="image/png";
     if(generated instanceof Blob){buffer=Buffer.from(await generated.arrayBuffer());mime=generated.type||mime;}

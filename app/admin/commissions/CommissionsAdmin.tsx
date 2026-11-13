@@ -4,6 +4,19 @@ import styles from "./commissions.module.css";
 type Commission={id:string;reference_code:string;status:string;customer_name:string;customer_email:string;customer_country:string|null;description:string;requested_style:string;palette:string|null;complexity:string;width_cm:number;height_cm:number;estimated_price_eur:number;final_price_eur:number|null;deposit_amount_eur:number|null;balance_amount_eur:number|null;estimated_days_min:number;estimated_days_max:number;artist_notes:string|null;preview_url:string|null;final_image_url:string|null;final_artwork_title:string|null;final_year:number|null;certificate_number:string|null;balance_paid_at:string|null;created_at:string};
 const statuses=["new","reviewing","approved","awaiting_deposit","deposit_paid","in_progress","drying","ready_to_ship","shipped","completed","declined","cancelled"];
 const labels:Record<string,string>={new:"Новая",reviewing:"На рассмотрении",approved:"Одобрена",awaiting_deposit:"Ожидает предоплату",deposit_paid:"Предоплата получена",in_progress:"В работе",drying:"Просушка",ready_to_ship:"Готова к отправке",shipped:"Отправлена",completed:"Завершена",declined:"Отклонена",cancelled:"Отменена"};
+async function readAdminJson(response:Response):Promise<any>{
+ const raw=await response.text();
+ try{return JSON.parse(raw);}
+ catch{
+  const contentType=response.headers.get("content-type")||"unknown";
+  console.error("Admin commission API returned non-JSON",response.url,response.status,contentType,raw.slice(0,400));
+  if(response.status===401||response.status===403)return {error:"Сессия администратора истекла или нет доступа. Обновите страницу и войдите снова."};
+  if(response.status===404)return {error:"API-адрес не найден (404). Обновите страницу; если ошибка повторится, сообщите нам."};
+  if(response.status>=500)return {error:"Сервер временно недоступен. Попробуйте ещё раз чуть позже."};
+  return {error:"Сервер вернул неожиданный ответ вместо JSON. Обновите страницу и попробуйте снова."};
+ }
+}
+
 export default function CommissionsAdmin({initial}:{initial:Commission[]}){
  const [rows,setRows]=useState(initial);const [selectedId,setSelectedId]=useState(initial[0]?.id||"");const [busy,setBusy]=useState(false);const [message,setMessage]=useState("");const [paymentUrl,setPaymentUrl]=useState("");
  const selected=useMemo(()=>rows.find(x=>x.id===selectedId)||null,[rows,selectedId]);
@@ -12,14 +25,14 @@ export default function CommissionsAdmin({initial}:{initial:Commission[]}){
  function choose(row:Commission){setSelectedId(row.id);setStatus(row.status);setPrice(String(row.final_price_eur??row.estimated_price_eur));setDaysMin(String(row.estimated_days_min));setDaysMax(String(row.estimated_days_max));setNotes(row.artist_notes||"");setDescription(row.description||"");setFinalTitle(row.final_artwork_title||"");setFinalYear(String(row.final_year||new Date().getFullYear()));setFinalFile(null);setMessage("");setPaymentUrl("");}
  async function save(nextStatus=status){
   if(!selected)return;setBusy(true);setMessage("");setPaymentUrl("");
-  try{const response=await fetch("/api/admin/commissions/"+selected.id,{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({status:nextStatus,finalPrice:Number(price),daysMin:Number(daysMin),daysMax:Number(daysMax),artistNotes:notes})});const data=await response.json();if(!response.ok)throw new Error(data.error||"Не удалось сохранить заказ.");
+  try{const response=await fetch("/api/admin/commissions/"+selected.id,{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({status:nextStatus,finalPrice:Number(price),daysMin:Number(daysMin),daysMax:Number(daysMax),artistNotes:notes})});const data=await readAdminJson(response);if(!response.ok)throw new Error(data.error||"Не удалось сохранить заказ.");
    setRows(prev=>prev.map(x=>x.id===selected.id?{...x,...data.commission}:x));setStatus(data.commission.status);setPaymentUrl(data.paymentUrl||"");setMessage(nextStatus==="awaiting_deposit"?(data.emailSent?"Ссылка на предоплату отправлена клиенту.":"Заказ одобрен. Ссылка на предоплату готова — скопируйте её и отправьте клиенту."):nextStatus==="ready_to_ship"?(data.emailSent?"Ссылка на оплату остатка отправлена клиенту.":"Картина готова. Ссылка на оплату остатка подготовлена."):"Изменения сохранены.");
   }catch(e){setMessage(e instanceof Error?e.message:"Ошибка сохранения.");}finally{setBusy(false);}
  }
- async function sendProposal(){if(!selected)return;setBusy(true);setMessage("");try{const response=await fetch("/api/admin/commissions/"+selected.id+"/proposal",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({finalPrice:Number(price),daysMin:Number(daysMin),daysMax:Number(daysMax),description})});const data=await response.json();if(!response.ok)throw new Error(data.error||"Не удалось отправить предложение.");setRows(prev=>prev.map(x=>x.id===selected.id?{...x,...data.commission}:x));setStatus(data.commission.status);setMessage("Предложение отправлено клиенту на email. Ожидаем подтверждения; запрос оплаты будет отправлен только после него.");}catch(e){setMessage(e instanceof Error?e.message:"Ошибка отправки предложения.");}finally{setBusy(false);}}
+ async function sendProposal(){if(!selected)return;setBusy(true);setMessage("");try{const response=await fetch("/api/admin/commissions/"+selected.id+"/proposal",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({finalPrice:Number(price),daysMin:Number(daysMin),daysMax:Number(daysMax),description})});const data=await readAdminJson(response);if(!response.ok)throw new Error(data.error||"Не удалось отправить предложение.");setRows(prev=>prev.map(x=>x.id===selected.id?{...x,...data.commission}:x));setStatus(data.commission.status);setMessage("Предложение отправлено клиенту на email. Ожидаем подтверждения; запрос оплаты будет отправлен только после него.");}catch(e){setMessage(e instanceof Error?e.message:"Ошибка отправки предложения.");}finally{setBusy(false);}}
  async function uploadArtwork(){
   if(!selected||!finalFile||!finalTitle.trim())return;setBusy(true);setMessage("");
-  try{const form=new FormData();form.set("image",finalFile);form.set("title",finalTitle);form.set("year",finalYear);const response=await fetch("/api/admin/commissions/"+selected.id+"/artwork",{method:"POST",body:form});const data=await response.json();if(!response.ok)throw new Error(data.error||"Не удалось загрузить работу.");setRows(prev=>prev.map(x=>x.id===selected.id?{...x,final_artwork_title:data.artwork.final_artwork_title,final_year:data.artwork.final_year,final_image_url:data.imageUrl}:x));setFinalFile(null);setMessage("Фотография готовой картины сохранена.");}
+  try{const form=new FormData();form.set("image",finalFile);form.set("title",finalTitle);form.set("year",finalYear);const response=await fetch("/api/admin/commissions/"+selected.id+"/artwork",{method:"POST",body:form});const data=await readAdminJson(response);if(!response.ok)throw new Error(data.error||"Не удалось загрузить работу.");setRows(prev=>prev.map(x=>x.id===selected.id?{...x,final_artwork_title:data.artwork.final_artwork_title,final_year:data.artwork.final_year,final_image_url:data.imageUrl}:x));setFinalFile(null);setMessage("Фотография готовой картины сохранена.");}
   catch(e){setMessage(e instanceof Error?e.message:"Ошибка загрузки.");}finally{setBusy(false);}
  }
  const money=(v:number|null|undefined)=>v==null?"—":"€"+Number(v).toFixed(2);

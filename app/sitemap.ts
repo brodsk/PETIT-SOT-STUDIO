@@ -32,7 +32,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   ];
 
   const staticPages: MetadataRoute.Sitemap = staticPaths.flatMap(({ path, changeFrequency, priority }) => {
-    const includeRussian = path !== "/trencin-art-studio" && path !== "/commission-terms";
+    const includeRussian = path !== "/trencin-art-studio";
     const englishPage = {
       url: `${SITE_URL}${path === "/" ? "" : path}`,
       changeFrequency,

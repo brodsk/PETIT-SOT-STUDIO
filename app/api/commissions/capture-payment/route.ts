@@ -27,7 +27,10 @@ export async function POST(request:Request){
   const {error:updateError}=await admin.from("petit_sot_commissions").update({status:"deposit_paid",paypal_order_id:orderId,paypal_capture_id:captureId,deposit_paid_at:new Date().toISOString()}).eq("id",commission.id);
   if(updateError)throw updateError;
   const resend=process.env.RESEND_API_KEY,from=process.env.CONTACT_FROM_EMAIL;
-  if(resend&&from)await fetch("https://api.resend.com/emails",{method:"POST",headers:{Authorization:"Bearer "+resend,"Content-Type":"application/json"},body:JSON.stringify({from,to:["manager@petitsot.com"],subject:"Commission deposit paid — "+reference,text:"The 50% deposit has been paid for commission "+reference+". PayPal order: "+orderId+". Capture: "+(captureId||"—")}),cache:"no-store"}).catch(()=>{});
+  if(resend&&from){
+   await fetch("https://api.resend.com/emails",{method:"POST",headers:{Authorization:"Bearer "+resend,"Content-Type":"application/json"},body:JSON.stringify({from,to:["manager@petitsot.com"],subject:"Commission deposit paid — "+reference,text:"The 50% deposit has been paid for commission "+reference+". PayPal order: "+orderId+". Capture: "+(captureId||"—")}),cache:"no-store"}).catch(()=>{});
+   await fetch("https://api.resend.com/emails",{method:"POST",headers:{Authorization:"Bearer "+resend,"Content-Type":"application/json"},body:JSON.stringify({from,to:[commission.customer_email],subject:"Your PETIT.SOT commission deposit is confirmed",text:"Hello,\n\nYour 50% deposit for commission "+reference+" has been received successfully. Olga will now schedule the painting.\n\nThank you,\nPETIT.SOT STUDIO"}),cache:"no-store"}).catch(()=>{});
+  }
   return NextResponse.json({status:"COMPLETED",reference});
  }catch(error:any){console.error("Commission capture failed",error);return NextResponse.json({error:error?.message||"Could not confirm payment."},{status:503});}
 }

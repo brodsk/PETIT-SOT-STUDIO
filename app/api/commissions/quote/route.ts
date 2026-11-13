@@ -103,7 +103,7 @@ export async function POST(request:Request){
     }else return NextResponse.json({error:"The image model returned an unsupported format."},{status:502});
     if(!buffer.length||buffer.length>15*1024*1024)return NextResponse.json({error:"The generated preview could not be saved."},{status:502});
     const admin=createAdminClient();
-    const reference="PS-C-"+new Date().getFullYear()+"-"+Math.random().toString(36).slice(2,8).toUpperCase();
+    const reference="PS-C-"+new Date().getFullYear()+"-"+crypto.randomUUID().replace(/-/g,"").slice(0,12).toUpperCase();
     const extension=mime.includes("webp")?"webp":mime.includes("jpeg")?"jpg":"png";
     const path="commissions/"+reference+"/concept."+extension;
     const upload=await admin.storage.from("petit-sot-artworks").upload(path,buffer,{contentType:mime,upsert:false});

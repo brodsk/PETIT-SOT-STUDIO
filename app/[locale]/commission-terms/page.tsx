@@ -3,7 +3,8 @@ export async function generateMetadata({params}:{params:Promise<{locale:string}>
  const {locale}=await params;const ru=locale==="ru";const title=ru?"Условия заказа картины | PETIT.SOT STUDIO":"Custom Painting Commission Terms | PETIT.SOT STUDIO";
  const description=ru?"Условия индивидуального заказа оригинальной картины у PETIT.SOT STUDIO.":"Terms for ordering an original custom painting from PETIT.SOT STUDIO.";
  const base="https://www.petitsot.com/commission-terms";
- return {title,description,alternates:{canonical:ru?base+"/ru":base,languages:{en:base,ru:base+"/ru","x-default":base}}};
+ const russian="https://www.petitsot.com/ru/commission-terms";
+ return {title,description,alternates:{canonical:ru?russian:base,languages:{en:base,ru:russian,"x-default":base}}};
 }
 export default async function CommissionTermsPage({params}:{params:Promise<{locale:string}>}){
  const {locale}=await params;const ru=locale==="ru";

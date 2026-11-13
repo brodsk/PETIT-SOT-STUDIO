@@ -2,6 +2,7 @@ import {NextResponse} from "next/server";
 import {createHash,randomBytes} from "node:crypto";
 import {createClient} from "../../../../../lib/supabase/server";
 import {createAdminClient} from "../../../../../lib/supabase/admin";
+import {sendStudioEmail} from "../../../../../lib/email/brand";
 export const runtime="nodejs";
 const allowed=new Set(["new","reviewing","approved","awaiting_deposit","in_progress","drying","ready_to_ship","shipped","completed","declined","cancelled"]);
 export async function PATCH(request:Request,{params}:{params:Promise<{id:string}>}){try{
@@ -24,13 +25,48 @@ export async function PATCH(request:Request,{params}:{params:Promise<{id:string}
  let proposalToken:string|undefined;
  if(body.sendProposal){proposalToken=randomBytes(32).toString("hex");patch.proposal_version=Number(current.proposal_version||0)+1;patch.proposal_token_hash=createHash("sha256").update(proposalToken).digest("hex");patch.proposal_pending=true;patch.proposal_sent_at=new Date().toISOString();patch.customer_approved_at=null;}
  const {data:saved,error}=await db.from("petit_sot_commissions").update(patch).eq("id",id).select("*").single();if(error)throw error;
- const key=process.env.RESEND_API_KEY,from=process.env.CONTACT_FROM_EMAIL;let emailSent=false;
- if(body.sendProposal&&key&&from){
-  const origin=new URL(request.url).origin,approvalUrl=new URL("/commission/approve?ref="+encodeURIComponent(saved.reference_code)+"&token="+proposalToken,origin).toString();
-  const lines=["Hello "+saved.customer_name+",","", "Olga has prepared a proposal for your PETIT.SOT custom painting.","","Reference: "+saved.reference_code,"Your concept and requested artwork: "+saved.description,"Canvas: "+saved.width_cm+" × "+saved.height_cm+" cm","Final price: €"+Number(saved.final_price_eur).toFixed(2),"50% deposit after your approval: €"+Number(saved.deposit_amount_eur).toFixed(2),"Remaining 50% before dispatch: €"+Number(saved.balance_amount_eur).toFixed(2),"Estimated production and initial drying: "+saved.estimated_days_min+"–"+saved.estimated_days_max+" days.","","Please review and approve or decline the proposal here: "+approvalUrl,"","No payment is due until you approve these terms.","","Здравствуйте, "+saved.customer_name+"! Ольга подготовила предложение по вашей картине.","Итоговая стоимость: €"+Number(saved.final_price_eur).toFixed(2)+". Предоплата 50% после подтверждения: €"+Number(saved.deposit_amount_eur).toFixed(2)+". Срок: "+saved.estimated_days_min+"–"+saved.estimated_days_max+" дней.","Подтвердить или отклонить условия: "+approvalUrl,"","PETIT.SOT STUDIO"].join("\n");
-  const sent=await fetch("https://api.resend.com/emails",{method:"POST",headers:{Authorization:"Bearer "+key,"Content-Type":"application/json"},body:JSON.stringify({from,to:[saved.customer_email],subject:"Please approve your PETIT.SOT painting proposal — "+saved.reference_code,text:lines}),cache:"no-store"});emailSent=sent.ok;
+ let emailSent=false;
+ const origin=new URL(request.url).origin;
+ if(body.sendProposal){
+  const approvalUrl=new URL((saved.customer_locale==="ru"?"/ru":"")+"/commission/approve?ref="+encodeURIComponent(saved.reference_code)+"&token="+proposalToken,origin).toString();
+  emailSent=await sendStudioEmail({
+   to:saved.customer_email,
+   subject:(saved.customer_locale==="ru"?"Предложение вашей картины PETIT.SOT — требуется подтверждение":"Please approve your PETIT.SOT painting proposal")+" — "+saved.reference_code,
+   preheader:saved.customer_locale==="ru"?"Ознакомьтесь с предложением Ольги и подтвердите условия.":"Review Olga's proposal and approve the details.",
+   title:saved.customer_locale==="ru"?"Предложение вашей картины готово":"Your painting proposal is ready",
+   greeting:(saved.customer_locale==="ru"?"Здравствуйте, ":"Hello ")+saved.customer_name+"!",
+   paragraphs:[saved.customer_locale==="ru"?"Ольга подготовила индивидуальное предложение по вашей картине. Оплата потребуется только после вашего подтверждения.":"Olga has prepared a personal proposal for your commissioned painting. No payment is due until you approve the terms."],
+   details:[
+    {label:saved.customer_locale==="ru"?"Номер заказа":"Reference",value:saved.reference_code},
+    {label:saved.customer_locale==="ru"?"Размер":"Canvas",value:saved.width_cm+" × "+saved.height_cm+" cm"},
+    {label:saved.customer_locale==="ru"?"Стоимость":"Total price",value:"€"+Number(saved.final_price_eur).toFixed(2)},
+    {label:saved.customer_locale==="ru"?"Предоплата 50%":"50% deposit",value:"€"+Number(saved.deposit_amount_eur).toFixed(2)},
+    {label:saved.customer_locale==="ru"?"Остаток перед отправкой":"Balance before dispatch",value:"€"+Number(saved.balance_amount_eur).toFixed(2)},
+    {label:saved.customer_locale==="ru"?"Срок изготовления":"Estimated timeline",value:saved.estimated_days_min+"–"+saved.estimated_days_max+" days"}
+   ],
+   buttonLabel:saved.customer_locale==="ru"?"Посмотреть предложение":"Review proposal",
+   buttonUrl:approvalUrl,
+   footerNote:saved.customer_locale==="ru"?"Если у вас возникнут вопросы, ответьте на это письмо.":"If you have any questions, simply reply to this email."
+  });
  }
- const origin=new URL(request.url).origin,paymentUrl=new URL("/commission/payment?ref="+encodeURIComponent(saved.reference_code)+(status==="ready_to_ship"?"&balance=1":""),origin).toString();
- if(key&&from&&status==="ready_to_ship"&&!saved.balance_paid_at){const sent=await fetch("https://api.resend.com/emails",{method:"POST",headers:{Authorization:"Bearer "+key,"Content-Type":"application/json"},body:JSON.stringify({from,to:[saved.customer_email],subject:"Your PETIT.SOT painting is ready — final balance",text:["Hello "+saved.customer_name+",","Your painting is finished and ready for dispatch.","Reference: "+saved.reference_code,"Total price: €"+Number(saved.final_price_eur).toFixed(2),"Remaining balance: €"+Number(saved.balance_amount_eur).toFixed(2),"Pay securely with PayPal: "+paymentUrl,"Thank you, PETIT.SOT STUDIO"].join("\n")}),cache:"no-store"});emailSent=sent.ok;}
+ const paymentUrl=new URL("/commission/payment?ref="+encodeURIComponent(saved.reference_code)+(status==="ready_to_ship"?"&balance=1":""),origin).toString();
+ if(status==="ready_to_ship"&&!saved.balance_paid_at){
+  const sent=await sendStudioEmail({
+   to:saved.customer_email,
+   subject:(saved.customer_locale==="ru"?"Ваша картина PETIT.SOT готова":"Your PETIT.SOT painting is ready")+" — "+saved.reference_code,
+   preheader:saved.customer_locale==="ru"?"Осталось оплатить финальную часть заказа.":"Your painting is complete. The remaining balance is now due.",
+   title:saved.customer_locale==="ru"?"Ваша картина готова":"Your painting is ready",
+   greeting:(saved.customer_locale==="ru"?"Здравствуйте, ":"Hello ")+saved.customer_name+"!",
+   paragraphs:[saved.customer_locale==="ru"?"Работа завершена и готова к отправке. Пожалуйста, оплатите оставшуюся часть заказа.":"Your painting is finished and ready for dispatch. Please complete the remaining balance so the studio can arrange shipment."],
+   details:[
+    {label:saved.customer_locale==="ru"?"Номер заказа":"Reference",value:saved.reference_code},
+    {label:saved.customer_locale==="ru"?"Общая стоимость":"Total price",value:"€"+Number(saved.final_price_eur).toFixed(2)},
+    {label:saved.customer_locale==="ru"?"Остаток к оплате":"Remaining balance",value:"€"+Number(saved.balance_amount_eur).toFixed(2)}
+   ],
+   buttonLabel:saved.customer_locale==="ru"?"Оплатить остаток":"Pay remaining balance",
+   buttonUrl:paymentUrl
+  });
+  emailSent=sent||emailSent;
+ }
  return NextResponse.json({commission:saved,paymentUrl,emailSent,proposalPending:Boolean(body.sendProposal)});
  }catch(e:any){console.error("Commission update failed",e);return NextResponse.json({error:e?.message||"Could not update commission."},{status:500});}}

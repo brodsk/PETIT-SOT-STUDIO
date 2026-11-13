@@ -81,10 +81,12 @@ export default function PrivacyPolicyPage() {
           <p>
             Data is shared only as needed to run the website and its features. Service providers include
             Vercel for hosting and Supabase for database and image storage. Contact-form messages are delivered
-            through Telegram. Pinterest may process information when the administrator uses its publishing
-            integration. Artwork images are publicly accessible on the site, and a visitor's browser may
-            request those images directly from the storage provider. Depending on provider infrastructure and
-            settings, data may be processed outside the European Economic Area. We do not sell personal data.
+            through Telegram and Resend. The AI image-generation provider processes the text and visual
+            preferences needed to create a requested concept. PayPal processes commission payments. Pinterest
+            may process information when the administrator uses its publishing integration. Artwork images
+            are publicly accessible on the site, and a visitor's browser may request those images directly from
+            the storage provider. Depending on provider infrastructure and settings, data may be processed
+            outside the European Economic Area. We do not sell personal data.
           </p>
         </section>
 
@@ -95,8 +97,10 @@ export default function PrivacyPolicyPage() {
             where necessary for legal obligations or claims. Copies delivered to Telegram may remain in chat
             history until deleted by a chat administrator and may also be subject to Telegram's own systems.
             Technical logs and publishing records are kept according to the relevant service settings for
-            operation, security and troubleshooting. Published artwork images remain available while the
-            portfolio needs them.
+            operation, security and troubleshooting. Commission details and generated previews are kept while
+            needed to review, fulfil and document the order, and for longer where required for accounting, legal
+            obligations or the establishment or defence of legal claims. Published artwork images and
+            authenticity certificate records remain available while the portfolio and verification service need them.
           </p>
         </section>
 

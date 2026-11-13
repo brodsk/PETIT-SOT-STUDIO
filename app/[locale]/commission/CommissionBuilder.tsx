@@ -1,6 +1,7 @@
 "use client";
 import {FormEvent,useEffect,useRef,useState} from "react";
 import styles from "./commission.module.css";
+import PhotoWallPreview from "../ar-test/PhotoWallPreview";
 type TurnstileApi={render:(el:HTMLElement,o:{sitekey:string;callback:(t:string)=>void;"expired-callback"?:()=>void;"error-callback"?:()=>void;theme?:"light"|"dark"|"auto"})=>string;remove:(id:string)=>void;reset:(id:string)=>void};
 declare global{interface Window{turnstile?:TurnstileApi}}
 const SITE_KEY=process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY||"";
@@ -32,7 +33,7 @@ export default function CommissionBuilder({ru}:{ru:boolean}){
  {SITE_KEY&&<div className={styles.captcha}><div ref={captchaRef}/>{captchaError&&<p>{ru?"Пройдите проверку безопасности.":"Please complete the security check."}</p>}</div>}
  <input className={styles.honeypot} tabIndex={-1} autoComplete="off" value={website} onChange={e=>setWebsite(e.target.value)} aria-hidden="true"/>
  <button className={styles.submit} type="button" disabled={busy||rateLimitSeconds>0||description.length<20||!Number(width)||!Number(height)} onClick={generate}>{busy?(ru?"Создаём…":"Generating…"):(concept?(ru?"Обновить референс":"Regenerate concept"):(ru?"Создать референс":"Generate concept"))} <span>↗</span></button>
- {concept&&<section className={styles.result}><p className={styles.eyebrow}>{ru?"ВАШ РЕФЕРЕНС":"YOUR CONCEPT"}</p><img className={styles.preview} src={concept.imageUrl} alt="AI-generated painting concept"/><p className={styles.note}>{ru?"Если концепция вам нравится, заполните контакты и отправьте её Ольге. До этого момента заявка не создаётся.":"If you like this concept, add your contact details and submit it to Olga. No commission is created before you do."}</p>
+ {concept&&<section className={styles.result}><p className={styles.eyebrow}>{ru?"ВАШ РЕФЕРЕНС":"YOUR CONCEPT"}</p><img className={styles.preview} src={concept.imageUrl} alt="AI-generated painting concept"/><PhotoWallPreview ru={ru} artworkChoices={[{id:"commission-concept",title:ru?"Ваша будущая картина":"Your commissioned painting",image:concept.imageUrl,width:Number(width),height:Number(height)}]}/><p className={styles.note}>{ru?"Если концепция вам нравится, заполните контакты и отправьте её Ольге. До этого момента заявка не создаётся.":"If you like this concept, add your contact details and submit it to Olga. No commission is created before you do."}</p>
  <div className={styles.sectionHead}><span>02</span><div><h2>{ru?"Отправить заявку":"Submit your request"}</h2><p>{ru?"Ольга получит концепцию и свяжется с вами по email.":"Olga will receive the concept and contact you by email."}</p></div></div>
  <div className={styles.grid}><label className={styles.field}><span>{ru?"Имя":"Name"} *</span><input value={name} onChange={e=>setName(e.target.value)} required maxLength={80} autoComplete="name"/></label><label className={styles.field}><span>Email *</span><input type="email" value={email} onChange={e=>setEmail(e.target.value)} required maxLength={254} autoComplete="email"/></label></div>
  <label className={styles.field}><span>{ru?"Страна (необязательно)":"Country (optional)"}</span><input value={country} onChange={e=>setCountry(e.target.value)} maxLength={80}/></label>

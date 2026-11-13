@@ -8,7 +8,7 @@ export async function POST(request:Request){
  try{
   const body=await request.json();const orderId=String(body?.orderId||"").trim();const reference=String(body?.reference||"").trim();const type=body?.type==="balance"?"balance":"deposit";
   if(!/^[A-Z0-9]+$/i.test(orderId)||!/^PS-C-\d{4}-[A-Z0-9]{12}$/.test(reference))return NextResponse.json({error:"Invalid payment reference."},{status:400});
-  const db=createAdminClient();const {data:c,error}=await db.from("petit_sot_commissions").select("id,reference_code,status,deposit_amount_eur,balance_amount_eur,deposit_paid_at,balance_paid_at,paypal_order_id,balance_paypal_order_id,customer_email").eq("reference_code",reference).single();
+  const db=createAdminClient();const {data:c,error}=await db.from("petit_sot_commissions").select("id,reference_code,status,deposit_amount_eur,balance_amount_eur,deposit_paid_at,balance_paid_at,paypal_order_id,balance_paypal_order_id,customer_email,customer_locale").eq("reference_code",reference).single();
   if(error||!c)return NextResponse.json({error:"Commission not found."},{status:404});
   if(type==="deposit"&&c.deposit_paid_at)return NextResponse.json({status:"COMPLETED",reference,type});
   if(type==="balance"&&c.balance_paid_at)return NextResponse.json({status:"COMPLETED",reference,type});

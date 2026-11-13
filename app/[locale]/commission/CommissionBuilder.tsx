@@ -38,7 +38,7 @@ export default function CommissionBuilder({ru}:{ru:boolean}){
  }
  const reset=()=>{setResult(null);setDescription("");setToken("");if(widgetRef.current&&window.turnstile)window.turnstile.reset(widgetRef.current);};
  return <main className={styles.page}>
-  <section className={styles.hero}><p className={styles.eyebrow}>PETIT.SOT STUDIO / {ru?"ИНДИВИДУАЛЬНЫЙ ЗАКАЗ":"ART COMMISSIONS"}</p><h1>{ru?<>Картина,<br/><em>созданная для вас.</em></>:<>A painting<br/><em>made for you.</em></>}</h1><p className={styles.lead}>{ru?"Расскажите Ольге о своей идее. Мы создадим визуальную концепцию, рассчитаем предварительную стоимость и сроки — до начала работы.":"Tell Olga what you have in mind. We’ll create a visual concept and calculate an estimated price and timeline before the painting begins."}</p></section>
+  <section className={styles.hero}><p className={styles.eyebrow}>PETIT.SOT STUDIO / {ru?"ИНДИВИДУАЛЬНЫЙ ЗАКАЗ":"ART COMMISSIONS"}</p><h1>{ru?<em>Картина,<br/>созданная для вас.</em>:<em>A painting<br/>made for you.</em>}</h1><p className={styles.lead}>{ru?"Расскажите Ольге о своей идее. Мы создадим визуальную концепцию, рассчитаем предварительную стоимость и сроки — до начала работы.":"Tell Olga what you have in mind. We’ll create a visual concept and calculate an estimated price and timeline before the painting begins."}</p></section>
   {result?<section className={styles.result}>
     <p className={styles.eyebrow}>{ru?"ЗАЯВКА ПРИНЯТА":"REQUEST RECEIVED"}</p><h2>{ru?"Ваша идея получила форму.":"Your idea has taken shape."}</h2>
     <img className={styles.preview} src={result.imageUrl} alt={ru?"Сгенерированный визуальный референс картины":"AI-generated painting concept"}/>

@@ -8,7 +8,7 @@ export async function PATCH(request:Request,{params}:{params:Promise<{id:string}
  const auth=await createClient(),{data:{user}}=await auth.auth.getUser();if(!user)return NextResponse.json({error:"Unauthorized"},{status:401});
  const {data:adminRow}=await auth.from("petit_sot_admins").select("user_id").eq("user_id",user.id).maybeSingle();if(!adminRow)return NextResponse.json({error:"Forbidden"},{status:403});
  const {id}=await params,body=await request.json(),db=createAdminClient(),{data:current,error:readError}=await db.from("petit_sot_commissions").select("*").eq("id",id).single();if(readError||!current)return NextResponse.json({error:"Commission not found."},{status:404});
- const status=body.status?String(body.status):current.status;if(!allowed.has(status))return NextResponse.json({error:"Invalid status."},{status:400});
+ const status=body.status?String(body.status):current.status;if(!allowed.has(status))return NextResponse.json({error:"Invalid status."},{status:400});if(status==="awaiting_deposit"&&!current.customer_approved_at)return NextResponse.json({error:"The customer must approve the latest proposal before the deposit can be requested."},{status:409});
  const finalPrice=body.finalPrice!==undefined?Number(body.finalPrice):Number(current.final_price_eur??current.estimated_price_eur);
  if((body.sendProposal||status==="approved"||status==="awaiting_deposit")&&(!Number.isFinite(finalPrice)||finalPrice<100||finalPrice>50000))return NextResponse.json({error:"Set a valid final price before sending the proposal."},{status:400});
  if(current.deposit_paid_at&&Math.abs(finalPrice-Number(current.final_price_eur))>.001)return NextResponse.json({error:"The final price cannot be changed after the deposit has been paid."},{status:409});

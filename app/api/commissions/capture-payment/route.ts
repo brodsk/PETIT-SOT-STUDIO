@@ -1,5 +1,6 @@
 import {NextResponse} from "next/server";
 import {createAdminClient} from "../../../../lib/supabase/admin";
+import {sendStudioEmail} from "../../../../lib/email/brand";
 export const runtime="nodejs";
 function base(){return process.env.PAYPAL_ENVIRONMENT==="live"?"https://api-m.paypal.com":"https://api-m.sandbox.paypal.com";}
 async function token(){const id=process.env.PAYPAL_CLIENT_ID,secret=process.env.PAYPAL_CLIENT_SECRET;if(!id||!secret)throw new Error("PayPal is not configured.");const r=await fetch(base()+"/v1/oauth2/token",{method:"POST",headers:{Authorization:"Basic "+Buffer.from(id+":"+secret).toString("base64"),"Content-Type":"application/x-www-form-urlencoded"},body:"grant_type=client_credentials",cache:"no-store"});if(!r.ok)throw new Error("PayPal authentication failed.");return (await r.json()).access_token as string;}
@@ -29,15 +30,37 @@ export async function POST(request:Request){
   const now=new Date().toISOString();
   const patch=type==="balance"?{balance_paypal_order_id:orderId,balance_paypal_capture_id:captureId,balance_paid_at:now}:{status:"deposit_paid",paypal_order_id:orderId,paypal_capture_id:captureId,deposit_paid_at:now};
   const {error:updateError}=await db.from("petit_sot_commissions").update(patch).eq("id",c.id);if(updateError)throw updateError;
-  const resend=process.env.RESEND_API_KEY,from=process.env.CONTACT_FROM_EMAIL;
-  if(resend&&from){
-   const label=type==="balance"?"remaining balance":"50% deposit";
-   const emailText="Your "+label+" for commission "+reference+" has been received successfully. "+(type==="balance"?"The painting is ready for dispatch; the studio will arrange shipment.":"Olga will now schedule the painting.")+"\n\nThank you,\nPETIT.SOT STUDIO";
-   await Promise.allSettled([
-    fetch("https://api.resend.com/emails",{method:"POST",headers:{Authorization:"Bearer "+resend,"Content-Type":"application/json"},body:JSON.stringify({from,to:["manager@petitsot.com"],subject:"Commission "+label+" paid — "+reference,text:"The "+label+" has been paid for commission "+reference+". PayPal order: "+orderId+". Capture: "+(captureId||"—")}),cache:"no-store"}),
-    fetch("https://api.resend.com/emails",{method:"POST",headers:{Authorization:"Bearer "+resend,"Content-Type":"application/json"},body:JSON.stringify({from,to:[c.customer_email],subject:"Your PETIT.SOT commission payment is confirmed",text:"Hello,\n\n"+emailText}),cache:"no-store"})
-   ]);
-  }
+  const ru=c.customer_locale==="ru",label=type==="balance"?(ru?"окончательного остатка":"remaining balance"):(ru?"предоплаты 50%":"50% deposit");
+  const paidAmount=type==="balance"?Number(c.balance_amount_eur):Number(c.deposit_amount_eur);
+  await Promise.allSettled([
+   sendStudioEmail({
+    to:c.customer_email,
+    subject:ru?"Оплата PETIT.SOT подтверждена":"Your PETIT.SOT commission payment is confirmed",
+    preheader:ru?"Мы получили ваш платёж. Спасибо!":"Your payment has been received successfully.",
+    title:ru?"Платёж получен":"Payment confirmed",
+    greeting:ru?"Здравствуйте!":"Hello!",
+    paragraphs:[ru?"Мы успешно получили оплату ("+label+"). "+(type==="balance"?"Студия подготовит отправку вашей картины.":"Ольга приступит к работе над вашим заказом."):"Your "+label+" has been received successfully. "+(type==="balance"?"The studio will now arrange dispatch of your painting.":"Olga will now schedule your painting.")],
+    details:[
+     {label:ru?"Номер заказа":"Reference",value:reference},
+     {label:ru?"Оплачено":"Amount paid",value:"€"+paidAmount.toFixed(2)},
+     {label:ru?"Статус":"Status",value:ru?"Оплачено":"Paid"}
+    ],
+    footerNote:ru?"Спасибо, что выбрали PETIT.SOT STUDIO.":"Thank you for choosing PETIT.SOT STUDIO."
+   }),
+   sendStudioEmail({
+    to:"manager@petitsot.com",
+    subject:"Commission "+label+" paid — "+reference,
+    title:"Commission payment received",
+    greeting:"A customer payment was captured successfully.",
+    details:[
+     {label:"Reference",value:reference},
+     {label:"Payment stage",value:label},
+     {label:"Amount",value:"€"+paidAmount.toFixed(2)},
+     {label:"PayPal order",value:orderId},
+     {label:"Capture ID",value:captureId||"—"}
+    ]
+   })
+  ]);
   return NextResponse.json({status:"COMPLETED",reference,type});
  }catch(error:any){console.error("Commission capture failed",error);return NextResponse.json({error:error?.message||"Could not confirm payment."},{status:503});}
 }

@@ -5,7 +5,7 @@ function base(){return process.env.PAYPAL_ENVIRONMENT==="live"?"https://api-m.pa
 async function accessToken(){const id=process.env.PAYPAL_CLIENT_ID,secret=process.env.PAYPAL_CLIENT_SECRET;if(!id||!secret)throw new Error("PayPal is not configured.");const r=await fetch(base()+"/v1/oauth2/token",{method:"POST",headers:{Authorization:"Basic "+Buffer.from(id+":"+secret).toString("base64"),"Content-Type":"application/x-www-form-urlencoded"},body:"grant_type=client_credentials",cache:"no-store"});if(!r.ok)throw new Error("PayPal authentication failed.");return (await r.json()).access_token as string;}
 export async function POST(request:Request,{params}:{params:Promise<{reference:string}>}){try{
  const {reference}=await params,body=await request.json(),type=body?.type==="balance"?"balance":"deposit",paymentMethod=body?.paymentMethod==="cardfields"?"cardfields":"paypal";
- if(!/^PS-C-\\d{4}-[A-Z0-9]{12}$/.test(reference))return NextResponse.json({error:"Invalid commission reference."},{status:400});
+ if(!/^PS-C-\d{4}-[A-Z0-9]{12}$/.test(reference))return NextResponse.json({error:"Invalid commission reference."},{status:400});
  const db=createAdminClient(),{data:c,error}=await db.from("petit_sot_commissions").select("id,reference_code,status,customer_locale,customer_approved_at,deposit_amount_eur,balance_amount_eur,deposit_paid_at,balance_paid_at,paypal_order_id,balance_paypal_order_id").eq("reference_code",reference).maybeSingle();
  if(error||!c)return NextResponse.json({error:"Commission not found."},{status:404});
  if(type==="deposit"&&(!c.customer_approved_at||!["awaiting_deposit","approved"].includes(c.status)||c.deposit_paid_at))return NextResponse.json({error:"The customer must approve the latest proposal before paying the deposit."},{status:409});

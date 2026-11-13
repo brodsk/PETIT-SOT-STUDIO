@@ -3,6 +3,16 @@ import {createHash} from "node:crypto";
 import {createAdminClient} from "../../../../../lib/supabase/admin";
 import {sendStudioEmail} from "../../../../../lib/email/brand";
 export const runtime="nodejs";
+export async function GET(request:Request){try{
+ const url=new URL(request.url),ref=String(url.searchParams.get("reference")||""),token=String(url.searchParams.get("token")||"");
+ if(!/^PS-C-\\d{4}-[A-Z0-9]{12}$/.test(ref)||!/^[a-f0-9]{64}$/.test(token))return NextResponse.json({error:"Invalid proposal link."},{status:400});
+ const hash=createHash("sha256").update(token).digest("hex"),db=createAdminClient();
+ const {data:c,error}=await db.from("petit_sot_commissions").select("reference_code,width_cm,height_cm,description,artist_notes,final_price_eur,deposit_amount_eur,balance_amount_eur,estimated_days_min,estimated_days_max,customer_locale,proposal_version").eq("reference_code",ref).eq("proposal_token_hash",hash).eq("proposal_pending",true).maybeSingle();
+ if(error)throw error;
+ if(!c)return NextResponse.json({error:"This proposal link is invalid, expired or has already been used."},{status:404});
+ return NextResponse.json({proposal:c});
+ }catch(e:any){console.error("Proposal details lookup failed",e);return NextResponse.json({error:e?.message||"Could not load proposal."},{status:500});}}
+
 export async function POST(request:Request){try{
  const body=await request.json(),ref=String(body.reference||""),token=String(body.token||""),decision=body.decision==="approve"?"approve":body.decision==="decline"?"decline":"";
  if(!/^PS-C-\d{4}-[A-Z0-9]{12}$/.test(ref)||!/^[a-f0-9]{64}$/.test(token)||!decision)return NextResponse.json({error:"Invalid approval link."},{status:400});

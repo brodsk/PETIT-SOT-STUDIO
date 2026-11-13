@@ -127,7 +127,7 @@ export async function POST(request:Request){
       width_cm:width,height_cm:height,medium:"Oil on canvas",preview_image_path:path,
       estimated_price_eur:quote.price,estimated_days_min:quote.daysMin,estimated_days_max:quote.daysMax
     }).select("id,reference_code,estimated_price_eur,estimated_days_min,estimated_days_max").single();
-    if(error){await admin.storage.from("petit-sot-artworks").remove([path]);throw error;}
+    if(error){if(path)await admin.storage.from("petit-sot-artworks").remove([path]);throw error;}
     await notifyStudio(reference,name,email,description,quote.price);
     const imageUrl=path?admin.storage.from("petit-sot-artworks").getPublicUrl(path).data.publicUrl:null;
     return NextResponse.json({ok:true,commission:row,imageUrl,previewAvailable:Boolean(imageUrl),previewError:previewError||null,depositEstimate:Math.round(quote.price/2)});

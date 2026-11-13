@@ -1,6 +1,7 @@
 import {createAdminClient} from "../../../../lib/supabase/admin";
 import CommissionPayment from "./CommissionPayment";
 export const dynamic="force-dynamic";
+export const metadata={title:"Commission Deposit | PETIT.SOT STUDIO",robots:{index:false,follow:false}};
 export default async function CommissionPaymentPage({searchParams}:{searchParams:Promise<{ref?:string;token?:string;cancel?:string}>}){
  const params=await searchParams;const reference=String(params.ref||"");let commission:any=null;
  if(/^PS-C-\d{4}-[A-Z0-9]{6}$/.test(reference)){

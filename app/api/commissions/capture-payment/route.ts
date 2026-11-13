@@ -6,7 +6,7 @@ async function token(){const id=process.env.PAYPAL_CLIENT_ID,secret=process.env.
 export async function POST(request:Request){
  try{
   const body=await request.json();const orderId=String(body?.orderId||"").trim();const reference=String(body?.reference||"").trim();
-  if(!/^[A-Z0-9]+$/i.test(orderId)||!/^PS-C-\d{4}-[A-Z0-9]{6}$/.test(reference))return NextResponse.json({error:"Invalid payment reference."},{status:400});
+  if(!/^[A-Z0-9]+$/i.test(orderId)||!/^PS-C-\d{4}-[A-Z0-9]{12}$/.test(reference))return NextResponse.json({error:"Invalid payment reference."},{status:400});
   const admin=createAdminClient();const {data:commission,error}=await admin.from("petit_sot_commissions").select("id,reference_code,status,deposit_amount_eur,paypal_order_id,customer_email").eq("reference_code",reference).single();
   if(error||!commission)return NextResponse.json({error:"Commission not found."},{status:404});
   if(commission.status==="deposit_paid")return NextResponse.json({status:"COMPLETED",reference});

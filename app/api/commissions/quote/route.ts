@@ -5,15 +5,6 @@ import { createAdminClient } from "../../../../lib/supabase/admin";
 export const runtime = "nodejs";
 export const maxDuration = 60;
 
-const recent = new Map<string, number[]>();
-function allowRequest(ip:string){
-  const now=Date.now();
-  const times=(recent.get(ip)||[]).filter(t=>now-t<60*60*1000);
-  if(times.length>=3){recent.set(ip,times);return false;}
-  times.push(now);recent.set(ip,times);
-  if(recent.size>1000){for(const [key,value] of recent){if(!value.some(t=>now-t<60*60*1000))recent.delete(key);}}
-  return true;
-}
 function validEmail(value:string){
   return value.length<=254 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 }
@@ -102,8 +93,8 @@ export async function POST(request:Request){
           const ratio=width/height;
           const ratios=[["1:1",1],["3:2",1.5],["2:3",2/3],["4:3",4/3],["3:4",.75],["5:4",1.25],["4:5",.8],["16:9",16/9],["9:16",9/16],["21:9",21/9],["4:1",4],["1:4",.25],["8:1",8],["1:8",.125]];
           const aspectRatio=ratios.reduce((best,item)=>Math.abs(Math.log(item[1]/ratio))<Math.abs(Math.log(best[1]/ratio))?item:best,ratios[0])[0];
-          const response=await fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-image:generateContent?key="+encodeURIComponent(geminiKey),{
-            method:"POST",headers:{"Content-Type":"application/json"},
+          const response=await fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-image:generateContent",{
+            method:"POST",headers:{"Content-Type":"application/json","x-goog-api-key":geminiKey},
             body:JSON.stringify({contents:[{parts:[{text:prompt}]}],generationConfig:{responseModalities:["IMAGE"],imageConfig:{aspectRatio,imageSize:"1K"}}}),
             cache:"no-store",signal:AbortSignal.timeout(50000)
           });

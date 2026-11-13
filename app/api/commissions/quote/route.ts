@@ -76,7 +76,7 @@ export async function POST(request:Request){
     if(!hfToken)return NextResponse.json({error:"The artwork preview service is not configured yet."},{status:503});
     const quote=calculate(width,height,complexity);
     const prompt=[
-      "Create a refined original oil painting concept for PETIT.SOT STUDIO by artist Olga Trikhleb.",
+      "Create a refined original oil painting concept for PETIT.SOT STUDIO by artist Olga Trikhleb, with an atmospheric fine-art sensibility, expressive natural light, nuanced muted colours, layered brushwork and subtle oil-paint texture.",
       "The image is a visual reference for a future hand-painted oil-on-canvas artwork, not a photograph and not a finished physical artwork.",
       "Use visible painterly brushwork, subtle layered oil-paint texture, sophisticated natural colours, thoughtful composition and an atmospheric fine-art sensibility.",
       "Do not imitate a living artist or reproduce an existing artwork. Do not add text, signatures, watermarks, frames, borders or logos.",
@@ -87,7 +87,7 @@ export async function POST(request:Request){
       "The result should look like a plausible original contemporary oil painting that Olga could interpret in her own hand, not a digitally perfect commercial illustration."
     ].filter(Boolean).join("\n");
     const hf=new InferenceClient(hfToken);
-    const generated=await hf.textToImage({provider:"fal-ai",model:"black-forest-labs/FLUX.1-schnell",inputs:prompt,parameters:{guidance_scale:0,num_inference_steps:4,width:1024,height:1024}});
+    const ratio=width/height;\n    const longSide=1024;\n    const shortSide=Math.max(512,Math.round((longSide/Math.max(ratio,1/ratio))/64)*64);\n    const imageWidth=ratio>=1?longSide:shortSide;\n    const imageHeight=ratio>=1?shortSide:longSide;\n    const generated=await hf.textToImage({provider:"fal-ai",model:"black-forest-labs/FLUX.1-schnell",inputs:prompt,parameters:{guidance_scale:0,num_inference_steps:4,width:imageWidth,height:imageHeight}});
     if(!generated)return NextResponse.json({error:"The image model returned no preview. Please try again."},{status:502});
     let buffer:Buffer;let mime="image/png";
     if(generated instanceof Blob){buffer=Buffer.from(await generated.arrayBuffer());mime=generated.type||mime;}

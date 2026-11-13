@@ -21,6 +21,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { path: "/", changeFrequency: "weekly" as const, priority: 1 },
     { path: "/works", changeFrequency: "weekly" as const, priority: 0.9 },
     { path: "/commission", changeFrequency: "monthly" as const, priority: 0.8 },
+    { path: "/commission-terms", changeFrequency: "yearly" as const, priority: 0.4 },
     { path: "/about", changeFrequency: "monthly" as const, priority: 0.8 },
     { path: "/trencin-art-studio", changeFrequency: "monthly" as const, priority: 0.8 },
     { path: "/journal", changeFrequency: "monthly" as const, priority: 0.7 },
@@ -31,7 +32,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   ];
 
   const staticPages: MetadataRoute.Sitemap = staticPaths.flatMap(({ path, changeFrequency, priority }) => {
-    const includeRussian = path !== "/trencin-art-studio";
+    const includeRussian = path !== "/trencin-art-studio" && path !== "/commission-terms";
     const englishPage = {
       url: `${SITE_URL}${path === "/" ? "" : path}`,
       changeFrequency,

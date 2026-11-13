@@ -1,4 +1,4 @@
-import {createAdminClient} from "../../../../../lib/supabase/admin";
+import {createAdminClient} from "../../../../lib/supabase/admin";
 import CommissionPayment from "./CommissionPayment";
 export const dynamic="force-dynamic";
 export default async function CommissionPaymentPage({searchParams}:{searchParams:Promise<{ref?:string;token?:string;cancel?:string}>}){

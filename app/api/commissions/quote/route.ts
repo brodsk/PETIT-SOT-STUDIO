@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { InferenceClient } from "@huggingface/inference";
+import { createHash } from "node:crypto";
 import { createAdminClient } from "../../../../lib/supabase/admin";
 
 export const runtime = "nodejs";
@@ -55,7 +55,6 @@ export async function POST(request:Request){
     const length=Number(request.headers.get("content-length")||0);
     if(length>12000)return NextResponse.json({error:"Request is too large."},{status:413});
     const ip=(request.headers.get("x-forwarded-for")?.split(",")[0]||request.headers.get("x-real-ip")||"unknown").trim();
-    if(!allowRequest(ip))return NextResponse.json({error:"Too many requests. Please try again later."},{status:429});
     const body=await request.json();
     if(String(body?.website||"").trim())return NextResponse.json({ok:true,hidden:true});
     const name=String(body?.name||"").trim().slice(0,80);
@@ -72,37 +71,56 @@ export async function POST(request:Request){
       return NextResponse.json({error:"Please check your details, description and canvas dimensions."},{status:400});
     }
     if(!await verifyTurnstile(captcha,ip))return NextResponse.json({error:"Please complete the security check and try again."},{status:400});
-    const hfToken=process.env.HF_TOKEN;
     const quote=calculate(width,height,complexity);
     let buffer:Buffer|null=null;let mime="image/png";let previewError:string|undefined;
-    if(hfToken){
+    const geminiKey=process.env.GEMINI_API_KEY;
+    if(geminiKey){
       try{
-        const prompt=[
-          "Create a refined original oil painting concept for PETIT.SOT STUDIO by artist Olga Trikhleb, with an atmospheric fine-art sensibility, expressive natural light, nuanced muted colours, layered brushwork and subtle oil-paint texture.",
-          "The image is a visual reference for a future hand-painted oil-on-canvas artwork, not a photograph and not a finished physical artwork.",
-          "Use visible painterly brushwork, subtle layered oil-paint texture, sophisticated natural colours, thoughtful composition and an atmospheric fine-art sensibility.",
-          "Do not imitate a living artist or reproduce an existing artwork. Do not add text, signatures, watermarks, frames, borders or logos.",
-          "The requested canvas proportion is "+width+" cm wide by "+height+" cm high. Compose the image in this exact aspect ratio.",
-          "Subject and composition requested by the customer: "+description,
-          style?"Preferred direction: "+style:"",
-          palette?"Preferred palette: "+palette:"",
-          "The result should look like a plausible original contemporary oil painting that Olga could interpret in her own hand, not a digitally perfect commercial illustration."
-        ].filter(Boolean).join("\n");
-        const hf=new InferenceClient(hfToken);
-        const ratio=width/height;
-        const longSide=1024;
-        const shortSide=Math.max(512,Math.round((longSide/Math.max(ratio,1/ratio))/64)*64);
-        const imageWidth=ratio>=1?longSide:shortSide;
-        const imageHeight=ratio>=1?shortSide:longSide;
-        const generated:unknown=await hf.textToImage({provider:"fal-ai",model:"black-forest-labs/FLUX.1-schnell",inputs:prompt,parameters:{guidance_scale:0,num_inference_steps:4,width:imageWidth,height:imageHeight}});
-        if(generated instanceof Blob){buffer=Buffer.from(await generated.arrayBuffer());mime=generated.type||mime;}
-        else if(typeof generated==="string"&&generated.startsWith("data:")){
-          const match=generated.match(/^data:([^;]+);base64,(.+)$/);
-          if(match){mime=match[1];buffer=Buffer.from(match[2],"base64");}
+        const admin=createAdminClient();
+        const monthStart=new Date().toISOString().slice(0,7)+"-01";
+        const ipSecret=process.env.TURNSTILE_SECRET_KEY||process.env.SUPABASE_SERVICE_ROLE_KEY||"commission-ai";
+        const ipHash=createHash("sha256").update(ipSecret+":"+ip).digest("hex");
+        const reservation=await admin.rpc("reserve_commission_ai_generation",{
+          p_month:monthStart,p_ip_hash:ipHash,p_cost_cents:8,p_limit_cents:500
+        });
+        if(reservation.error)throw reservation.error;
+        const quota=reservation.data as {ok?:boolean;reason?:string};
+        if(quota?.ok!==true){
+          previewError=quota?.reason==="monthly_budget"?"monthly_budget_reached":"generation_limit_reached";
+        }else{
+          const prompt=[
+            "Create a refined original oil painting concept for PETIT.SOT STUDIO by artist Olga Trikhleb, with an atmospheric fine-art sensibility, expressive natural light, nuanced muted colours, layered brushwork and subtle oil-paint texture.",
+            "The image is a visual reference for a future hand-painted oil-on-canvas artwork, not a photograph and not a finished physical artwork.",
+            "Use visible painterly brushwork, subtle layered oil-paint texture, sophisticated natural colours, thoughtful composition and an atmospheric fine-art sensibility.",
+            "Do not imitate a living artist or reproduce an existing artwork. Do not add text, signatures, watermarks, frames, borders or logos.",
+            "The requested canvas proportion is "+width+" cm wide by "+height+" cm high. Compose the image in this proportion as closely as supported.",
+            "Subject and composition requested by the customer: "+description,
+            style?"Preferred direction: "+style:"",
+            palette?"Preferred palette: "+palette:"",
+            "The result should look like a plausible original contemporary oil painting that Olga could interpret in her own hand, not a digitally perfect commercial illustration."
+          ].filter(Boolean).join("\\n");
+          const ratio=width/height;
+          const ratios=[["1:1",1],["3:2",1.5],["2:3",2/3],["4:3",4/3],["3:4",.75],["5:4",1.25],["4:5",.8],["16:9",16/9],["9:16",9/16],["21:9",21/9],["4:1",4],["1:4",.25],["8:1",8],["1:8",.125]];
+          const aspectRatio=ratios.reduce((best,item)=>Math.abs(Math.log(item[1]/ratio))<Math.abs(Math.log(best[1]/ratio))?item:best,ratios[0])[0];
+          const response=await fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-image:generateContent?key="+encodeURIComponent(geminiKey),{
+            method:"POST",headers:{"Content-Type":"application/json"},
+            body:JSON.stringify({contents:[{parts:[{text:prompt}]}],generationConfig:{responseModalities:["IMAGE"],imageConfig:{aspectRatio,imageSize:"1K"}}}),
+            cache:"no-store",signal:AbortSignal.timeout(50000)
+          });
+          if(!response.ok)throw new Error("Gemini image generation returned HTTP "+response.status);
+          const result=await response.json() as {candidates?:Array<{content?:{parts?:Array<{inlineData?:{mimeType?:string;data?:string}}>} }>};
+          const imagePart=result.candidates?.[0]?.content?.parts?.find(part=>part.inlineData?.data);
+          if(!imagePart?.inlineData?.data)throw new Error("Gemini returned no image data.");
+          mime=imagePart.inlineData.mimeType||"image/png";
+          buffer=Buffer.from(imagePart.inlineData.data,"base64");
+          if(!buffer.length||buffer.length>15*1024*1024)throw new Error("Gemini returned an invalid preview.");
         }
-        if(!buffer||!buffer.length||buffer.length>15*1024*1024)throw new Error("The image model returned an invalid preview.");
-      }catch(error){previewError=error instanceof Error?error.message:"Image generation is temporarily unavailable.";console.warn("Commission preview unavailable; keeping request available:",previewError);buffer=null;}
-    }else{previewError="The artwork preview service is not configured yet.";}
+      }catch(error){
+        previewError="temporarily_unavailable";
+        console.warn("Gemini commission preview unavailable; keeping request available:",error);
+        buffer=null;
+      }
+    }else{previewError="temporarily_unavailable";}
     const admin=createAdminClient();
     const reference="PS-C-"+new Date().getFullYear()+"-"+crypto.randomUUID().replace(/-/g,"").slice(0,12).toUpperCase();
     let path:string|null=null;
@@ -121,7 +139,7 @@ export async function POST(request:Request){
     if(error){await admin.storage.from("petit-sot-artworks").remove([path]);throw error;}
     await notifyStudio(reference,name,email,description,quote.price);
     const imageUrl=path?admin.storage.from("petit-sot-artworks").getPublicUrl(path).data.publicUrl:null;
-    return NextResponse.json({ok:true,commission:row,imageUrl,previewAvailable:Boolean(imageUrl),previewError:previewError?"temporarily_unavailable":null,depositEstimate:Math.round(quote.price/2)});
+    return NextResponse.json({ok:true,commission:row,imageUrl,previewAvailable:Boolean(imageUrl),previewError:previewError||null,depositEstimate:Math.round(quote.price/2)});
   }catch(error:any){
     console.error("Commission request failed",error);
     return NextResponse.json({error:error?.message||"Could not create your commission request."},{status:500});

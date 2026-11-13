@@ -91,7 +91,7 @@ export async function POST(request:Request){
             "The result should look like a plausible original contemporary oil painting that Olga could interpret in her own hand, not a digitally perfect commercial illustration."
           ].filter(Boolean).join("\\n");
           const ratio=width/height;
-          const ratios=[["1:1",1],["3:2",1.5],["2:3",2/3],["4:3",4/3],["3:4",.75],["5:4",1.25],["4:5",.8],["16:9",16/9],["9:16",9/16],["21:9",21/9],["4:1",4],["1:4",.25],["8:1",8],["1:8",.125]];
+          const ratios:Array<[string,number]>=[["1:1",1],["3:2",1.5],["2:3",2/3],["4:3",4/3],["3:4",.75],["5:4",1.25],["4:5",.8],["16:9",16/9],["9:16",9/16],["21:9",21/9],["4:1",4],["1:4",.25],["8:1",8],["1:8",.125]];
           const aspectRatio=ratios.reduce((best,item)=>Math.abs(Math.log(item[1]/ratio))<Math.abs(Math.log(best[1]/ratio))?item:best,ratios[0])[0];
           const response=await fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-image:generateContent",{
             method:"POST",headers:{"Content-Type":"application/json","x-goog-api-key":geminiKey},

@@ -92,7 +92,7 @@ export async function POST(request:Request){
     const shortSide=Math.max(512,Math.round((longSide/Math.max(ratio,1/ratio))/64)*64);
     const imageWidth=ratio>=1?longSide:shortSide;
     const imageHeight=ratio>=1?shortSide:longSide;
-    const generated=await hf.textToImage({provider:"fal-ai",model:"black-forest-labs/FLUX.1-schnell",inputs:prompt,parameters:{guidance_scale:0,num_inference_steps:4,width:imageWidth,height:imageHeight}});
+    const generated:unknown=await hf.textToImage({provider:"fal-ai",model:"black-forest-labs/FLUX.1-schnell",inputs:prompt,parameters:{guidance_scale:0,num_inference_steps:4,width:imageWidth,height:imageHeight}});
     if(!generated)return NextResponse.json({error:"The image model returned no preview. Please try again."},{status:502});
     let buffer:Buffer;let mime="image/png";
     if(generated instanceof Blob){buffer=Buffer.from(await generated.arrayBuffer());mime=generated.type||mime;}

@@ -41,8 +41,10 @@ export async function getWorks():Promise<PublicWork[]>{
    const byArtwork=new Map<string,string[]>();
    const thumbnailsByArtwork=new Map<string,string[]>();
    for(const item of gallery||[]){
-    const url=supabase.storage.from("petit-sot-artworks").getPublicUrl(item.image_path).data.publicUrl;
+    const url=supabase.storage.from("petit-sot-artworks").getPublicUrl(item.web_image_path||item.image_path).data.publicUrl;
+    const thumb=supabase.storage.from("petit-sot-artworks").getPublicUrl(item.thumbnail_path||item.web_image_path||item.image_path).data.publicUrl;
     const list=byArtwork.get(item.artwork_id)||[]; list.push(url); byArtwork.set(item.artwork_id,list);
+    const thumbList=thumbnailsByArtwork.get(item.artwork_id)||[]; thumbList.push(thumb); thumbnailsByArtwork.set(item.artwork_id,thumbList);
    }
    return data.map(w=>mapWork(w,supabase,byArtwork.get(w.id)||[],thumbnailsByArtwork.get(w.id)||[]));
  }catch{return fallbackWorks;}

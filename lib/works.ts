@@ -38,11 +38,12 @@ export async function getWorks():Promise<PublicWork[]>{
    const ids=data.map((w:any)=>w.id);
    const {data:gallery}=await supabase.from("petit_sot_artwork_images").select("artwork_id,image_path,web_image_path,thumbnail_path,sort_order").in("artwork_id",ids).order("sort_order",{ascending:true});
    const byArtwork=new Map<string,string[]>();
+   const thumbnailsByArtwork=new Map<string,string[]>();
    for(const item of gallery||[]){
     const url=supabase.storage.from("petit-sot-artworks").getPublicUrl(item.image_path).data.publicUrl;
     const list=byArtwork.get(item.artwork_id)||[]; list.push(url); byArtwork.set(item.artwork_id,list);
    }
-   return data.map(w=>mapWork(w,supabase,byArtwork.get(w.id)||[]));
+   return data.map(w=>mapWork(w,supabase,byArtwork.get(w.id)||[],thumbnailsByArtwork.get(w.id)||[]));
  }catch{return fallbackWorks;}
 }
 

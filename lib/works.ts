@@ -18,14 +18,14 @@ const SASHE_LISTINGS: Record<string,string> = {
   "rain": "https://www.sashe.sk/petitsot/detail/originalny-olejomalovany-obraz-rain-in-the-city-mestsky-motiv",
 };
 
-function mapWork(w:any,supabase:any,extraImages:string[]=[]):PublicWork{
+function mapWork(w:any,supabase:any,extraImages:string[]=[],extraThumbnails:string[]=[]):PublicWork{
  const size=[w.width_cm,w.height_cm,w.depth_cm].filter((x:any)=>x!=null&&x!=="").join(" × ");
  const imageUrl=(w.web_image_path||w.image_path)?supabase.storage.from("petit-sot-artworks").getPublicUrl(w.web_image_path||w.image_path).data.publicUrl:undefined;\n const thumbnailUrl=(w.thumbnail_path||w.web_image_path||w.image_path)?supabase.storage.from("petit-sot-artworks").getPublicUrl(w.thumbnail_path||w.web_image_path||w.image_path).data.publicUrl:undefined;
  const slug=String(w.slug||"").toLowerCase();
  const sasheListingUrl=SASHE_LISTINGS[slug] || SASHE_LISTINGS[slug.replace(/_/g,"-")] || null;
  const titleEn=String(w.title_en||w.title||"").trim().replaceAll("Olya Trikhleb","Olga Trikhleb").replaceAll("Olga Trihleb","Olga Trikhleb");
  const descriptionEn=String(w.description_en||w.ai_description||w.description||"").replaceAll("Olya Trikhleb","Olga Trikhleb").replaceAll("Olga Trihleb","Olga Trikhleb");
- return {id:w.id,slug:w.slug,title:w.title,titleRu:w.title,titleEn,year:String(w.year??"—"),medium:w.medium||"—",size:size?size+" cm":"—",widthCm:w.width_cm!=null?Number(w.width_cm):undefined,heightCm:w.height_cm!=null?Number(w.height_cm):undefined,depthCm:w.depth_cm!=null?Number(w.depth_cm):undefined,description:w.description||w.ai_description||"",descriptionRu:w.description||"",descriptionEn,price:Number(w.price_eur||0),currency:"EUR",status:String(w.status||"archived"),available:w.status==="available",sold:w.status==="sold",imageUrl,thumbnailUrl,images:imageUrl?[imageUrl,...extraImages]:extraImages,thumbnailImages:thumbnailUrl?[thumbnailUrl,...extraImages]:extraImages,etsyListingUrl:w.etsy_listing_url||null,sasheListingUrl};
+ return {id:w.id,slug:w.slug,title:w.title,titleRu:w.title,titleEn,year:String(w.year??"—"),medium:w.medium||"—",size:size?size+" cm":"—",widthCm:w.width_cm!=null?Number(w.width_cm):undefined,heightCm:w.height_cm!=null?Number(w.height_cm):undefined,depthCm:w.depth_cm!=null?Number(w.depth_cm):undefined,description:w.description||w.ai_description||"",descriptionRu:w.description||"",descriptionEn,price:Number(w.price_eur||0),currency:"EUR",status:String(w.status||"archived"),available:w.status==="available",sold:w.status==="sold",imageUrl,thumbnailUrl,images:imageUrl?[imageUrl,...extraImages]:extraImages,thumbnailImages:thumbnailUrl?[thumbnailUrl,...(extraThumbnails.length?extraThumbnails:extraImages)]:extraThumbnails,etsyListingUrl:w.etsy_listing_url||null,sasheListingUrl};
 }
 
 export async function getWorks():Promise<PublicWork[]>{

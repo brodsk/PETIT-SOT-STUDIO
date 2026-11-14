@@ -42,11 +42,11 @@ export async function POST(request:Request){try{
  }
  await sendStudioEmail({
   to:"manager@petitsot.com",
-  subject:"Customer "+(decision==="approve"?"approved":"declined")+" proposal — "+ref,
-  title:"Customer "+(decision==="approve"?"approved":"declined")+" a proposal",
+  subject:ru?(decision==="approve"?"Клиент подтвердил предложение":"Клиент отклонил предложение")+" — "+ref:"Customer "+(decision==="approve"?"approved":"declined")+" proposal — "+ref,
+  title:ru?(decision==="approve"?"Клиент подтвердил предложение":"Клиент отклонил предложение"):"Customer "+(decision==="approve"?"approved":"declined")+" a proposal",
   greeting:saved.customer_name+" · "+saved.customer_email,
-  paragraphs:["Commission reference: "+ref,"Proposal version: "+saved.proposal_version],
-  details:[{label:"Decision",value:decision},{label:"Reference",value:ref}]
+  paragraphs:ru?["Номер заказа: "+ref,"Версия предложения: "+saved.proposal_version]:["Commission reference: "+ref,"Proposal version: "+saved.proposal_version],
+  details:[{label:ru?"Решение":"Decision",value:ru?(decision==="approve"?"Подтверждено":"Отклонено"):decision},{label:ru?"Номер заказа":"Reference",value:ref}]
  });
  return NextResponse.json({ok:true,decision,status:saved.status});
  }catch(e:any){console.error("Customer proposal decision failed",e);return NextResponse.json({error:e?.message||"Could not process your decision."},{status:500});}}

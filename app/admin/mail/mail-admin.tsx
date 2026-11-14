@@ -10,6 +10,9 @@ function address(value:any) {
   if(Array.isArray(value))return value.map((x:any)=>x.address||x.email||x).join(", ");
   return value?.address||value?.email||"";
 }
+function stripHtml(value:string) {
+  return value.replace(/<br\\s*\\/?\\s*>/gi,"\\n").replace(/<\\/(p|div|li|tr)>/gi,"\\n").replace(/<[^>]*>/g,"").replace(/&nbsp;/g," ").replace(/&amp;/g,"&").replace(/&lt;/g,"<").replace(/&gt;/g,">").replace(/&quot;/g,'"');
+}
 function dateLabel(value:any) {
   if(!value)return "";
   const n=Number(value);
@@ -67,7 +70,8 @@ export default function MailAdmin({initialConnected,initialEmail}:{initialConnec
       const data=await response.json();
       if(!response.ok)throw new Error(data.error||"Не удалось открыть письмо.");
       const item=data.data;
-      setMessageBody(item?.content||item?.data?.content||item?.messageContent||item?.summary||message.summary||"Содержимое письма недоступно.");
+      const content=item?.content||item?.data?.content||item?.messageContent||item?.summary||message.summary||"Содержимое письма недоступно.";
+      setMessageBody(typeof content==="string"?stripHtml(content):String(content));
     } catch(e:any){setError(e.message||"Не удалось открыть письмо.");}
   }
 

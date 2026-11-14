@@ -83,7 +83,7 @@ export default async function Works({ params }: { params: Promise<{ locale: stri
       const archivedWorks = works.filter((work) => !work.available);
       const renderCards = (items: typeof works) => <div className="archive-grid archive-grid-even">
         {items.map((w, i) => <Link className="archive-card" href={"/works/" + w.slug} key={w.slug}>
-          <div className="archive-image art-placeholder">{w.imageUrl ? <img src={w.imageUrl} alt={(ru ? w.titleRu : w.titleEn) + " — " + localizeMedium(w.medium, ru ? "ru" : "en") + ", " + w.year + (ru ? ", оригинальная картина Ольги Трихлеб" : ", original painting by Olga Trikhleb")} loading="lazy" decoding="async" /> : <><span>{String(i + 1).padStart(2, "0")}</span><small>IMAGE</small></>}</div>
+          <div className="archive-image art-placeholder">{w.thumbnailUrl ? <img src={w.thumbnailUrl} alt={(ru ? w.titleRu : w.titleEn) + " — " + localizeMedium(w.medium, ru ? "ru" : "en") + ", " + w.year + (ru ? ", оригинальная картина Ольги Трихлеб" : ", original painting by Olga Trikhleb")} loading="lazy" decoding="async" /> : <><span>{String(i + 1).padStart(2, "0")}</span><small>IMAGE</small></>}</div>
           <div className="archive-card-meta"><span>{ru ? w.titleRu : w.titleEn}</span><span>{w.year}</span></div>
           <p>{localizeMedium(w.medium, ru ? "ru" : "en")}</p>
           {!w.available && <span className={`archive-card-status ${w.sold ? "archive-card-sold" : ""}`}>{w.sold ? (ru ? "ПРОДАНА" : "SOLD") : (ru ? "Архив · цена по запросу" : "Archive · price on request")}</span>}

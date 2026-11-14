@@ -75,6 +75,7 @@ export default async function JournalPage({ params }: { params: Promise<{ locale
         <div className="about-originals-bottom">
           <span>{ru ? "Независимая художественная студия" : "Independent art studio"}</span>
           <Link className="arrow-link" href="/works">{ru ? "Открыть каталог" : "Explore the collection"} <span>↗</span></Link>
+          <Link className="arrow-link" href="/commission">{ru ? "Заказать картину" : "Commission a painting"} <span>↗</span></Link>
         </div>
       </section>
     </main>

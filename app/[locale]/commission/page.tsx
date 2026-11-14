@@ -8,8 +8,8 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   const { locale } = await params;
   const ru = locale === "ru";
   const title = ru
-    ? "Картины на заказ — авторская живопись Ольги Трихлеб | PETIT.SOT"
-    : "Custom Original Paintings & Art Commissions | Olga Trikhleb — PETIT.SOT";
+    ? "Картины на заказ — Ольга Трихлеб"
+    : "Custom Original Paintings & Art Commissions — Olga Trikhleb";
   const description = ru
     ? "Закажите оригинальную картину у художницы Ольги Трихлеб. Индивидуальный сюжет, размер и палитра, предварительная оценка стоимости и личное обсуждение заказа."
     : "Commission an original painting by artist Olga Trikhleb. Create a personalised landscape or seascape with your preferred size, colours and subject. Request a custom artwork.";

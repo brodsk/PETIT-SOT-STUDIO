@@ -28,6 +28,8 @@ export default function AdminDashboard({initialArtworks}:Props){
   const [etsyProgress,setEtsyProgress]=useState("");
   const [artworkSearch,setArtworkSearch]=useState("");
   const [artworkFilter,setArtworkFilter]=useState("all");
+  const [imageBackfillBusy,setImageBackfillBusy]=useState(false);
+  const [imageBackfillProgress,setImageBackfillProgress]=useState("");
 
   const form:Artwork=selected ?? {id:"",slug:"",title:"",title_en:"",year:new Date().getFullYear(),medium:"",width_cm:null,height_cm:null,depth_cm:null,description:"",description_en:"",ai_description:"",price_eur:0,status:"available",image_path:null,web_image_path:null,thumbnail_path:null,certificate_number:null,created_at:"",etsy_listing_id:null,etsy_state:null,etsy_error:null,etsy_listing_url:null};
   const imageUrl=useMemo(()=>form.image_path?supabase.storage.from("petit-sot-artworks").getPublicUrl(form.image_path).data.publicUrl:"",[form.image_path,supabase]);
@@ -309,6 +311,59 @@ export default function AdminDashboard({initialArtworks}:Props){
     return {image_path:originalPath,web_image_path:webPath,thumbnail_path:thumbPath};
   }
 
+  async function backfillImageVariants(){
+    const needsArtwork=artworks.filter(w=>w.image_path&&(!w.web_image_path||!w.thumbnail_path));
+    setImageBackfillBusy(true);setMessage("");
+    let completed=0;let failed=0;
+    const errors:string[]=[];
+    const total=needsArtwork.length;
+    try{
+      for(let i=0;i<needsArtwork.length;i++){
+        const artwork=needsArtwork[i];
+        setImageBackfillProgress((i+1)+"/"+total+" · "+(artwork.title||artwork.slug));
+        try{
+          const url=supabase.storage.from("petit-sot-artworks").getPublicUrl(artwork.image_path!).data.publicUrl;
+          const response=await fetch(url,{cache:"no-store"});
+          if(!response.ok)throw new Error("Не удалось скачать оригинал ("+response.status+").");
+          const blob=await response.blob();
+          const ext=artwork.image_path!.split(".").pop()?.split("?")[0]||"jpg";
+          const file=new File([blob],(artwork.slug||artwork.id)+"."+ext,{type:blob.type||"image/jpeg"});
+          const variants=await uploadImageVariants(file,"backfill/"+artwork.id+"/"+crypto.randomUUID());
+          const {data,error}=await supabase.from("petit_sot_artworks").update({web_image_path:variants.web_image_path,thumbnail_path:variants.thumbnail_path}).eq("id",artwork.id).select("*").single();
+          if(error)throw error;
+          setArtworks(prev=>prev.map(x=>x.id===artwork.id?data as Artwork:x));
+          if(form.id===artwork.id)setSelected(data as Artwork);
+          completed++;
+        }catch(err:any){failed++;errors.push((artwork.title||artwork.slug)+": "+(err?.message||"ошибка"));}
+      }
+      const {data:galleryRows,error:galleryError}=await supabase.from("petit_sot_artwork_images").select("id,artwork_id,image_path,web_image_path,thumbnail_path").or("web_image_path.is.null,thumbnail_path.is.null");
+      if(galleryError)throw galleryError;
+      const pendingGallery=(galleryRows||[]).filter(x=>x.image_path&&(!x.web_image_path||!x.thumbnail_path));
+      for(let i=0;i<pendingGallery.length;i++){
+        const item=pendingGallery[i];
+        setImageBackfillProgress("Галерея "+(i+1)+"/"+pendingGallery.length);
+        try{
+          const url=supabase.storage.from("petit-sot-artworks").getPublicUrl(item.image_path).data.publicUrl;
+          const response=await fetch(url,{cache:"no-store"});
+          if(!response.ok)throw new Error("Не удалось скачать фото ("+response.status+").");
+          const blob=await response.blob();
+          const ext=item.image_path.split(".").pop()?.split("?")[0]||"jpg";
+          const file=new File([blob],item.id+"."+ext,{type:blob.type||"image/jpeg"});
+          const variants=await uploadImageVariants(file,"backfill/"+item.artwork_id+"/"+crypto.randomUUID());
+          const {error}=await supabase.from("petit_sot_artwork_images").update({web_image_path:variants.web_image_path,thumbnail_path:variants.thumbnail_path}).eq("id",item.id);
+          if(error)throw error;
+          if(form.id===item.artwork_id)setGalleryImages(prev=>prev.map(x=>x.id===item.id?{...x,...variants}:x));
+          completed++;
+        }catch(err:any){failed++;errors.push("Фото галереи "+item.id+": "+(err?.message||"ошибка"));}
+      }
+      setMessage("Оптимизация существующих фото завершена: "+completed+" обработано"+(failed?", ошибок: "+failed:"")+". Оригиналы сохранены."+(errors.length?" "+errors.slice(0,2).join(" · "):""));
+    }catch(err:any){
+      setMessage("Оптимизация прервана: "+(err?.message||"ошибка"));
+    }finally{
+      setImageBackfillBusy(false);setImageBackfillProgress("");
+    }
+  }
+
   async function generateDescription(){
     if(!image&&!form.image_path){setMessage("Сначала добавьте изображение картины.");return;}
     setAiBusy(true);setMessage("Подготавливаю изображение…");
@@ -476,7 +531,7 @@ export default function AdminDashboard({initialArtworks}:Props){
   return <div className="admin-shell"><aside className="admin-sidebar"><a href="/admin" className="admin-sidebar-brand"><img className="admin-sidebar-mark" src="/favicon.png" alt="PETIT.SOT" style={{background:"transparent",borderRadius:0,objectFit:"contain",padding:0}} /><span><strong>PETIT.SOT</strong><small>STUDIO ADMIN</small></span></a><div className="admin-sidebar-label">РАБОЧЕЕ ПРОСТРАНСТВО</div><nav className="admin-sidebar-nav"><a className={!editing? "active":""} href="/admin"><span className="admin-nav-icon">▦</span><span>Коллекция</span><em>{total}</em></a><a href="/admin/orders"><span className="admin-nav-icon">↗</span><span>Заказы</span></a><a href="/admin/commissions"><span className="admin-nav-icon">✦</span><span>Картины на заказ</span></a><a href="/admin/pinterest"><span className="admin-nav-icon">P</span><span>Pinterest</span></a><a href="/api/admin/etsy/connect"><span className="admin-nav-icon">◎</span><span>Etsy</span><i className={etsy?.connected?"admin-connection-dot connected":"admin-connection-dot"} /></a></nav><div className="admin-sidebar-bottom"><a href="https://www.petitsot.com" target="_blank" rel="noreferrer"><span className="admin-nav-icon">↗</span><span>Открыть сайт</span></a><button type="button" onClick={logout}><span className="admin-nav-icon">⇥</span><span>Выйти из аккаунта</span></button><div className="admin-sidebar-footer">PETIT.SOT STUDIO <span>© 2026</span></div></div></aside><div className="admin-main"><main className="admin-page">
     <header className="admin-top"><div className="admin-brand"><span className="eyebrow"><a href="/admin">PETIT.SOT</a> / АРХИВ</span><h1>Картины</h1></div><nav><a href="/admin/orders">Заказы</a><a href="/admin/commissions">Картины на заказ</a><a href="/admin/pinterest">Pinterest ↗</a>{etsy?.connected?<><span className="eyebrow">ETSY · {etsy.shop_name||"подключён"}</span><button type="button" onClick={importAllToEtsy} disabled={etsyImporting||busy}>{etsyImporting?etsyProgress:"Заново загрузить всё в Etsy ↗"}</button></>:<a href="/api/admin/etsy/connect">Подключить Etsy ↗</a>}<button onClick={logout}>Выйти</button></nav></header>
     <section className="admin-stats" aria-label="Сводка по картинам"><div className="admin-stat-card"><span>Всего работ</span><strong>{total}</strong><small>В архиве студии</small></div><div className="admin-stat-card"><span>В продаже</span><strong>{available}</strong><small>Опубликованные работы</small></div><div className="admin-stat-card"><span>Продано</span><strong>{sold}</strong><small>Завершённые продажи</small></div><div className="admin-stat-card"><span>Черновики</span><strong>{drafts}</strong><small>Ожидают публикации</small></div></section>
-    {!editing ? <section className="admin-artwork-grid"><div className="admin-gallery-toolbar"><div><span className="eyebrow">КОЛЛЕКЦИЯ PETIT.SOT</span><h2>Мои картины</h2><p>Откройте карточку, чтобы управлять работой.</p></div><button className="admin-new-artwork" onClick={()=>{setSelected(null);setImage(null);setImagePreview("");setGalleryImages([]);setNewImages([]);setMessage("");setEditing(true);}}>+ Добавить картину</button></div><div className="admin-gallery-controls"><label className="admin-search"><span>⌕</span><input value={artworkSearch} onChange={e=>setArtworkSearch(e.target.value)} placeholder="Поиск картин по названию, технике или году…"/></label><div className="admin-filter-tabs" aria-label="Фильтр картин"><button type="button" className={artworkFilter==="all"?"active":""} onClick={()=>setArtworkFilter("all")}>Все <span>{total}</span></button><button type="button" className={artworkFilter==="available"?"active":""} onClick={()=>setArtworkFilter("available")}>В продаже <span>{available}</span></button><button type="button" className={artworkFilter==="draft"?"active":""} onClick={()=>setArtworkFilter("draft")}>Черновики <span>{drafts}</span></button><button type="button" className={artworkFilter==="sold"?"active":""} onClick={()=>setArtworkFilter("sold")}>Проданы <span>{sold}</span></button></div></div>{artworks.length ? (visibleArtworks.length ? <div className="admin-artwork-cards">{visibleArtworks.map((w,index)=><button type="button" key={w.id} className="admin-artwork-card" onClick={()=>{setSelected(w);setImage(null);setImagePreview("");setNewImages([]);setMessage("");setEditing(true);}}><div className="admin-artwork-card-image">{w.image_path ? <img src={supabase.storage.from("petit-sot-artworks").getPublicUrl(w.image_path).data.publicUrl} alt={w.title||"Картина"} loading={index>7?"lazy":"eager"}/> : <span>Нет изображения</span>}<span className={"admin-artwork-status status-"+w.status}>{({draft:"Черновик",available:"В продаже",sold:"Продана",archived:"Архив"} as Record<string,string>)[w.status]||w.status}</span><span className="admin-artwork-open">Открыть ↗</span></div><div className="admin-artwork-card-meta"><div><strong>{w.title||"Без названия"}</strong><span>{[w.year,w.medium].filter(Boolean).join(" · ")||"Данные не заполнены"}</span></div><strong className="admin-artwork-price">{w.price_eur ? new Intl.NumberFormat("ru-RU",{style:"currency",currency:"EUR",maximumFractionDigits:0}).format(w.price_eur) : "—"}</strong></div></button>)}</div> : <div className="admin-artwork-empty"><span>Ничего не найдено</span><p>Измените запрос или выберите другой фильтр.</p></div>) : <div className="admin-artwork-empty"><span>Коллекция пока пуста</span><p>Добавьте первую картину, чтобы начать работу с архивом.</p><button className="admin-new-artwork" onClick={()=>{setSelected(null);setImage(null);setImagePreview("");setGalleryImages([]);setNewImages([]);setMessage("");setEditing(true);}}>+ Добавить первую картину</button></div>}</section> : <section className="admin-layout">
+    {!editing ? <section className="admin-artwork-grid"><div className="admin-gallery-toolbar"><div><span className="eyebrow">КОЛЛЕКЦИЯ PETIT.SOT</span><h2>Мои картины</h2><p>Откройте карточку, чтобы управлять работой.</p></div><button className="admin-new-artwork" onClick={()=>{setSelected(null);setImage(null);setImagePreview("");setGalleryImages([]);setNewImages([]);setMessage("");setEditing(true);}}>+ Добавить картину</button><button type="button" className="secondary" onClick={backfillImageVariants} disabled={imageBackfillBusy||busy}>{imageBackfillBusy?(imageBackfillProgress||"Оптимизирую фото…"):"Оптимизировать старые фото"}</button></div><div className="admin-gallery-controls"><label className="admin-search"><span>⌕</span><input value={artworkSearch} onChange={e=>setArtworkSearch(e.target.value)} placeholder="Поиск картин по названию, технике или году…"/></label><div className="admin-filter-tabs" aria-label="Фильтр картин"><button type="button" className={artworkFilter==="all"?"active":""} onClick={()=>setArtworkFilter("all")}>Все <span>{total}</span></button><button type="button" className={artworkFilter==="available"?"active":""} onClick={()=>setArtworkFilter("available")}>В продаже <span>{available}</span></button><button type="button" className={artworkFilter==="draft"?"active":""} onClick={()=>setArtworkFilter("draft")}>Черновики <span>{drafts}</span></button><button type="button" className={artworkFilter==="sold"?"active":""} onClick={()=>setArtworkFilter("sold")}>Проданы <span>{sold}</span></button></div></div>{artworks.length ? (visibleArtworks.length ? <div className="admin-artwork-cards">{visibleArtworks.map((w,index)=><button type="button" key={w.id} className="admin-artwork-card" onClick={()=>{setSelected(w);setImage(null);setImagePreview("");setNewImages([]);setMessage("");setEditing(true);}}><div className="admin-artwork-card-image">{w.image_path ? <img src={supabase.storage.from("petit-sot-artworks").getPublicUrl(w.image_path).data.publicUrl} alt={w.title||"Картина"} loading={index>7?"lazy":"eager"}/> : <span>Нет изображения</span>}<span className={"admin-artwork-status status-"+w.status}>{({draft:"Черновик",available:"В продаже",sold:"Продана",archived:"Архив"} as Record<string,string>)[w.status]||w.status}</span><span className="admin-artwork-open">Открыть ↗</span></div><div className="admin-artwork-card-meta"><div><strong>{w.title||"Без названия"}</strong><span>{[w.year,w.medium].filter(Boolean).join(" · ")||"Данные не заполнены"}</span></div><strong className="admin-artwork-price">{w.price_eur ? new Intl.NumberFormat("ru-RU",{style:"currency",currency:"EUR",maximumFractionDigits:0}).format(w.price_eur) : "—"}</strong></div></button>)}</div> : <div className="admin-artwork-empty"><span>Ничего не найдено</span><p>Измените запрос или выберите другой фильтр.</p></div>) : <div className="admin-artwork-empty"><span>Коллекция пока пуста</span><p>Добавьте первую картину, чтобы начать работу с архивом.</p><button className="admin-new-artwork" onClick={()=>{setSelected(null);setImage(null);setImagePreview("");setGalleryImages([]);setNewImages([]);setMessage("");setEditing(true);}}>+ Добавить первую картину</button></div>}</section> : <section className="admin-layout">
       <aside className="admin-list"><button className="admin-new" onClick={()=>{setSelected(null);setImage(null);setImagePreview("");setGalleryImages([]);setNewImages([]);setMessage("");}}>+ Новая картина</button>{artworks.map(w=><button key={w.id} className={"admin-list-row "+(form.id===w.id?"active":"")} onClick={()=>{setSelected(w);setImage(null);setImagePreview("");setNewImages([]);setMessage("");}}><span>{w.title||"Без названия"}</span><small>{({draft:"Черновик",available:"В продаже",sold:"Продана",archived:"Архив"} as Record<string,string>)[w.status]||w.status}{w.etsy_listing_id?" · Etsy #"+w.etsy_listing_id:""}</small>{w.etsy_error&&<small style={{color:"#b45309",whiteSpace:"normal"}}>Etsy: {w.etsy_error}</small>}</button>)}</aside>
       <section className="admin-editor"><form onSubmit={save}>
         <div className="admin-editor-head"><div><button type="button" className="admin-back-gallery" onClick={()=>{setEditing(false);setMessage("");}}>← Все картины</button><span className="eyebrow">КАРТИНА</span><h2>{form.title||"Новая работа"}</h2></div><select aria-label="Статус" value={form.status} disabled={busy} onChange={e=>changeStatus(e.target.value)}><option value="draft">Черновик</option><option value="available">В продаже</option><option value="sold">Продана</option><option value="archived">Архив</option></select></div>

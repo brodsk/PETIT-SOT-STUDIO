@@ -3483,3 +3483,60 @@ div[data-locale] > footer {
 @media(prefers-reduced-motion:reduce){
   .admin-shell *, .admin-shell *:before, .admin-shell *:after{transition:none!important;scroll-behavior:auto!important}
 }
+
+
+/* PETIT.SOT ADMIN MAIL */
+.mail-shell{min-height:100vh;background:#f4f3ee;color:#292b25}
+.mail-page{max-width:none!important}
+.mail-head-actions{display:flex;align-items:center;gap:10px}
+.mail-compose,.mail-send{border:1px solid #59664d;background:#59664d;color:#fff;padding:13px 18px;border-radius:3px;font-size:10px;letter-spacing:.08em;text-transform:uppercase;cursor:pointer}
+.mail-compose:hover,.mail-send:hover{background:#424d39}
+.mail-notice,.mail-error{padding:12px 15px;margin:0 0 18px;border:1px solid #dce4d6;background:#f0f5ed;color:#40543b;font-size:12px}
+.mail-error{border-color:#ead8d3;background:#fbf2ef;color:#925448}
+.mail-connect-card{max-width:650px;padding:42px;background:#fffefa;border:1px solid #e6e4dc}
+.mail-connect-card h2{font:400 36px Georgia,serif;letter-spacing:-.04em;margin:18px 0 10px}
+.mail-connect-card p{color:#77796f;font-size:13px;line-height:1.7;margin:0 0 24px}
+.mail-connect-card>a{display:inline-flex;background:#59664d;color:#fff;text-decoration:none;padding:13px 17px;font-size:10px;letter-spacing:.08em;text-transform:uppercase}
+.mail-workspace{display:grid;grid-template-columns:190px minmax(280px,370px) minmax(0,1fr);min-height:650px;background:#fffefa;border:1px solid #e6e4dc}
+.mail-folders{padding:20px 12px;border-right:1px solid #e9e7df}
+.mail-folder-heading{padding:0 10px 13px;color:#929388;font-size:9px;letter-spacing:.16em}
+.mail-folders button{width:100%;display:flex;align-items:center;gap:10px;text-align:left;padding:11px 10px;border:0;background:transparent;color:#67695f;font-size:12px;cursor:pointer;border-radius:3px}
+.mail-folders button span{width:18px;color:#898b80}
+.mail-folders button.active{background:#eceee7;color:#3e4c36;font-weight:600}
+.mail-list-panel{min-width:0;border-right:1px solid #e9e7df}
+.mail-list-top{display:flex;align-items:center;gap:10px;padding:17px 16px;border-bottom:1px solid #e9e7df}
+.mail-list-top>div{display:flex;align-items:center;gap:9px;white-space:nowrap}
+.mail-list-top .eyebrow{font-size:9px}
+.mail-list-top strong{font-size:10px;color:#8a8c80}
+.mail-list-top input{min-width:0;width:100%;height:34px;padding:0 9px;border:1px solid #e6e4dc;background:#fbfaf6;font-size:11px}
+.mail-list-top>button{border:1px solid #e6e4dc;background:#fffefa;width:34px;height:34px;cursor:pointer;color:#5e6556}
+.mail-list{max-height:calc(100vh - 290px);min-height:540px;overflow:auto}
+.mail-row{display:block;width:100%;padding:16px;text-align:left;border:0;border-bottom:1px solid #efeee8;background:#fffefa;cursor:pointer;color:#33352e}
+.mail-row:hover,.mail-row.selected{background:#f5f5ef}
+.mail-row-top{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.mail-row-top strong{font-size:11px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mail-row-top time{font-size:9px;color:#999a90;white-space:nowrap}
+.mail-row-subject{display:block;margin-top:8px;font-size:12px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mail-row-preview{display:block;margin-top:5px;color:#929388;font-size:10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mail-empty{padding:25px 17px;color:#929388;font-size:11px}
+.mail-reading-panel{min-width:0;padding:24px 28px}
+.mail-reading-head{display:flex;align-items:center;justify-content:space-between;padding-bottom:16px;border-bottom:1px solid #e9e7df}
+.mail-reading-head>button{border:0;background:transparent;font-size:22px;color:#77796f;cursor:pointer}
+.mail-placeholder{min-height:560px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;color:#929388}
+.mail-placeholder>span{font-size:32px;color:#a6aa98}
+.mail-placeholder h2{font:400 27px Georgia,serif;color:#41443a;margin:18px 0 6px}
+.mail-placeholder p{font-size:11px}
+.mail-message-view h2{font:400 29px Georgia,serif;line-height:1.2;margin:24px 0 18px;overflow-wrap:anywhere}
+.mail-message-meta{display:flex;justify-content:space-between;gap:12px;padding-bottom:18px;border-bottom:1px solid #efeee8;color:#77796f;font-size:10px}
+.mail-message-meta strong{color:#484b41}
+.mail-message-content{padding:25px 0;min-height:230px;font-size:13px;line-height:1.8;color:#41433c;white-space:pre-wrap;overflow-wrap:anywhere}
+.mail-reply{padding:11px 15px;border:1px solid #dcded3;background:#eef0e9;color:#46513f;font-size:10px;text-transform:uppercase;letter-spacing:.07em;cursor:pointer}
+.mail-compose-form{display:grid;gap:16px}
+.mail-compose-form label{display:grid;gap:7px;color:#77796f;font-size:9px;letter-spacing:.12em;text-transform:uppercase}
+.mail-compose-form input,.mail-compose-form textarea{width:100%;border:1px solid #e2e0d7;border-radius:0;background:#fbfaf6;padding:12px 13px;font:12px Arial,sans-serif;color:#292b25;letter-spacing:normal;text-transform:none}
+.mail-compose-form textarea{resize:vertical;line-height:1.7}
+.mail-signature{padding-top:12px;border-top:1px solid #e9e7df;color:#59664d;font-size:10px;letter-spacing:.1em}
+.mail-signature span{display:block;margin-top:4px;color:#999a90;letter-spacing:0}
+.mail-send{justify-self:start;min-width:180px}
+@media(max-width:1050px){.mail-workspace{grid-template-columns:155px minmax(250px,330px) minmax(0,1fr)}.mail-reading-panel{padding:20px}}
+@media(max-width:760px){.mail-workspace{grid-template-columns:1fr;min-height:0}.mail-folders{display:flex;overflow-x:auto;gap:5px;padding:10px;border-right:0;border-bottom:1px solid #e9e7df}.mail-folder-heading{display:none}.mail-folders button{width:auto;flex:0 0 auto;padding:9px 11px;font-size:10px}.mail-list-panel{border-right:0;border-bottom:1px solid #e9e7df}.mail-list{max-height:340px;min-height:120px}.mail-reading-panel{padding:18px 15px;min-height:350px}.mail-placeholder{min-height:280px}.mail-page .admin-top{flex-direction:column;align-items:flex-start}.mail-head-actions{width:100%}.mail-compose{width:100%}.mail-connect-card{padding:25px 20px}}

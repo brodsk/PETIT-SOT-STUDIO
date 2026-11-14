@@ -14,7 +14,7 @@ export async function generateMetadata({
   const title = ru ? "Оригинальные картины Ольги Трихлеб — художница из Тренчина" : "Originálne obrazy od Olgy Trikhleb | PETIT.SOT STUDIO";
   const description = ru
     ? "Оригинальная живопись Ольги Трихлеб, независимой художницы из Тренчина, Словакия. Городские сцены, пейзажи и современные картины."
-    : "Explore original paintings by Olga Trikhleb, an independent artist based in Trenčín, Slovakia. Discover contemporary paintings, city scenes and landscapes.";
+    : "Prezrite si originálne maľby Olgy Trikhleb, maliarky z Trenčína na Slovensku. Objavte autorské obrazy, mestské motívy a krajiny.";
 
   const canonical = `${SITE_URL}${ru ? "/ru" : ""}/works`;
   const works = await getWorks();

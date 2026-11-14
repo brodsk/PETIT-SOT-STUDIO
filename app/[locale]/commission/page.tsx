@@ -9,10 +9,10 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   const ru = locale === "ru";
   const title = ru
     ? "Картины на заказ — Ольга Трихлеб"
-    : "Maľba na objednávku a obrazy na mieru | PETIT.SOT STUDIO";
+    : "Custom Original Paintings & Art Commissions | PETIT.SOT";
   const description = ru
     ? "Закажите оригинальную картину у художницы Ольги Трихлеб. Индивидуальный сюжет, размер и палитра, предварительная оценка стоимости и личное обсуждение заказа."
-    : "Objednajte si originálny obraz na mieru od maliarky Olgy Trikhleb. Vyberte si motív, rozmery a farebnú paletu alebo pošlite vlastnú fotografiu ako predlohu.";
+    : "Commission an original painting by artist Olga Trikhleb. Create a personalised landscape or seascape with your chosen subject, canvas size and colour palette, and include your own reference photo.";
   const url = `${SITE_URL}${ru ? "/ru" : ""}/commission`;
   return {
     title,

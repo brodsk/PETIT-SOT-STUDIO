@@ -210,7 +210,7 @@ export default function AdminDashboard({initialArtworks}:Props){
     if(!window.confirm("Удалить эту картину? Это действие нельзя отменить."))return;
     setBusy(true);setMessage("");
     try{
-      const {data:gallery,error:galleryError}=await supabase.from("petit_sot_artwork_images").select("image_path").eq("artwork_id",form.id);
+      const {data:gallery,error:galleryError}=await supabase.from("petit_sot_artwork_images").select("image_path,web_image_path,thumbnail_path").eq("artwork_id",form.id);
       if(galleryError)throw galleryError;
       const {data:interiorRows,error:interiorError}=await supabase.from("petit_sot_artwork_interiors").select("image_path").eq("artwork_id",form.id);
       if(interiorError)throw interiorError;

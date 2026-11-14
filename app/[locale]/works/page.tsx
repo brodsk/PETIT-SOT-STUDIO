@@ -11,7 +11,7 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale } = await params;
   const ru = locale === "ru";
-  const title = ru ? "Оригинальные картины Ольги Трихлеб — художница из Тренчина" : "Original Paintings by Olga Trikhleb — Trenčín Artist";
+  const title = ru ? "Оригинальные картины Ольги Трихлеб — художница из Тренчина" : "Originálne obrazy od Olgy Trikhleb | PETIT.SOT STUDIO";
   const description = ru
     ? "Оригинальная живопись Ольги Трихлеб, независимой художницы из Тренчина, Словакия. Городские сцены, пейзажи и современные картины."
     : "Explore original paintings by Olga Trikhleb, an independent artist based in Trenčín, Slovakia. Discover contemporary paintings, city scenes and landscapes.";

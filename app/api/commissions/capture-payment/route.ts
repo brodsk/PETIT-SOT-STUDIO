@@ -49,15 +49,15 @@ export async function POST(request:Request){
    }),
    sendStudioEmail({
     to:"manager@petitsot.com",
-    subject:"Commission "+label+" paid — "+reference,
-    title:"Commission payment received",
-    greeting:"A customer payment was captured successfully.",
+    subject:ru?"Оплата заказа получена — "+reference:"Commission "+label+" paid — "+reference,
+    title:ru?"Получена оплата по заказу":"Commission payment received",
+    greeting:ru?"Платёж клиента успешно получен.":"A customer payment was captured successfully.",
     details:[
-     {label:"Reference",value:reference},
-     {label:"Payment stage",value:label},
-     {label:"Amount",value:"€"+paidAmount.toFixed(2)},
-     {label:"PayPal order",value:orderId},
-     {label:"Capture ID",value:captureId||"—"}
+     {label:ru?"Номер заказа":"Reference",value:reference},
+     {label:ru?"Этап оплаты":"Payment stage",value:label},
+     {label:ru?"Сумма":"Amount",value:"€"+paidAmount.toFixed(2)},
+     {label:ru?"Заказ PayPal":"PayPal order",value:orderId},
+     {label:ru?"ID платежа":"Capture ID",value:captureId||"—"}
     ]
    })
   ]);

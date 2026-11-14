@@ -49,7 +49,7 @@ export async function PATCH(request:Request,{params}:{params:Promise<{id:string}
    footerNote:saved.customer_locale==="ru"?"Если у вас возникнут вопросы, ответьте на это письмо.":"If you have any questions, simply reply to this email."
   });
  }
- const paymentUrl=new URL("/commission/payment?ref="+encodeURIComponent(saved.reference_code)+(status==="ready_to_ship"?"&balance=1":""),origin).toString();
+ const paymentUrl=new URL((saved.customer_locale==="ru"?"/ru":"")+"/commission/payment?ref="+encodeURIComponent(saved.reference_code)+(status==="ready_to_ship"?"&balance=1":""),origin).toString();
  if(status==="ready_to_ship"&&!saved.balance_paid_at){
   const sent=await sendStudioEmail({
    to:saved.customer_email,

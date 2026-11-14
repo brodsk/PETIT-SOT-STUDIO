@@ -20,7 +20,8 @@ const SASHE_LISTINGS: Record<string,string> = {
 
 function mapWork(w:any,supabase:any,extraImages:string[]=[],extraThumbnails:string[]=[]):PublicWork{
  const size=[w.width_cm,w.height_cm,w.depth_cm].filter((x:any)=>x!=null&&x!=="").join(" × ");
- const imageUrl=(w.web_image_path||w.image_path)?supabase.storage.from("petit-sot-artworks").getPublicUrl(w.web_image_path||w.image_path).data.publicUrl:undefined;\n const thumbnailUrl=(w.thumbnail_path||w.web_image_path||w.image_path)?supabase.storage.from("petit-sot-artworks").getPublicUrl(w.thumbnail_path||w.web_image_path||w.image_path).data.publicUrl:undefined;
+ const imageUrl=(w.web_image_path||w.image_path)?supabase.storage.from("petit-sot-artworks").getPublicUrl(w.web_image_path||w.image_path).data.publicUrl:undefined;
+ const thumbnailUrl=(w.thumbnail_path||w.web_image_path||w.image_path)?supabase.storage.from("petit-sot-artworks").getPublicUrl(w.thumbnail_path||w.web_image_path||w.image_path).data.publicUrl:undefined;
  const slug=String(w.slug||"").toLowerCase();
  const sasheListingUrl=SASHE_LISTINGS[slug] || SASHE_LISTINGS[slug.replace(/_/g,"-")] || null;
  const titleEn=String(w.title_en||w.title||"").trim().replaceAll("Olya Trikhleb","Olga Trikhleb").replaceAll("Olga Trihleb","Olga Trikhleb");

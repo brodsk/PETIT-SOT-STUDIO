@@ -39,7 +39,7 @@ export async function POST(request:Request) {
     if(!subject)return NextResponse.json({error:"Укажите тему письма."},{status:400});
     if(!content)return NextResponse.json({error:"Текст письма пуст."},{status:400});
     const {accountId,accountEmail}=await getZohoAccountContext();
-    const sender=String(body.from||accountEmail||"").trim();
+    const sender=String(body.from||"website@petitsot.com").trim();
     const result=await zohoRequest("/api/accounts/"+encodeURIComponent(accountId)+"/messages",{
       method:"POST",
       body:JSON.stringify({

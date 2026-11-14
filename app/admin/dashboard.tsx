@@ -194,7 +194,7 @@ export default function AdminDashboard({initialArtworks}:Props){
       const {data:artworkPaths,error:artworkPathsError}=await supabase.from("petit_sot_artworks").select("image_path,web_image_path,thumbnail_path").eq("id",form.id).maybeSingle();
       if(artworkPathsError)throw artworkPathsError;
       const artworkPathData=artworkPaths as unknown as {image_path:string|null;web_image_path:string|null;thumbnail_path:string|null}|null;
-      const paths=[artworkPathData?.image_path,artworkPathData?.web_image_path,artworkPathData?.thumbnail_path,...(gallery||[]).flatMap(x=>[x.image_path,x.web_image_path,x.thumbnail_path]),...(interiorRows||[]).map(x=>x.image_path)].filter(Boolean) as string[];
+      const paths=[artworkPathData?.image_path,(artworkPathData as any)?.web_image_path,(artworkPathData as any)?.thumbnail_path,...(gallery||[]).flatMap(x=>[x.image_path,x.web_image_path,x.thumbnail_path]),...(interiorRows||[]).map(x=>x.image_path)].filter(Boolean) as string[];
       if(paths.length){const storage=await supabase.storage.from("petit-sot-artworks").remove(paths);if(storage.error)throw storage.error;}
       const {error}=await supabase.from("petit_sot_artworks").delete().eq("id",form.id);if(error)throw error;
       setArtworks(prev=>prev.filter(x=>x.id!==form.id));setSelected(null);setImage(null);setImagePreview("");setGalleryImages([]);setNewImages([]);setMessage("Картина удалена.");

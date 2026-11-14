@@ -99,13 +99,13 @@ export default function MailAdmin({initialConnected,initialEmail}:{initialConnec
       <div className="studio-nav-caption">РАБОЧЕЕ ПРОСТРАНСТВО</div>
       <nav className="studio-nav">
         <a href="/admin"><span className="studio-nav-icon">⌂</span><span>Обзор</span></a><a href="/admin/artworks"><span className="studio-nav-icon">▧</span><span>Коллекция</span></a>
-        <a href="/admin/orders"><span className="admin-nav-icon">↗</span><span>Заказы</span></a>
-        <a href="/admin/commissions"><span className="admin-nav-icon">✦</span><span>Картины на заказ</span></a>
-        <a className="active" href="/admin/mail"><span className="admin-nav-icon">✉</span><span>Почта</span></a>
-        <a href="/api/admin/etsy/connect"><span className="admin-nav-icon">◎</span><span>Etsy</span></a>
+        <a href="/admin/orders"><span className="studio-nav-icon">↗</span><span>Заказы</span></a>
+        <a href="/admin/commissions"><span className="studio-nav-icon">✦</span><span>Картины на заказ</span></a>
+        <a className="active" href="/admin/mail"><span className="studio-nav-icon">✉</span><span>Почта</span></a>
+        <a href="/api/admin/etsy/connect"><span className="studio-nav-icon">◎</span><span>Etsy</span></a>
       </nav>
-      <div className="studio-sidebar-bottom"><a href="https://www.petitsot.com" target="_blank" rel="noreferrer"><span className="admin-nav-icon">↗</span><span>Открыть сайт</span></a></div>
-      <div className="studio-sidebar-footer">PETIT.SOT STUDIO <span>© 2026</span></div>
+      <div className="studio-sidebar-bottom"><a href="https://www.petitsot.com" target="_blank" rel="noreferrer"><span className="studio-nav-icon">↗</span><span>Открыть сайт</span></a></div>
+      
     </aside>
     <div className="studio-main"><main className="admin-page mail-page">
       <header className="admin-top"><div><span className="eyebrow">PETIT.SOT / COMMUNICATION</span><h1>Почта</h1><p className="admin-top-subtitle">{accountEmail||"Рабочий почтовый ящик студии"}</p></div><div className="mail-head-actions">{connected&&<button className="mail-compose" onClick={()=>{setCompose(true);setSelected(null);setError("");}}>+ Написать письмо</button>}</div></header>

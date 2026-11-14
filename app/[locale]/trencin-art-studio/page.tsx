@@ -14,10 +14,10 @@ export async function generateMetadata({
   const ru = locale === "ru";
   const title = ru
     ? "Художники Тренчина — Ольга Трихлеб | PETIT.SOT STUDIO"
-    : "Maliarka v Trenčíne – Olga Trikhleb | PETIT.SOT STUDIO";
+    : "Artist in Trenčín, Slovakia — Olga Trikhleb | PETIT.SOT";
   const description = ru
     ? "Ищете художников Тренчина? Познакомьтесь с Ольгой Трихлеб — независимой художницей из Тренчина. Оригинальная живопись, современные картины и PETIT.SOT STUDIO."
-    : "Hľadáte maliarku v Trenčíne? Spoznajte Olgu Trikhleb a objavte originálne obrazy a súčasné umenie v nezávislom štúdiu PETIT.SOT.";
+    : "Meet Olga Trikhleb, an independent visual artist based in Trenčín, Slovakia. Discover original paintings, contemporary art and the story of PETIT.SOT STUDIO.";
   const canonical = `${SITE_URL}${ru ? "/ru" : ""}/trencin-art-studio`;
 
   return {

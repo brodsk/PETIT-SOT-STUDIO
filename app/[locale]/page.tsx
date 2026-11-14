@@ -16,7 +16,7 @@ export async function generateMetadata({
     : "Originálne obrazy a súčasné umenie v Trenčíne | PETIT.SOT STUDIO";
   const description = ru
     ? "Ольга Трихлеб — художница из Тренчина, Словакия. PETIT.SOT STUDIO представляет оригинальную живопись, современные картины и независимое художественное творчество в городе — Европейской культурной столице 2026 года."
-    : "Meet Olga Trikhleb, an independent visual artist based in Trenčín, Slovakia. Explore original paintings and contemporary art from a local Trenčín artist in the European Capital of Culture 2026.";
+    : "Objavte originálne obrazy a autorskú maľbu od Olgy Trikhleb. Nezávislá maliarka a umelecké štúdio PETIT.SOT sídlia v Trenčíne na Slovensku.";
 
   const canonical = ru ? `${SITE_URL}/ru` : SITE_URL;
   const works = await getWorks();

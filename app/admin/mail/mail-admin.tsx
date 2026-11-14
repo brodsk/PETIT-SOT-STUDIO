@@ -11,7 +11,7 @@ function address(value:any) {
   return value?.address||value?.email||"";
 }
 function stripHtml(value:string) {
-  return value.replace(/<br\\s*\\/?\\s*>/gi,"\\n").replace(/<\\/(p|div|li|tr)>/gi,"\\n").replace(/<[^>]*>/g,"").replace(/&nbsp;/g," ").replace(/&amp;/g,"&").replace(/&lt;/g,"<").replace(/&gt;/g,">").replace(/&quot;/g,'"');
+  return value.replace(/<br\s*\/?\s*>/gi,"\n").replace(/<\/(p|div|li|tr)>/gi,"\n").replace(/<[^>]*>/g,"").replace(/&nbsp;/g," ").replace(/&amp;/g,"&").replace(/&lt;/g,"<").replace(/&gt;/g,">").replace(/&quot;/g,'"');
 }
 function dateLabel(value:any) {
   if(!value)return "";

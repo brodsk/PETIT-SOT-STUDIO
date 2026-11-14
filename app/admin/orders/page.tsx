@@ -38,5 +38,5 @@ export default function OrdersAdmin(){
     <section className="orders-table">
       {orders.length===0?<div className="orders-empty"><span>Заказов пока нет.</span><p>После подключения оплаты Stripe оплаченные покупки картин будут появляться здесь.</p></div>:orders.map(o=><article className="order-row" key={o.id}><div><span className="order-id">{o.id.slice(0,8).toUpperCase()}</span><h2>{o.buyer_name||"Покупатель не указан"}</h2><p>{o.buyer_email||"—"}</p></div><strong>€{Number(o.amount_eur).toFixed(2)}</strong><span>{new Date(o.created_at).toLocaleDateString("ru-RU")}</span><select aria-label="Статус заказа" value={o.status} disabled={busy===o.id} onChange={e=>change(o.id,e.target.value)}>{statuses.map(s=><option key={s} value={s}>{labels[s]||s}</option>)}</select></article>)}
     </section>
-  </main>
+  </main></div>
 }

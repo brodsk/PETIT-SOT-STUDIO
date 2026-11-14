@@ -4,8 +4,8 @@ import { FormEvent, useEffect, useMemo, useState } from "react";
 import { createClient } from "../../lib/supabase/client";
 import heic2any from "heic2any";
 
-type Artwork={id:string;slug:string;title:string;title_en:string;year:number|null;medium:string|null;width_cm:number|null;height_cm:number|null;depth_cm:number|null;description:string;description_en:string;ai_description:string;price_eur:number;status:string;image_path:string|null;certificate_number:string|null;created_at:string;etsy_listing_id:number|null;etsy_state:string|null;etsy_error:string|null;etsy_listing_url:string|null};
-type ArtworkImage={id:string;artwork_id:string;image_path:string;sort_order:number;created_at:string};
+type Artwork={id:string;slug:string;title:string;title_en:string;year:number|null;medium:string|null;width_cm:number|null;height_cm:number|null;depth_cm:number|null;description:string;description_en:string;ai_description:string;price_eur:number;status:string;image_path:string|null;web_image_path:string|null;thumbnail_path:string|null;certificate_number:string|null;created_at:string;etsy_listing_id:number|null;etsy_state:string|null;etsy_error:string|null;etsy_listing_url:string|null};
+type ArtworkImage={id:string;artwork_id:string;image_path:string;web_image_path:string|null;thumbnail_path:string|null;sort_order:number;created_at:string};
 type InteriorImage={id:string;artwork_id:string;image_path:string;style:string;custom_prompt:string;created_at:string;image_url:string};
 type Props={initialArtworks:Artwork[]};
 
@@ -29,7 +29,7 @@ export default function AdminDashboard({initialArtworks}:Props){
   const [artworkSearch,setArtworkSearch]=useState("");
   const [artworkFilter,setArtworkFilter]=useState("all");
 
-  const form:Artwork=selected ?? {id:"",slug:"",title:"",title_en:"",year:new Date().getFullYear(),medium:"",width_cm:null,height_cm:null,depth_cm:null,description:"",description_en:"",ai_description:"",price_eur:0,status:"available",image_path:null,certificate_number:null,created_at:"",etsy_listing_id:null,etsy_state:null,etsy_error:null,etsy_listing_url:null};
+  const form:Artwork=selected ?? {id:"",slug:"",title:"",title_en:"",year:new Date().getFullYear(),medium:"",width_cm:null,height_cm:null,depth_cm:null,description:"",description_en:"",ai_description:"",price_eur:0,status:"available",image_path:null,web_image_path:null,thumbnail_path:null,certificate_number:null,created_at:"",etsy_listing_id:null,etsy_state:null,etsy_error:null,etsy_listing_url:null};
   const imageUrl=useMemo(()=>form.image_path?supabase.storage.from("petit-sot-artworks").getPublicUrl(form.image_path).data.publicUrl:"",[form.image_path,supabase]);
 
   useEffect(()=>{
@@ -80,12 +80,8 @@ export default function AdminDashboard({initialArtworks}:Props){
       const rows:any[]=[];
       const start=galleryImages.length;
       for(let i=0;i<selectedFiles.length;i++){
-        const file=selectedFiles[i];
-        const ext=file.name.split(".").pop()?.toLowerCase()||"jpg";
-        const path=form.id+"/"+crypto.randomUUID()+"."+ext;
-        const up=await supabase.storage.from("petit-sot-artworks").upload(path,file,{contentType:file.type,upsert:false});
-        if(up.error)throw up.error;
-        rows.push({artwork_id:form.id,image_path:path,sort_order:start+i});
+        const variants=await uploadImageVariants(selectedFiles[i],form.id+"/"+crypto.randomUUID());
+        rows.push({artwork_id:form.id,...variants,sort_order:start+i});
       }
       const inserted=await supabase.from("petit_sot_artwork_images").insert(rows).select("*");
       if(inserted.error)throw inserted.error;
@@ -99,11 +95,13 @@ export default function AdminDashboard({initialArtworks}:Props){
     e.preventDefault();setBusy(true);setMessage("");
     try{
       let imagePath=form.image_path;
+      let webImagePath=form.web_image_path||null;
+      let thumbnailPath=form.thumbnail_path||null;
       if(image){
-        const ext=image.name.split(".").pop()?.toLowerCase()||"jpg";
-        imagePath=(form.slug||crypto.randomUUID())+"."+ext;
-        const up=await supabase.storage.from("petit-sot-artworks").upload(imagePath,image,{contentType:image.type,upsert:true});
-        if(up.error)throw up.error;
+        const variants=await uploadImageVariants(image,"artworks/"+(form.slug||crypto.randomUUID()));
+        imagePath=variants.image_path;
+        webImagePath=variants.web_image_path;
+        thumbnailPath=variants.thumbnail_path;
       }
       let titleEn=form.title_en||"";
       let descriptionEn=form.description_en||"";
@@ -115,17 +113,16 @@ export default function AdminDashboard({initialArtworks}:Props){
         if(!selected||!titleEn||(form.title!==selected.title&&form.title_en===selected.title_en))titleEn=tj.titleEn||titleEn;
         descriptionEn=tj.descriptionEn||descriptionEn;
       }
-      const payload={slug:form.slug,title:form.title,title_en:titleEn,year:form.year||null,medium:form.medium||null,width_cm:form.width_cm||null,height_cm:form.height_cm||null,depth_cm:form.depth_cm||null,description:form.description,description_en:descriptionEn,ai_description:form.ai_description,price_eur:Number(form.price_eur)||0,status:form.status,image_path:imagePath||null};
+      const payload={slug:form.slug,title:form.title,title_en:titleEn,year:form.year||null,medium:form.medium||null,width_cm:form.width_cm||null,height_cm:form.height_cm||null,depth_cm:form.depth_cm||null,description:form.description,description_en:descriptionEn,ai_description:form.ai_description,price_eur:Number(form.price_eur)||0,status:form.status,image_path:imagePath||null,web_image_path:webImagePath,thumbnail_path:thumbnailPath};
       const result=form.id?await supabase.from("petit_sot_artworks").update(payload).eq("id",form.id).select().single():await supabase.from("petit_sot_artworks").insert(payload).select().single();
       if(result.error)throw result.error;
       const saved=result.data as Artwork;
       if(newImages.length){
         const rows:any[]=[];
         for(let i=0;i<newImages.length;i++){
-          const file=newImages[i],ext=file.name.split(".").pop()?.toLowerCase()||"jpg",path=saved.id+"/"+crypto.randomUUID()+"."+ext;
-          const up=await supabase.storage.from("petit-sot-artworks").upload(path,file,{contentType:file.type,upsert:false});
-          if(up.error)throw up.error;
-          rows.push({artwork_id:saved.id,image_path:path,sort_order:galleryImages.length+i});
+          const file=newImages[i];
+          const variants=await uploadImageVariants(file,saved.id+"/"+crypto.randomUUID());
+          rows.push({artwork_id:saved.id,...variants,sort_order:galleryImages.length+i});
         }
         const inserted=await supabase.from("petit_sot_artwork_images").insert(rows);
         if(inserted.error)throw inserted.error;
@@ -143,13 +140,13 @@ export default function AdminDashboard({initialArtworks}:Props){
     if(!form.id||!form.image_path||item.image_path===form.image_path)return;
     setBusy(true);setMessage("");
     try{
-      const oldMain=form.image_path;
-      const {error:galleryError}=await supabase.from("petit_sot_artwork_images").update({image_path:oldMain}).eq("id",item.id);
+      const oldMain={image_path:form.image_path,web_image_path:form.web_image_path,thumbnail_path:form.thumbnail_path};
+      const {error:galleryError}=await supabase.from("petit_sot_artwork_images").update(oldMain).eq("id",item.id);
       if(galleryError)throw galleryError;
-      const {data,error}=await supabase.from("petit_sot_artworks").update({image_path:item.image_path}).eq("id",form.id).select().single();
+      const {data,error}=await supabase.from("petit_sot_artworks").update({image_path:item.image_path,web_image_path:item.web_image_path,thumbnail_path:item.thumbnail_path}).eq("id",form.id).select().single();
       if(error)throw error;
       setSelected(data as Artwork);
-      setGalleryImages(prev=>prev.map(x=>x.id===item.id?{...x,image_path:oldMain}:x));
+      setGalleryImages(prev=>prev.map(x=>x.id===item.id?{...x,...oldMain}:x));
       setMessage("Главная фотография изменена.");
     }catch(err:any){setMessage(err?.message||"Не удалось сменить главную фотографию.");}
     setBusy(false);
@@ -159,7 +156,7 @@ export default function AdminDashboard({initialArtworks}:Props){
     if(!window.confirm("Удалить это фото?"))return;
     setBusy(true);setMessage("");
     try{
-      const storage=await supabase.storage.from("petit-sot-artworks").remove([item.image_path]);
+      const storage=await supabase.storage.from("petit-sot-artworks").remove([item.image_path,item.web_image_path,item.thumbnail_path].filter(Boolean) as string[]);
       if(storage.error)throw storage.error;
       const {error}=await supabase.from("petit_sot_artwork_images").delete().eq("id",item.id);
       if(error)throw error;
@@ -217,7 +214,9 @@ export default function AdminDashboard({initialArtworks}:Props){
       if(galleryError)throw galleryError;
       const {data:interiorRows,error:interiorError}=await supabase.from("petit_sot_artwork_interiors").select("image_path").eq("artwork_id",form.id);
       if(interiorError)throw interiorError;
-      const paths=[form.image_path,...(gallery||[]).map(x=>x.image_path),...(interiorRows||[]).map(x=>x.image_path)].filter(Boolean) as string[];
+      const {data:artworkPaths,error:artworkPathsError}=await supabase.from("petit_sot_artworks").select("image_path,web_image_path,thumbnail_path").eq("id",form.id).maybeSingle();
+      if(artworkPathsError)throw artworkPathsError;
+      const paths=[artworkPaths?.image_path,artworkPaths?.web_image_path,artworkPaths?.thumbnail_path,...(gallery||[]).flatMap(x=>[x.image_path,x.web_image_path,x.thumbnail_path]),...(interiorRows||[]).map(x=>x.image_path)].filter(Boolean) as string[];
       if(paths.length){const storage=await supabase.storage.from("petit-sot-artworks").remove(paths);if(storage.error)throw storage.error;}
       const {error}=await supabase.from("petit_sot_artworks").delete().eq("id",form.id);if(error)throw error;
       setArtworks(prev=>prev.filter(x=>x.id!==form.id));setSelected(null);setImage(null);setImagePreview("");setGalleryImages([]);setNewImages([]);setMessage("Картина удалена.");
@@ -280,6 +279,34 @@ export default function AdminDashboard({initialArtworks}:Props){
           : "Не удалось прочитать изображение даже после попытки конвертации. "+details+" Откройте фото и сохраните его как JPG.");
       }
     }
+  }
+
+  async function uploadImageVariants(file:File, basePath:string, upsert=false){
+    const bucket=supabase.storage.from("petit-sot-artworks");
+    const ext=file.name.split(".").pop()?.toLowerCase()||"jpg";
+    const originalPath=basePath+"-original-"+crypto.randomUUID()+"."+ext;
+    const webPath=basePath+"-web-"+crypto.randomUUID()+".jpg";
+    const thumbPath=basePath+"-thumb-"+crypto.randomUUID()+".jpg";
+    const webDataUrl=await compressImage(file);
+    const webBlob=await (await fetch(webDataUrl)).blob();
+    const thumbCanvas=document.createElement("canvas");
+    const thumbContext=thumbCanvas.getContext("2d");
+    if(!thumbContext)throw new Error("Не удалось создать миниатюру изображения.");
+    const bitmap=await createImageBitmap(webBlob);
+    const scale=Math.min(1,480/Math.max(bitmap.width,bitmap.height));
+    thumbCanvas.width=Math.max(1,Math.round(bitmap.width*scale));
+    thumbCanvas.height=Math.max(1,Math.round(bitmap.height*scale));
+    thumbContext.drawImage(bitmap,0,0,thumbCanvas.width,thumbCanvas.height);
+    bitmap.close();
+    const thumbBlob=await new Promise<Blob>((resolve,reject)=>thumbCanvas.toBlob(blob=>blob?resolve(blob):reject(new Error("Не удалось подготовить миниатюру.")),"image/jpeg",0.78));
+    const cacheControl="31536000";
+    const originalUpload=await bucket.upload(originalPath,file,{contentType:file.type||"application/octet-stream",cacheControl,upsert});
+    if(originalUpload.error)throw originalUpload.error;
+    const webUpload=await bucket.upload(webPath,webBlob,{contentType:"image/jpeg",cacheControl,upsert:false});
+    if(webUpload.error)throw webUpload.error;
+    const thumbUpload=await bucket.upload(thumbPath,thumbBlob,{contentType:"image/jpeg",cacheControl,upsert:false});
+    if(thumbUpload.error)throw thumbUpload.error;
+    return {image_path:originalPath,web_image_path:webPath,thumbnail_path:thumbPath};
   }
 
   async function generateDescription(){

@@ -13,7 +13,7 @@ export async function generateMetadata({
   const ru = locale === "ru";
   const title = ru
     ? "Художница из Тренчина — Ольга Трихлеб | PETIT.SOT STUDIO"
-    : "Artist in Trenčín, Slovakia — Olga Trikhleb | PETIT.SOT STUDIO";
+    : "Originálne obrazy a súčasné umenie v Trenčíne | PETIT.SOT STUDIO";
   const description = ru
     ? "Ольга Трихлеб — художница из Тренчина, Словакия. PETIT.SOT STUDIO представляет оригинальную живопись, современные картины и независимое художественное творчество в городе — Европейской культурной столице 2026 года."
     : "Meet Olga Trikhleb, an independent visual artist based in Trenčín, Slovakia. Explore original paintings and contemporary art from a local Trenčín artist in the European Capital of Culture 2026.";

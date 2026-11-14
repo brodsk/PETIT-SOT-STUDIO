@@ -12,7 +12,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
     : "Custom Original Paintings & Art Commissions | Olga Trikhleb — PETIT.SOT";
   const description = ru
     ? "Закажите оригинальную картину у художницы Ольги Трихлеб. Индивидуальный сюжет, размер и палитра, предварительная оценка стоимости и личное обсуждение заказа."
-    : "Commission an original, hand-painted artwork by artist Olga Trikhleb. Create a personalised landscape or seascape with your preferred size, colours and subject. Request a custom painting.";
+    : "Commission an original painting by artist Olga Trikhleb. Create a personalised landscape or seascape with your preferred size, colours and subject. Request a custom artwork.";
   const url = `${SITE_URL}${ru ? "/ru" : ""}/commission`;
   return {
     title,
@@ -25,21 +25,8 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
         "x-default": `${SITE_URL}/commission`,
       },
     },
-    openGraph: {
-      type: "website",
-      siteName: "PETIT.SOT STUDIO",
-      title,
-      description,
-      url,
-      locale: ru ? "ru_RU" : "en_GB",
-      images: [{ url: "/og-image.jpg", alt: ru ? "Авторская живопись PETIT.SOT — картины на заказ" : "PETIT.SOT original painting commissions" }],
-    },
-    twitter: {
-      card: "summary_large_image",
-      title,
-      description,
-      images: ["/og-image.jpg"],
-    },
+    openGraph: { type: "website", siteName: "PETIT.SOT STUDIO", title, description, url, locale: ru ? "ru_RU" : "en_GB" },
+    twitter: { card: "summary", title, description },
   };
 }
 

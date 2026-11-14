@@ -36,9 +36,9 @@ export default function CommissionSeoContent({ ru }: { ru: boolean }) {
         areaServed: { "@type": "Country", name: "Slovakia" },
         url: pageUrl,
         offers: {
-          "@type": "Offer",
+          "@type": "AggregateOffer",
           priceCurrency: "EUR",
-          lowPrice: "180",
+          lowPrice: 180,
           availability: "https://schema.org/OnlineOnly",
           url: pageUrl,
           description: ru ? "Предварительная цена; окончательная стоимость зависит от размера и сложности." : "Indicative starting price; final quote depends on size and complexity.",

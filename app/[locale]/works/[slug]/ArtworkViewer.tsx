@@ -1,7 +1,7 @@
 "use client";
 import {useEffect,useRef,useState} from "react";
 
-export default function ArtworkViewer({images,alt,slug}:{images:string[];alt:string;slug:string}){
+export default function ArtworkViewer({images,thumbnailImages,alt,slug}:{images:string[];thumbnailImages?:string[];alt:string;slug:string}){
  const items=images.filter(Boolean), [active,setActive]=useState(0), [open,setOpen]=useState(false);
  const viewerRef=useRef<HTMLDivElement>(null);
  const imageRef=useRef<HTMLImageElement>(null);
@@ -57,7 +57,7 @@ export default function ArtworkViewer({images,alt,slug}:{images:string[];alt:str
     <span className="artwork-viewer-hint left">←</span><span className="artwork-viewer-hint right">→</span>
    </>}
   </div>
-  {items.length>1&&<div className="artwork-gallery-thumbs">{items.map((src,i)=><button type="button" className={i===active?"active":""} onClick={()=>setActive(i)} key={src+i}><img src={src} alt={imageAlt(i)}/></button>)}</div>}
+  {items.length>1&&<div className="artwork-gallery-thumbs">{items.map((src,i)=><button type="button" className={i===active?"active":""} onClick={()=>setActive(i)} key={src+i}><img src={(thumbnailImages&&thumbnailImages[i])||src} alt={imageAlt(i)}/></button>)}</div>}
   {open&&<div className="artwork-lightbox" role="dialog" aria-modal="true" onClick={()=>setOpen(false)}>
    <button className="artwork-lightbox-close" onClick={()=>setOpen(false)} aria-label="Close">×</button>
    {items.length>1&&<button className="artwork-lightbox-arrow left" onClick={prev} aria-label="Previous photo">←</button>}

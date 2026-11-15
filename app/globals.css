@@ -3948,3 +3948,41 @@ div[data-locale] > footer {
     font-size: 14px;
   }
 }
+
+
+/* Keep CSS-module pages on the same body and heading scale. */
+[data-locale] .page :where(p, li, dd) {
+  font-size: var(--type-body-size);
+  line-height: var(--type-body-leading);
+}
+[data-locale] .page h1 {
+  font-family: var(--type-display);
+  font-style: italic;
+  font-size: var(--type-page-title);
+  font-weight: 400;
+  line-height: 1.08;
+  letter-spacing: -.04em;
+}
+[data-locale] .page h2 {
+  font-family: var(--type-display);
+  font-style: italic;
+  font-size: var(--type-section-title);
+  font-weight: 400;
+  line-height: 1.15;
+}
+[data-locale] .content :where(p, li) {
+  font-size: var(--type-body-size);
+  line-height: var(--type-body-leading);
+}
+[data-locale] .content h2 {
+  font-family: var(--type-display);
+  font-style: italic;
+  font-size: var(--type-section-title);
+  font-weight: 400;
+  line-height: 1.15;
+}
+@media (max-width: 700px) {
+  [data-locale] .page h1 { font-size: var(--type-page-title); }
+  [data-locale] .page h2,
+  [data-locale] .content h2 { font-size: var(--type-section-title); }
+}

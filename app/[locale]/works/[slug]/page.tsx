@@ -83,7 +83,7 @@ export async function generateMetadata({
       : `${seoArtwork.en.description} Year: ${w.year}; size: ${w.size}.`
     : ru
       ? `${workTypeRu.charAt(0).toUpperCase() + workTypeRu.slice(1)} «${title}» Ольги Трихлеб, ${w.year}, ${w.size}. Посмотрите детали работы и варианты покупки.`
-      : `${workTypeEn} “${title}” by Olga Trikhleb, ${w.year}, ${w.size}. View artwork details and purchase options.`;
+      : `${workTypeEn} “${title}” by Olga Trikhleb, ${w.year}, ${w.size}. A one-of-a-kind artwork for your home or collection. View details and purchase options.`;
   const image = w.imageUrl;
   const canonical = `${SITE_URL}${ru ? "/ru" : ""}/works/${w.slug}`;
 

@@ -3793,3 +3793,158 @@ div[data-locale] > footer {
     margin: 0;
   }
 }
+
+
+/* PETIT.SOT STUDIO — shared typography system (public website) */
+[data-locale] {
+  --type-body: Arial, Helvetica, sans-serif;
+  --type-display: Georgia, "Times New Roman", serif;
+  --type-body-size: 14px;
+  --type-body-leading: 1.65;
+  --type-meta-size: 10px;
+  --type-label-size: 10px;
+  --type-page-title: clamp(42px, 6.2vw, 76px);
+  --type-section-title: clamp(25px, 3vw, 34px);
+  --type-subtitle: 21px;
+  --type-work-title: clamp(36px, 3.8vw, 52px);
+  font-family: var(--type-body);
+  font-size: var(--type-body-size);
+  line-height: var(--type-body-leading);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+[data-locale] :where(p, li, dd, blockquote) {
+  font-family: var(--type-body);
+  font-size: var(--type-body-size);
+  line-height: var(--type-body-leading);
+}
+
+[data-locale] :where(h1, h2, h3) {
+  font-family: var(--type-display);
+  font-style: italic;
+  font-weight: 400;
+  line-height: 1.12;
+  letter-spacing: -.035em;
+}
+
+[data-locale] h1 {
+  font-size: var(--type-page-title);
+}
+
+[data-locale] h2 {
+  font-size: var(--type-section-title);
+}
+
+[data-locale] h3 {
+  font-size: var(--type-subtitle);
+}
+
+[data-locale] :where(.eyebrow, .section-label, .gallery-number, .about-index,
+  .about-section-label, .archive-card p, .archive-card-status,
+  .archive-card-meta, .work-meta, .work-info dt, .purchase-label,
+  .contact-details, .back, .arrow-link, .journal-article-image figcaption) {
+  font-family: var(--type-body);
+  font-size: var(--type-meta-size);
+  line-height: 1.45;
+}
+
+[data-locale] :where(button, input, textarea, select) {
+  font-family: var(--type-body);
+}
+
+[data-locale] .work-info h1 {
+  font-family: var(--type-display) !important;
+  font-style: italic !important;
+  font-weight: 400 !important;
+  font-size: var(--type-work-title) !important;
+  line-height: 1.08 !important;
+  letter-spacing: -.035em !important;
+  margin: 18px 0 54px !important;
+}
+
+[data-locale] .work-info .work-description,
+[data-locale] .work-info .work-description p {
+  max-width: 440px;
+  font-size: var(--type-body-size);
+  line-height: var(--type-body-leading);
+}
+
+[data-locale] .work-info dl div {
+  padding: 13px 0;
+}
+
+[data-locale] .work-info dt {
+  font-size: var(--type-label-size);
+  line-height: 1.4;
+}
+
+[data-locale] .work-info dd {
+  font-size: var(--type-body-size);
+  line-height: 1.5;
+}
+
+[data-locale] .purchase-box strong {
+  font-size: 17px;
+  line-height: 1.3;
+}
+
+[data-locale] .page-intro > p:last-child,
+[data-locale] .archive-mast > p,
+[data-locale] .about-section-copy p,
+[data-locale] .about-lead p,
+[data-locale] .journal-article-content p,
+[data-locale] .journal-article-content li {
+  font-size: var(--type-body-size);
+  line-height: var(--type-body-leading);
+}
+
+[data-locale] .archive-card-meta,
+[data-locale] .archive-card-meta span:first-child {
+  font-size: 16px;
+  line-height: 1.3;
+}
+
+[data-locale] .archive-card p {
+  font-size: var(--type-meta-size);
+  line-height: 1.5;
+}
+
+[data-locale] .contact-page .contact-note,
+[data-locale] .contact-page .intro {
+  font-size: var(--type-body-size);
+  line-height: var(--type-body-leading);
+}
+
+[data-locale] .commission-page,
+[data-locale] .commission-page p,
+[data-locale] .commission-page label {
+  line-height: var(--type-body-leading);
+}
+
+@media (max-width: 700px) {
+  [data-locale] {
+    --type-body-size: 14px;
+    --type-page-title: clamp(36px, 10vw, 54px);
+    --type-section-title: clamp(23px, 6vw, 29px);
+    --type-subtitle: 19px;
+    --type-work-title: clamp(31px, 8.5vw, 38px);
+    --type-meta-size: 9px;
+    --type-label-size: 9px;
+  }
+
+  [data-locale] .work-info h1 {
+    margin: 14px 0 38px !important;
+  }
+
+  [data-locale] .work-info .work-description,
+  [data-locale] .work-info .work-description p {
+    font-size: 14px;
+    line-height: 1.65;
+  }
+
+  [data-locale] .archive-card-meta,
+  [data-locale] .archive-card-meta span:first-child {
+    font-size: 14px;
+  }
+}

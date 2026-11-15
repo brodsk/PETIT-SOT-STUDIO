@@ -31,6 +31,16 @@ const guides = [
     ru: { title: "Оригинальная картина или принт: в чём разница?", description: "Разбираемся, чем уникальная авторская работа отличается от печатной репродукции." },
   },
   {
+    slug: "how-to-hang-a-painting",
+    en: { title: "How to Hang a Painting: Height, Space and Placement", description: "A clear guide to choosing the right wall, hanging height and spacing so an artwork feels balanced in your room." },
+    ru: { title: "Как повесить картину: высота, место и композиция", description: "Как выбрать стену, высоту и расстояние вокруг картины, чтобы она гармонично смотрелась в интерьере." },
+  },
+  {
+    slug: "commission-an-original-painting",
+    en: { title: "How to Commission an Original Painting", description: "What to consider before commissioning a painting, from size and subject to references, timing and the creative process." },
+    ru: { title: "Как заказать оригинальную картину", description: "Что важно обсудить перед заказом: размер, сюжет, референсы, сроки и этапы создания авторской работы." },
+  },
+  {
     slug: "how-to-care-for-an-original-painting",
     en: { title: "How to Care for an Original Painting", description: "Simple, careful ways to protect paintings on canvas and paper from light, dust and environmental changes." },
     ru: { title: "Как ухаживать за оригинальной картиной", description: "Как беречь живопись на холсте и бумаге от света, пыли и перепадов окружающей среды." },
@@ -42,6 +52,8 @@ export default async function JournalPage({ params }: { params: Promise<{ locale
   const ru = locale === "ru";
   const works = await getWorks();
   const preferredImages: Record<string, string[]> = {
+    "how-to-hang-a-painting": ["evening", "meadow", "nice"],
+    "commission-an-original-painting": ["sunset", "road", "angel"],
     "how-to-choose-an-original-painting": ["meadow", "evening", "sunset"],
     "original-art-vs-print": ["rain", "angel", "mallorca"],
     "how-to-care-for-an-original-painting": ["road", "road-in-the-fog", "tuman"],

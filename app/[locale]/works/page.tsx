@@ -77,7 +77,7 @@ export default async function Works({ params }: { params: Promise<{ locale: stri
   };
   return <main className="archive gallery-archive">
     <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
-    <div className="archive-mast"><span className="eyebrow">{ru ? "Архив · Тренчин, Словакия" : "Archive · Trenčín, Slovakia"}</span><h1>{ru ? "Оригинальные картины" : "Original paintings"}</h1><p>{ru ? "Оригинальные картины Ольги Трихлеб — независимой художницы из Тренчина: городские сцены, пейзажи и повседневные сюжеты. У каждой работы указаны техника, размер, год и доступность." : "Explore original paintings by Olga Trikhleb, an independent Trenčín-based artist, from city scenes and landscapes to everyday moments. Each work includes its medium, size, year and availability."}</p></div>
+    <div className="archive-mast"><span className="eyebrow">{ru ? "PETIT.SOT / КОЛЛЕКЦИЯ" : "PETIT.SOT / COLLECTION"}</span><h1>{ru ? "Оригинальные картины" : "Original paintings"}</h1><p>{ru ? "Оригинальные картины Ольги Трихлеб — независимой художницы из Тренчина: городские сцены, пейзажи и повседневные сюжеты. У каждой работы указаны техника, размер, год и доступность." : "Explore original paintings by Olga Trikhleb, an independent Trenčín-based artist, from city scenes and landscapes to everyday moments. Each work includes its medium, size, year and availability."}</p></div>
     {(() => {
       const availableWorks = works.filter((work) => work.available);
       const archivedWorks = works.filter((work) => !work.available);

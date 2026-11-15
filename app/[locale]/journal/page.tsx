@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import Image from "next/image";
+import { getWorks } from "../../../lib/works";
 
 const SITE_URL = "https://www.petitsot.com";
 
@@ -39,9 +41,21 @@ const guides = [
 export default async function JournalPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   const ru = locale === "ru";
+  const works = await getWorks();
+  const preferredImages: Record<string, string[]> = {
+    "how-to-choose-an-original-painting": ["meadow", "sunset-in-the-village", "evening"],
+    "original-art-vs-print": ["rain-in-the-city", "rain", "angel"],
+    "how-to-care-for-an-original-painting": ["road", "fog", "nice"],
+  };
+  const imageFor = (slug: string) => {
+    const preferred = preferredImages[slug] || [];
+    const work = preferred.map((key) => works.find((item) => item.slug.toLowerCase() === key && (item.imageUrl || item.thumbnailUrl))).find(Boolean)
+      || works.find((item) => item.imageUrl || item.thumbnailUrl);
+    return work ? { src: work.imageUrl || work.thumbnailUrl!, alt: (ru ? work.titleRu : work.titleEn) + " — " + (ru ? "оригинальная картина Ольги Трихлеб" : "original painting by Olga Trikhleb") } : null;
+  };
   return (
-    <main className="text-page about-page">
-      <section className="about-hero">
+    <main className="text-page journal-page">
+      <section className="journal-hero">
         <p className="eyebrow">PETIT.SOT STUDIO · {ru ? "РЕСУРСЫ" : "RESOURCES"}</p>
         <h1>{ru ? <>Искусство<br /><i>понятнее.</i></> : <>Art,<br /><i>considered.</i></>}</h1>
         <div className="about-lead">
@@ -56,12 +70,14 @@ export default async function JournalPage({ params }: { params: Promise<{ locale
           <span className="eyebrow">{ru ? "СТАТЬИ И РУКОВОДСТВА" : "ARTICLES & GUIDES"}</span>
           <h2>{ru ? "Полезно знать" : "Useful to know"}</h2>
         </div>
-        <div className="archive-grid archive-grid-even">
+        <div className="archive-grid archive-grid-even journal-grid">
           {guides.map((guide, index) => {
             const item = ru ? guide.ru : guide.en;
             return (
               <Link className="archive-card" href={`/journal/${guide.slug}`} key={guide.slug}>
-                <div className="archive-image art-placeholder"><span>{String(index + 1).padStart(2, "0")}</span><small>{ru ? "РУКОВОДСТВО" : "GUIDE"}</small></div>
+                <div className="archive-image journal-card-image">
+                  {imageFor(guide.slug) ? <Image src={imageFor(guide.slug)!.src} alt={imageFor(guide.slug)!.alt} fill sizes="(max-width: 700px) 88vw, 42vw" /> : <div className="journal-image-fallback"><span>{String(index + 1).padStart(2, "0")}</span><small>{ru ? "РУКОВОДСТВО" : "GUIDE"}</small></div>}
+                </div>
                 <div className="archive-card-meta"><span>{item.title}</span><span>↗</span></div>
                 <p>{item.description}</p>
               </Link>

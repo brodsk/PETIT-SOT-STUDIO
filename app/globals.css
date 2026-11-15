@@ -3986,3 +3986,26 @@ div[data-locale] > footer {
   [data-locale] .page h2,
   [data-locale] .content h2 { font-size: var(--type-section-title); }
 }
+
+/* Preserve the homepage hero wordmark as a brand element, not a content heading. */
+[data-locale] .hero-wordmark {
+  font-family: Arial, Helvetica, sans-serif !important;
+  font-style: normal !important;
+  font-size: 14px !important;
+  font-weight: 700 !important;
+  letter-spacing: .08em !important;
+  line-height: .9 !important;
+}
+
+[data-locale] .hero-wordmark span {
+  font-family: Arial, Helvetica, sans-serif !important;
+  font-style: normal !important;
+  font-weight: 400 !important;
+}
+
+@media (min-width: 701px) {
+  [data-locale] .hero-wordmark {
+    font-size: clamp(36px, 6.5vw, 112px) !important;
+    letter-spacing: .055em !important;
+  }
+}

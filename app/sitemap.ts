@@ -8,6 +8,7 @@ function languageAlternates(path: string, includeRussian = true) {
   return {
     languages: {
       en: `${SITE_URL}${cleanPath}`,
+      ...(path === "/trencin-art-studio" ? { sk: `${SITE_URL}/sk/trencin-art-studio` } : {}),
       ...(includeRussian ? { ru: `${SITE_URL}/ru${cleanPath}` } : {}),
       "x-default": `${SITE_URL}${cleanPath}`,
     },
@@ -28,6 +29,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { path: "/journal/how-to-choose-an-original-painting", changeFrequency: "yearly" as const, priority: 0.6 },
     { path: "/journal/original-art-vs-print", changeFrequency: "yearly" as const, priority: 0.6 },
     { path: "/journal/how-to-care-for-an-original-painting", changeFrequency: "yearly" as const, priority: 0.6 },
+    { path: "/journal/how-to-hang-a-painting", changeFrequency: "yearly" as const, priority: 0.6 },
+    { path: "/journal/commission-an-original-painting", changeFrequency: "yearly" as const, priority: 0.6 },
     { path: "/contact", changeFrequency: "monthly" as const, priority: 0.6 },
   ];
 

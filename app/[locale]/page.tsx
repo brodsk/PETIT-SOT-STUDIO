@@ -13,10 +13,10 @@ export async function generateMetadata({
   const ru = locale === "ru";
   const title = ru
     ? "Художница из Тренчина — Ольга Трихлеб | PETIT.SOT STUDIO"
-    : "Original Paintings & Contemporary Art in Trenčín | PETIT.SOT STUDIO";
+    : "Original Paintings for Sale Online & Contemporary Art";
   const description = ru
     ? "Ольга Трихлеб — художница из Тренчина, Словакия. PETIT.SOT STUDIO представляет оригинальную живопись, современные картины и независимое художественное творчество в городе — Европейской культурной столице 2026 года."
-    : "Discover original paintings by Olga Trikhleb at PETIT.SOT STUDIO, an independent art studio in Trenčín, Slovakia. Explore unique landscape and city paintings, or enquire about a commissioned artwork.";
+    : "Discover one-of-a-kind original paintings by contemporary artist Olga Trikhleb. Explore original landscape, seascape and city paintings for your home, collect unique artwork online or enquire about a custom painting commission. Based in Slovakia, presented to art lovers worldwide.";
 
   const canonical = ru ? `${SITE_URL}/ru` : SITE_URL;
   const works = await getWorks();
@@ -71,7 +71,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
         "@type": "WebPage",
         "@id": `${pageUrl}#webpage`,
         url: pageUrl,
-        name: ru ? "PETIT.SOT STUDIO — художественная студия в Тренчине" : "PETIT.SOT STUDIO — Independent Art Studio in Trenčín",
+        name: ru ? "PETIT.SOT STUDIO — художественная студия в Тренчине" : "PETIT.SOT STUDIO — Original Paintings by Olga Trikhleb",
         inLanguage: ru ? "ru" : "en",
         ...(primaryImage
           ? {
@@ -131,7 +131,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
           <h1 className="hero-wordmark">PETIT.SOT <span className="wordmark-divider">|</span> <span>STUDIO</span></h1>
           <span className="hero-orbit hero-orbit-a"></span><span className="hero-orbit hero-orbit-b"></span>
         </div>
-        <div className="hero-bottom"><p>{ru ? "Независимая художественная студия в Тренчине, Словакия. Оригинальная живопись Ольги Трихлеб." : "Independent art studio based in Trenčín, Slovakia. Original paintings by Olga Trikhleb."}</p><Link className="arrow-link" href="/works">{ru ? "Смотреть работы" : "View works"} <span>↗</span></Link></div>
+        <div className="hero-bottom"><p>{ru ? "Независимая художественная студия в Тренчине, Словакия. Оригинальная живопись Ольги Трихлеб." : "One-of-a-kind original paintings by contemporary artist Olga Trikhleb. Explore landscape, seascape and city artwork available to collect online."}</p><Link className="arrow-link" href="/works">{ru ? "Смотреть работы" : "View works"} <span>↗</span></Link></div>
       </section>
 
       <section className="gallery-tiles gallery-tiles-all">

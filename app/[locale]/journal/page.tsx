@@ -7,10 +7,10 @@ const SITE_URL = "https://www.petitsot.com";
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
   const { locale } = await params;
   const ru = locale === "ru";
-  const title = ru ? "Гид по оригинальному искусству и живописи | PETIT.SOT" : "Original Art & Painting Guides | PETIT.SOT STUDIO";
+  const title = ru ? "Статьи об искусстве и оригинальной живописи | PETIT.SOT" : "Art & Original Painting Journal | PETIT.SOT STUDIO";
   const description = ru
-    ? "Практические статьи об оригинальных картинах: как выбрать произведение для интерьера, чем оригинал отличается от принта и как ухаживать за живописью."
-    : "Practical guides to original art: how to choose a painting for your home, original artwork vs prints, and how to care for an original painting.";
+    ? "Практические статьи о выборе оригинальной картины, заказе авторской живописи, размещении работ в интерьере и уходе за ними."
+    : "Thoughtful, practical articles on choosing original paintings, commissioning artwork, displaying art at home and caring for the works you live with.";
   const canonical = `${SITE_URL}${ru ? "/ru" : ""}/journal`;
   return {
     title, description,
@@ -67,19 +67,19 @@ export default async function JournalPage({ params }: { params: Promise<{ locale
   return (
     <main className="text-page journal-page">
       <section className="journal-hero">
-        <p className="eyebrow">PETIT.SOT STUDIO · {ru ? "РЕСУРСЫ" : "RESOURCES"}</p>
-        <h1><i>{ru ? <>Искусство<br />понятнее.</> : <>Art,<br />considered.</>}</i></h1>
+        <p className="eyebrow">PETIT.SOT STUDIO · {ru ? "ЖУРНАЛ" : "JOURNAL"}</p>
+        <h1><i>{ru ? <>Об искусстве<br />и живописи.</> : <>Art &amp;<br />painting.</>}</i></h1>
         <div className="about-lead">
           <span className="about-index">PETIT.SOT / JOURNAL</span>
           <p>{ru
-            ? "Небольшая библиотека практических материалов об оригинальном искусстве, выборе картин и заботе о произведениях."
-            : "A growing library of practical notes on original art, choosing paintings and caring for the works you live with."}</p>
+            ? "Практические статьи о том, как выбирать оригинальные картины, заказывать живопись и заботиться о произведениях искусства."
+            : "Practical articles on choosing original paintings, commissioning artwork, displaying it at home and caring for the works you live with."}</p>
         </div>
       </section>
       <section className="works-section">
         <div className="works-section-heading">
-          <span className="eyebrow">{ru ? "СТАТЬИ И РУКОВОДСТВА" : "ARTICLES & GUIDES"}</span>
-          <h2>{ru ? "Полезно знать" : "Useful to know"}</h2>
+          <span className="eyebrow">{ru ? "ЖУРНАЛ PETIT.SOT" : "THE PETIT.SOT JOURNAL"}</span>
+          <h2>{ru ? "Статьи о живописи" : "Explore the articles"}</h2>
         </div>
         <div className="archive-grid archive-grid-even journal-grid">
           {guides.map((guide, index) => {
@@ -97,7 +97,7 @@ export default async function JournalPage({ params }: { params: Promise<{ locale
         </div>
       </section>
       <section className="about-originals">
-        <p className="eyebrow">PETIT.SOT STUDIO · TRENČÍN, SLOVAKIA</p>
+        <p className="eyebrow">PETIT.SOT STUDIO · {ru ? "ОРИГИНАЛЬНЫЕ РАБОТЫ" : "ORIGINAL PAINTINGS"}</p>
         <p className="about-originals-statement">{ru ? "Оригинальная живопись Ольги Трихлеб." : "Original paintings by Olga Trikhleb."}</p>
         <div className="about-originals-bottom">
           <span>{ru ? "Независимая художественная студия" : "Independent art studio"}</span>

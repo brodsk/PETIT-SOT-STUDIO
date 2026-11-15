@@ -11,10 +11,10 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale } = await params;
   const ru = locale === "ru";
-  const title = ru ? "Оригинальные картины Ольги Трихлеб — художница из Тренчина" : "Original Paintings by Olga Trikhleb | PETIT.SOT STUDIO";
+  const title = ru ? "Купить оригинальные картины Ольги Трихлеб" : "Original Paintings for Sale Online | Olga Trikhleb";
   const description = ru
-    ? "Оригинальная живопись Ольги Трихлеб, независимой художницы из Тренчина, Словакия. Городские сцены, пейзажи и современные картины."
-    : "Explore original paintings by Olga Trikhleb, an independent artist in Trenčín, Slovakia. Discover one-of-a-kind landscape paintings, seascapes and city scenes, with artwork details and availability.";
+    ? "Оригинальные картины Ольги Трихлеб в продаже онлайн. Авторская живопись, пейзажи, морские и городские сюжеты, картины для интерьера. Информация о размерах, стоимости и наличии."
+    : "Browse original paintings for sale online by contemporary artist Olga Trikhleb. Discover one-of-a-kind landscape, seascape and city artwork for modern interiors, with dimensions, materials, prices and availability.";
 
   const canonical = `${SITE_URL}${ru ? "/ru" : ""}/works`;
   const works = await getWorks();
@@ -77,7 +77,7 @@ export default async function Works({ params }: { params: Promise<{ locale: stri
   };
   return <main className="archive gallery-archive">
     <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
-    <div className="archive-mast"><span className="eyebrow">{ru ? "PETIT.SOT / КОЛЛЕКЦИЯ" : "PETIT.SOT / COLLECTION"}</span><h1>{ru ? "Оригинальные картины" : "Original paintings"}</h1><p>{ru ? "Оригинальные картины Ольги Трихлеб — независимой художницы из Тренчина: городские сцены, пейзажи и повседневные сюжеты. У каждой работы указаны техника, размер, год и доступность." : "Explore original paintings by Olga Trikhleb, an independent Trenčín-based artist, from city scenes and landscapes to everyday moments. Each work includes its medium, size, year and availability."}</p></div>
+    <div className="archive-mast"><span className="eyebrow">{ru ? "PETIT.SOT / КОЛЛЕКЦИЯ" : "PETIT.SOT / COLLECTION"}</span><h1>{ru ? "Оригинальные картины" : "Original paintings"}</h1><p>{ru ? "Оригинальные картины Ольги Трихлеб в продаже: авторская живопись, пейзажи, морские и городские сюжеты для дома и интерьера. У каждой работы указаны техника, размер, год, стоимость и доступность." : "Discover original paintings for sale online by artist Olga Trikhleb. Explore one-of-a-kind landscapes, seascapes and city scenes for contemporary interiors. Each artwork includes its medium, dimensions, year and current availability."}</p></div>
     {(() => {
       const availableWorks = works.filter((work) => work.available);
       const archivedWorks = works.filter((work) => !work.available);

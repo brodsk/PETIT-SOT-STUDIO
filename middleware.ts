@@ -33,6 +33,13 @@ export function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
+  // A single Slovak-language local landing page lives at /sk without adding a Slovak site-wide locale.
+  if (first === "sk") {
+    const url = request.nextUrl.clone();
+    url.pathname = `/en${pathname}`;
+    return NextResponse.rewrite(url);
+  }
+
   // English keeps clean URLs. Russian has explicit /ru URLs.
   if (first === "en") {
     const cleanPath = pathname.replace(/^\/en(?=\/|$)/, "") || "/";

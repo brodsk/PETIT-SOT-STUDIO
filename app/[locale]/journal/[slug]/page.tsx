@@ -128,9 +128,6 @@ const articles: Article[] = [
       { slug: "Mallorca", en: "Coastal Sunset — oil on canvas", ru: "Coastal Sunset — масло на холсте" },
     ],
   },
-];
-
-
   {
     slug: "how-to-hang-a-painting",
     en: {
@@ -199,6 +196,8 @@ const articles: Article[] = [
       { slug: "Angel", en: "Angel — original artwork", ru: "Angel — оригинальная работа" },
     ],
   },
+];
+
 export function generateStaticParams() {
   return ["en", "ru"].flatMap((locale) => articles.map((article) => ({ locale, slug: article.slug })));
 }

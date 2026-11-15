@@ -33,7 +33,7 @@ export default function CommissionSeoContent({ ru }: { ru: boolean }) {
           ? "Индивидуальная авторская картина художницы Ольги Трихлеб по идее и референсам заказчика."
           : "A personalised original painting created by artist Olga Trikhleb from the client's idea and visual references. Enquiries are welcome from collectors worldwide.",
         provider: { "@type": "Person", "@id": `${SITE_URL}/#artist`, name: "Olga Trikhleb", url: `${SITE_URL}/about` },
-        areaServed: { "@type": "Country", name: "Slovakia" },
+        areaServed: ["Slovakia", "Worldwide"],
         url: pageUrl,
         offers: {
           "@type": "AggregateOffer",

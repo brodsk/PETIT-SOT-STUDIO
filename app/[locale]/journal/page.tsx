@@ -42,9 +42,9 @@ export default async function JournalPage({ params }: { params: Promise<{ locale
   const ru = locale === "ru";
   const works = await getWorks();
   const preferredImages: Record<string, string[]> = {
-    "how-to-choose-an-original-painting": ["meadow", "sunset-in-the-village", "evening"],
-    "original-art-vs-print": ["rain-in-the-city", "rain", "angel"],
-    "how-to-care-for-an-original-painting": ["road", "fog", "nice"],
+    "how-to-choose-an-original-painting": ["meadow", "evening", "sunset"],
+    "original-art-vs-print": ["rain", "angel", "mallorca"],
+    "how-to-care-for-an-original-painting": ["road", "road-in-the-fog", "tuman"],
   };
   const imageFor = (slug: string) => {
     const preferred = preferredImages[slug] || [];
@@ -56,7 +56,7 @@ export default async function JournalPage({ params }: { params: Promise<{ locale
     <main className="text-page journal-page">
       <section className="journal-hero">
         <p className="eyebrow">PETIT.SOT STUDIO · {ru ? "РЕСУРСЫ" : "RESOURCES"}</p>
-        <h1>{ru ? <>Искусство<br /><i>понятнее.</i></> : <>Art,<br /><i>considered.</i></>}</h1>
+        <h1><i>{ru ? <>Искусство<br />понятнее.</> : <>Art,<br />considered.</>}</i></h1>
         <div className="about-lead">
           <span className="about-index">PETIT.SOT / JOURNAL</span>
           <p>{ru

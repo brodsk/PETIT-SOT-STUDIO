@@ -14,27 +14,22 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale } = await params;
   const ru = locale === "ru";
-
   const canonical = ru ? `${SITE_URL}/ru` : SITE_URL;
 
   return {
     title: ru ? "Ольга Трихлеб — художница" : "Olga Trikhleb — Contemporary Artist",
     description: ru
-      ? "Официальный сайт художницы Ольги Трихлеб: живопись, визуальные исследования и доступные работы."
-      : "Official portfolio of contemporary artist Olga Trikhleb: paintings, visual research and selected available works.",
+      ? "Официальный сайт художницы Ольги Трихлеб: оригинальная живопись, авторские картины и доступные работы."
+      : "Official portfolio of contemporary artist Olga Trikhleb: original paintings, artistic practice and selected available works.",
     alternates: {
       canonical,
-      languages: {
-        en: SITE_URL,
-        ru: `${SITE_URL}/ru`,
-        "x-default": SITE_URL,
-      },
+      languages: { en: SITE_URL, ru: `${SITE_URL}/ru`, "x-default": SITE_URL },
     },
     openGraph: {
       title: ru ? "Ольга Трихлеб — художница" : "Olga Trikhleb — Contemporary Artist",
       description: ru
-        ? "Живопись, визуальные исследования и работы Ольги Трихлеб."
-        : "Paintings, visual research and selected works by Olga Trikhleb.",
+        ? "Оригинальная живопись и работы Ольги Трихлеб."
+        : "Original paintings and selected works by Olga Trikhleb.",
       url: canonical,
       locale: ru ? "ru_RU" : "en_GB",
     },
@@ -61,7 +56,7 @@ export default async function LocaleLayout({
         <nav>
           <Link href="/works">{ru ? "Работы" : "Works"}</Link>
           <Link href="/commission">{ru ? "На заказ" : "Commission"}</Link>
-          <Link href="/journal">{ru ? "Гид" : "Journal"}</Link>
+          <Link href="/journal">{ru ? "Журнал" : "Journal"}</Link>
           <Link href="/about">{ru ? "О студии" : "About"}</Link>
           <Link href="/contact">{ru ? "Контакты" : "Contact"}</Link>
           <LanguageSwitcher locale={locale} />
@@ -72,8 +67,7 @@ export default async function LocaleLayout({
       <BackToTop />
       <footer>
         <span>© {new Date().getFullYear()} PETIT.SOT STUDIO</span>
-        <Link href={ru ? "/about" : "/trencin-art-studio"}>{ru ? "О художнице · Тренчин, Словакия" : "Independent art studio · Trenčín, Slovakia"}</Link>
-        <Link href="/journal">{ru ? "Статьи и гиды об искусстве" : "Art guides & resources"}</Link>
+        <Link href="/about">{ru ? "О художнице" : "About the artist"}</Link>
         <a href="https://www.instagram.com/petit.sot.art" target="_blank" rel="noreferrer">
           Instagram ↗
         </a>

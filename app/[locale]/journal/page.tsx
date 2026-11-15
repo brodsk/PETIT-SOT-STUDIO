@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import Image from "next/image";
 import { getWorks } from "../../../lib/works";
 
 const SITE_URL = "https://www.petitsot.com";
@@ -76,7 +75,7 @@ export default async function JournalPage({ params }: { params: Promise<{ locale
             return (
               <Link className="archive-card" href={`/journal/${guide.slug}`} key={guide.slug}>
                 <div className="archive-image journal-card-image">
-                  {imageFor(guide.slug) ? <Image src={imageFor(guide.slug)!.src} alt={imageFor(guide.slug)!.alt} fill sizes="(max-width: 700px) 88vw, 42vw" /> : <div className="journal-image-fallback"><span>{String(index + 1).padStart(2, "0")}</span><small>{ru ? "РУКОВОДСТВО" : "GUIDE"}</small></div>}
+                  {imageFor(guide.slug) ? <img src={imageFor(guide.slug)!.src} alt={imageFor(guide.slug)!.alt} loading="lazy" decoding="async" /> : <div className="journal-image-fallback"><span>{String(index + 1).padStart(2, "0")}</span><small>{ru ? "РУКОВОДСТВО" : "GUIDE"}</small></div>}
                 </div>
                 <div className="archive-card-meta"><span>{item.title}</span><span>↗</span></div>
                 <p>{item.description}</p>

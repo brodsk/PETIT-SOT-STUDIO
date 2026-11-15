@@ -7,9 +7,9 @@ const SITE_URL = "https://www.petitsot.com";
 const PUBLISHED = "2026-11-09";
 
 const ARTICLE_IMAGE_PREFERENCES: Record<string, string[]> = {
-  "how-to-choose-an-original-painting": ["meadow", "sunset-in-the-village", "evening"],
-  "original-art-vs-print": ["rain-in-the-city", "rain", "angel"],
-  "how-to-care-for-an-original-painting": ["road", "fog", "nice"],
+  "how-to-choose-an-original-painting": ["meadow", "evening", "sunset"],
+  "original-art-vs-print": ["rain", "angel", "mallorca"],
+  "how-to-care-for-an-original-painting": ["road", "road-in-the-fog", "tuman"],
 };
 
 async function getArticleImage(slug: string) {
@@ -162,6 +162,7 @@ export default async function JournalArticlePage({ params }: { params: Promise<{
   const ru = locale === "ru";
   const content = ru ? article.ru : article.en;
   const canonical = `${SITE_URL}${ru ? "/ru" : ""}/journal/${slug}`;
+  const articleImage = await getArticleImage(slug);
   const schema = {
     "@context": "https://schema.org",
     "@type": "Article",

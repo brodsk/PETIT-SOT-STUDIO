@@ -3719,3 +3719,17 @@ div[data-locale] > footer {
  .journal-page .journal-grid .archive-card-meta span:first-child{min-width:0;overflow-wrap:anywhere}
  .journal-page .journal-grid .archive-card p{line-height:1.5}
 }
+
+
+/* Journal: restore editorial card grid and compact article takeaways */
+.journal-page .journal-grid.archive-grid-even{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:44px 26px;align-items:start}
+.journal-page .journal-grid .archive-card{min-width:0;width:100%;margin:0!important}
+.journal-page .journal-grid .archive-image{width:100%;height:auto;aspect-ratio:4/5}
+.journal-page .journal-grid .journal-card-image img{width:100%;height:100%;object-fit:cover}
+.journal-page .journal-grid .archive-card-meta,.journal-page .journal-grid .archive-card-meta span:first-child{font-family:Georgia,"Times New Roman",serif;font-style:italic;font-weight:400;font-size:clamp(15px,1.45vw,20px);line-height:1.2;letter-spacing:-.015em;text-transform:none}
+.journal-page .journal-grid .archive-card p{font-size:11px;line-height:1.55;text-transform:none;letter-spacing:0;opacity:.68}
+.journal-page .journal-article-hero h1,.journal-page .journal-article-hero h1 *{font-family:Georgia,"Times New Roman",serif!important;font-style:italic!important;font-weight:400!important}
+.journal-page .about-originals .about-originals-statement{font-family:Georgia,"Times New Roman",serif;font-size:clamp(20px,2.6vw,34px);line-height:1.18;letter-spacing:-.025em;max-width:820px;margin:30px 0 42px}
+.journal-page .journal-article-image img{width:100%;height:auto;object-fit:contain}
+@media(max-width:900px){.journal-page .journal-grid.archive-grid-even{grid-template-columns:repeat(2,minmax(0,1fr));gap:34px 18px}}
+@media(max-width:600px){.journal-page .journal-grid.archive-grid-even{grid-template-columns:1fr;gap:42px}.journal-page .journal-grid .archive-card{width:100%;margin:0!important}.journal-page .journal-grid .archive-image{aspect-ratio:4/5}.journal-page .journal-grid .archive-card-meta,.journal-page .journal-grid .archive-card-meta span:first-child{font-size:19px}.journal-page .about-originals .about-originals-statement{font-size:23px;line-height:1.2;margin:24px 0 32px}.journal-page .journal-article-hero h1{font-size:clamp(34px,9vw,48px)!important;line-height:1.08!important}}

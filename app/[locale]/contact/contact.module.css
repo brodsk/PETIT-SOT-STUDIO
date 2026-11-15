@@ -95,3 +95,28 @@
 
 .page :global(.contact-captcha-wrap) { margin: 0 0 18px; min-height: 65px; }
 .page :global(.contact-captcha) { min-height: 65px; }
+
+
+/* Contact headline: keep both lines in the same editorial italic face. */
+.title,
+.title em {
+  font-family: Georgia, "Times New Roman", serif !important;
+  font-style: italic !important;
+  font-weight: 400 !important;
+}
+.title {
+  width: 100%;
+  max-width: 900px;
+  font-size: clamp(58px, 8.2vw, 118px) !important;
+  line-height: .94 !important;
+  letter-spacing: -.045em !important;
+  overflow-wrap: normal;
+}
+@media (max-width:700px) {
+  .title {
+    max-width: 100%;
+    font-size: clamp(42px, 11.5vw, 62px) !important;
+    line-height: 1 !important;
+    letter-spacing: -.035em !important;
+  }
+}

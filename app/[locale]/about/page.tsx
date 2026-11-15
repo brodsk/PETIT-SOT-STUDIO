@@ -7,10 +7,10 @@ const SITE_URL = "https://www.petitsot.com";
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
   const { locale } = await params;
   const ru = locale === "ru";
-  const title = ru ? "Ольга Трихлеб — художница из Тренчина, Словакия | PETIT.SOT" : "Olga Trikhleb — Artist in Trenčín, Slovakia | PETIT.SOT";
+  const title = ru ? "Ольга Трихлеб — современная художница, авторская живопись" : "Olga Trikhleb — Contemporary Artist & Original Painter";
   const description = ru
-    ? "Ольга Трихлеб — независимая художница из Тренчина, Словакия. Биография, художественная практика и оригинальные картины PETIT.SOT STUDIO."
-    : "Learn about Olga Trikhleb, an independent visual artist based in Trenčín, Slovakia. Discover her artistic practice and original paintings at PETIT.SOT STUDIO.";
+    ? "Ольга Трихлеб — современная художница и автор оригинальной живописи PETIT.SOT STUDIO. Биография, художественная практика, пейзажи, городские сюжеты и картины, доступные для покупки онлайн."
+    : "Meet contemporary artist Olga Trikhleb, creator of one-of-a-kind original paintings at PETIT.SOT STUDIO. Explore her artistic practice, landscape and city paintings, and original artwork available to collect online. Based in Slovakia, open to enquiries worldwide.";
   const canonical = `${SITE_URL}${ru ? "/ru" : ""}/about`;
   return {
     title, description,

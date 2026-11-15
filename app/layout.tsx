@@ -8,11 +8,11 @@ const SITE_URL = "https://www.petitsot.com";
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: "Olga Trikhleb — Contemporary Artist | PETIT.SOT STUDIO",
+    default: "Original Paintings by Olga Trikhleb | PETIT.SOT STUDIO",
     template: "%s | PETIT.SOT STUDIO",
   },
   description:
-    "PETIT.SOT STUDIO is the official portfolio of contemporary artist Olga Trikhleb — paintings, visual research and selected works.",
+    "Discover one-of-a-kind original paintings by contemporary artist Olga Trikhleb at PETIT.SOT STUDIO. Explore landscape, seascape and city artwork for your home, available paintings and custom art commissions.",
   applicationName: "PETIT.SOT STUDIO",
   authors: [{ name: "Olga Trikhleb", url: "https://www.instagram.com/petit.sot.art" }],
   creator: "Olga Trikhleb",
@@ -35,9 +35,9 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     siteName: "PETIT.SOT STUDIO",
-    title: "Olga Trikhleb — Contemporary Artist",
+    title: "Olga Trikhleb — Original Paintings & Contemporary Art",
     description:
-      "Paintings, visual research and selected works by contemporary artist Olga Trikhleb.",
+      "One-of-a-kind original paintings, contemporary artwork and custom painting commissions by Olga Trikhleb.",
     url: SITE_URL,
     locale: "en_GB",
     alternateLocale: ["ru_RU"],

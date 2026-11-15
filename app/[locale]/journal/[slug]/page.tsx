@@ -1,9 +1,24 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { getWorks } from "../../../../lib/works";
 import { notFound } from "next/navigation";
 
 const SITE_URL = "https://www.petitsot.com";
 const PUBLISHED = "2026-11-09";
+
+const ARTICLE_IMAGE_PREFERENCES: Record<string, string[]> = {
+  "how-to-choose-an-original-painting": ["meadow", "sunset-in-the-village", "evening"],
+  "original-art-vs-print": ["rain-in-the-city", "rain", "angel"],
+  "how-to-care-for-an-original-painting": ["road", "fog", "nice"],
+};
+
+async function getArticleImage(slug: string) {
+  const works = await getWorks();
+  const preferred = ARTICLE_IMAGE_PREFERENCES[slug] || [];
+  const work = preferred.map((key) => works.find((item) => item.slug.toLowerCase() === key && (item.imageUrl || item.thumbnailUrl))).find(Boolean)
+    || works.find((item) => item.imageUrl || item.thumbnailUrl);
+  return work ? { src: work.imageUrl || work.thumbnailUrl!, title: work.titleEn || work.title } : null;
+}
 
 type Section = { heading: string; paragraphs: string[]; bullets?: string[] };
 type LocalArticle = { title: string; description: string; intro: string; sections: Section[]; takeaway: string };
@@ -125,6 +140,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   const ru = locale === "ru";
   const content = ru ? article.ru : article.en;
   const canonical = `${SITE_URL}${ru ? "/ru" : ""}/journal/${slug}`;
+  const articleImage = await getArticleImage(slug);
   return {
     title: content.title,
     description: content.description,
@@ -132,7 +148,10 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
       canonical,
       languages: { en: `${SITE_URL}/journal/${slug}`, ru: `${SITE_URL}/ru/journal/${slug}`, "x-default": `${SITE_URL}/journal/${slug}` },
     },
-    openGraph: { type: "article", title: content.title, description: content.description, url: canonical, siteName: "PETIT.SOT STUDIO" },
+    openGraph: {
+      type: "article", title: content.title, description: content.description, url: canonical, siteName: "PETIT.SOT STUDIO",
+      ...(articleImage ? { images: [{ url: articleImage.src, alt: articleImage.title }] } : {}),
+    },
   };
 }
 
@@ -149,6 +168,7 @@ export default async function JournalArticlePage({ params }: { params: Promise<{
     "@id": `${canonical}#article`,
     headline: content.title,
     description: content.description,
+    ...(articleImage ? { image: articleImage.src } : {}),
     datePublished: PUBLISHED,
     dateModified: PUBLISHED,
     inLanguage: ru ? "ru" : "en",
@@ -166,11 +186,11 @@ export default async function JournalArticlePage({ params }: { params: Promise<{
     ],
   };
   return (
-    <main className="text-page about-page">
+    <main className="text-page journal-page">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumb) }} />
       <article>
-        <section className="about-hero">
+        <section className="journal-hero journal-article-hero">
           <p className="eyebrow">PETIT.SOT STUDIO · {ru ? "ГИД ПО ИСКУССТВУ" : "ART GUIDE"}</p>
           <h1>{content.title}</h1>
           <div className="about-lead"><span className="about-index">PETIT.SOT / JOURNAL</span><p>{content.intro}</p></div>\n          <p className="eyebrow">{ru ? "Материал PETIT.SOT STUDIO" : "A PETIT.SOT STUDIO guide"}</p>

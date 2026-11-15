@@ -31,7 +31,7 @@ export default function CommissionSeoContent({ ru }: { ru: boolean }) {
         serviceType: ru ? "Индивидуальный заказ авторской живописи" : "Custom original artwork and painting commission",
         description: ru
           ? "Индивидуальная авторская картина художницы Ольги Трихлеб по идее и референсам заказчика."
-          : "A personalised original painting created by artist Olga Trikhleb from the client's idea and visual references.",
+          : "A personalised original painting created by artist Olga Trikhleb from the client's idea and visual references. Enquiries are welcome from collectors worldwide.",
         provider: { "@type": "Person", "@id": `${SITE_URL}/#artist`, name: "Olga Trikhleb", url: `${SITE_URL}/about` },
         areaServed: { "@type": "Country", name: "Slovakia" },
         url: pageUrl,
@@ -100,7 +100,7 @@ export default function CommissionSeoContent({ ru }: { ru: boolean }) {
           <h3>{ru ? "PETIT.SOT STUDIO — независимая художественная студия в Тренчине, Словакия" : "PETIT.SOT STUDIO — an independent art studio in Trenčín, Slovakia"}</h3>
           <p>{ru
             ? "Ольга Трихлеб создаёт оригинальные картины в собственной художественной практике. Заказ начинается с вашей идеи: вы можете описать сюжет, приложить визуальный референс и обсудить индивидуальный формат."
-            : "Artist Olga Trikhleb develops her original painting practice at PETIT.SOT STUDIO. Every commission begins with your idea: describe the subject, attach a visual reference and discuss a format made for your space."}</p>
+            : "Artist Olga Trikhleb develops her original painting practice at PETIT.SOT STUDIO in Slovakia and welcomes commission enquiries from collectors worldwide. Every commission begins with your idea: describe the subject, attach a visual reference and discuss a format made for your space."}</p>
           <p>{ru
             ? <>Посмотрите <Link href="/works">готовые картины</Link> и <Link href="/about">узнайте больше об Ольге</Link>.</>
             : <>Explore the <Link href="/works">original paintings</Link> or <Link href="/about">learn more about Olga Trikhleb</Link>.</>}</p>

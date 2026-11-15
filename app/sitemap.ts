@@ -72,5 +72,18 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ];
   });
 
-  return [...staticPages, ...artworkPages];
+  const slovakLocalLanding: MetadataRoute.Sitemap = [{
+    url: `${SITE_URL}/sk/trencin-art-studio`,
+    changeFrequency: "monthly",
+    priority: 0.85,
+    alternates: {
+      languages: {
+        sk: `${SITE_URL}/sk/trencin-art-studio`,
+        en: `${SITE_URL}/trencin-art-studio`,
+        "x-default": `${SITE_URL}/trencin-art-studio`,
+      },
+    },
+  }];
+
+  return [...staticPages, ...slovakLocalLanding, ...artworkPages];
 }

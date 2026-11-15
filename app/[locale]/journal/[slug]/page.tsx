@@ -193,7 +193,9 @@ export default async function JournalArticlePage({ params }: { params: Promise<{
         <section className="journal-hero journal-article-hero">
           <p className="eyebrow">PETIT.SOT STUDIO · {ru ? "ГИД ПО ИСКУССТВУ" : "ART GUIDE"}</p>
           <h1>{content.title}</h1>
-          <div className="about-lead"><span className="about-index">PETIT.SOT / JOURNAL</span><p>{content.intro}</p></div>\n          <p className="eyebrow">{ru ? "Материал PETIT.SOT STUDIO" : "A PETIT.SOT STUDIO guide"}</p>
+          <div className="about-lead"><span className="about-index">PETIT.SOT / JOURNAL</span><p>{content.intro}</p></div>
+          {articleImage && <figure className="journal-article-image"><img src={articleImage.src} alt={articleImage.title + " — original painting by Olga Trikhleb"} /><figcaption>{ru ? "Оригинальная работа Ольги Трихлеб" : "An original work by Olga Trikhleb"}</figcaption></figure>}
+          <p className="eyebrow">{ru ? "Материал PETIT.SOT STUDIO" : "A PETIT.SOT STUDIO guide"}</p>
         </section>
         {content.sections.map((section, index) => (
           <section className="about-section" key={section.heading}>

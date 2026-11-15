@@ -3691,3 +3691,31 @@ div[data-locale] > footer {
  .journal-article-image{width:100%;margin:42px 0 0}
  .journal-article-image img{max-height:65vh}
 }
+
+/* Journal typography and mobile overflow corrections */
+.journal-page,.journal-page *{box-sizing:border-box}
+.journal-page{width:100%;max-width:100%;overflow-x:clip}
+.journal-page .journal-hero h1,
+.journal-page .journal-hero h1 i{display:block;font-family:Georgia,"Times New Roman",serif!important;font-style:italic!important;font-weight:400!important}
+.journal-page .journal-hero h1{max-width:100%;width:100%;overflow-wrap:anywhere}
+.journal-page .journal-hero .about-lead{min-width:0}
+.journal-card-image{display:block;width:100%;aspect-ratio:4/5;height:auto;min-height:0;overflow:hidden;position:relative}
+.journal-card-image img{display:block;width:100%;height:100%;min-height:100%;object-fit:cover;font-size:0;color:transparent}
+.journal-article-image{display:block;max-width:100%;overflow:hidden}
+.journal-article-image img{display:block;width:100%;max-width:100%;height:auto;max-height:70vh;object-fit:contain;font-size:0;color:transparent}
+.journal-article-image figcaption{display:block;clear:both}
+@media(max-width:700px){
+ .journal-page{padding-left:20px;padding-right:20px}
+ .journal-page .journal-hero h1{font-size:clamp(34px,8.4vw,44px)!important;line-height:1.06!important;letter-spacing:-.035em!important;margin:42px 0 34px!important;max-width:100%;overflow-wrap:anywhere;word-break:normal}
+ .journal-page .journal-hero h1 i{font-size:inherit!important;line-height:inherit!important}
+ .journal-page .journal-hero .about-lead{width:100%;max-width:100%;margin:0}
+ .journal-page .journal-hero .about-lead p{max-width:100%;overflow-wrap:break-word}
+ .journal-page .journal-article-image{width:100%;margin:34px 0 0}
+ .journal-page .journal-article-image img{max-height:58vh}
+ .journal-page .journal-article-hero>.eyebrow:last-child{margin-top:24px;clear:both}
+ .journal-page .journal-grid{grid-template-columns:1fr;gap:42px}
+ .journal-page .journal-grid .archive-card{min-width:0;width:100%}
+ .journal-page .journal-grid .archive-card-meta{display:flex;gap:12px;align-items:flex-start}
+ .journal-page .journal-grid .archive-card-meta span:first-child{min-width:0;overflow-wrap:anywhere}
+ .journal-page .journal-grid .archive-card p{line-height:1.5}
+}

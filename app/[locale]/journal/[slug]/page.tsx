@@ -17,7 +17,8 @@ async function getArticleImage(slug: string) {
   const preferred = ARTICLE_IMAGE_PREFERENCES[slug] || [];
   const work = preferred.map((key) => works.find((item) => item.slug.toLowerCase() === key && (item.imageUrl || item.thumbnailUrl))).find(Boolean)
     || works.find((item) => item.imageUrl || item.thumbnailUrl);
-  return work ? { src: work.imageUrl || work.thumbnailUrl!, title: work.titleEn || work.title } : null;
+  const src = work?.thumbnailUrl || work?.imageUrl;
+  return work && src ? { src, title: work.titleEn || work.title } : null;
 }
 
 type Section = { heading: string; paragraphs: string[]; bullets?: string[] };
@@ -129,6 +130,75 @@ const articles: Article[] = [
   },
 ];
 
+
+  {
+    slug: "how-to-hang-a-painting",
+    en: {
+      title: "How to Hang a Painting: Height, Space and Placement",
+      description: "A practical guide to choosing the right wall, hanging height and spacing for original art.",
+      intro: "A painting can change the balance of a room. A little planning before making holes in the wall helps the artwork feel connected to the furniture, the architecture and the people who live with it.",
+      sections: [
+        { heading: "Choose the wall deliberately", paragraphs: ["Look for a place where the painting can be seen comfortably without competing with doors, shelves or strong visual patterns. Consider the view from the main seating area as well as the first impression when entering the room."] },
+        { heading: "Use eye level as a starting point", paragraphs: ["As a general guide, place the centre of the artwork around eye level for a standing viewer. This is only a starting point: in a room where people mostly sit, or above a piece of furniture, adjust the position to suit the actual viewing experience."] },
+        { heading: "Relate the work to furniture", paragraphs: ["When hanging a painting above a sofa, console or bed, keep a visual connection between the two. The artwork should not look as if it is floating too far above the furniture, and it should leave enough breathing room around its edges."] },
+        { heading: "Test the dimensions first", paragraphs: ["Cut paper to the size of the artwork and temporarily attach it to the wall with painter's tape. Live with the outline for a day and check it from different positions before drilling or fixing hooks."] },
+        { heading: "Give the artwork room", paragraphs: ["A single painting often benefits from clear space around it. If you are arranging several works together, plan the group as one composition and keep the gaps intentional and consistent."] },
+      ],
+      takeaway: "The right placement makes a painting feel naturally connected to the room: test the height, scale and spacing before hanging it.",
+    },
+    ru: {
+      title: "Как повесить картину: высота, место и композиция",
+      description: "Практическое руководство по выбору стены, высоты и расстояния вокруг оригинальной картины.",
+      intro: "Картина способна изменить восприятие комнаты. Небольшая подготовка до того, как вы сделаете отверстия в стене, поможет связать работу с мебелью, архитектурой и повседневной жизнью дома.",
+      sections: [
+        { heading: "Выберите стену осознанно", paragraphs: ["Ищите место, где картину удобно рассматривать и где она не спорит с дверями, полками или активным рисунком обоев. Учитывайте не только вид с дивана, но и первое впечатление при входе в комнату."] },
+        { heading: "Начните с уровня глаз", paragraphs: ["В качестве ориентира можно расположить центр картины примерно на уровне глаз стоящего человека. Но это лишь отправная точка: если в комнате чаще сидят или работа размещается над мебелью, подстройте высоту под реальный сценарий просмотра."] },
+        { heading: "Свяжите картину с мебелью", paragraphs: ["Если работа висит над диваном, консолью или кроватью, между ними должна ощущаться визуальная связь. Картина не должна казаться слишком оторванной от мебели, но вокруг неё важно оставить свободное пространство."] },
+        { heading: "Сначала проверьте размер", paragraphs: ["Вырежьте бумажный шаблон по размеру картины и временно закрепите его малярной лентой. Посмотрите на него с разных точек комнаты и поживите с такой разметкой хотя бы день, прежде чем сверлить стену."] },
+        { heading: "Оставьте работе пространство", paragraphs: ["Одна картина часто лучше смотрится, когда вокруг неё достаточно свободного места. Если вы составляете группу из нескольких работ, планируйте их как единую композицию и заранее определите расстояния между ними."] },
+      ],
+      takeaway: "Удачное размещение связывает картину с интерьером: заранее проверьте высоту, масштаб и свободное пространство вокруг.",
+    },
+    related: [
+      { slug: "Meadow", en: "Meadow — landscape painting", ru: "Meadow — пейзаж" },
+      { slug: "Evening", en: "Evening — original painting", ru: "Evening — оригинальная картина" },
+      { slug: "Nice", en: "Nice — coastal painting", ru: "Nice — морской пейзаж" },
+    ],
+  },
+  {
+    slug: "commission-an-original-painting",
+    en: {
+      title: "How to Commission an Original Painting",
+      description: "What to consider before commissioning an original painting, from size and subject to references and the creative process.",
+      intro: "Commissioning a painting is a collaboration between the artist and the person who will live with the finished work. A clear starting point helps the process feel thoughtful while leaving room for the artist's own interpretation.",
+      sections: [
+        { heading: "Describe the idea, not every brushstroke", paragraphs: ["Share the subject, atmosphere or feeling that matters to you. A few clear references can help communicate direction, but an original commission should leave space for the artist to make creative decisions."] },
+        { heading: "Choose the dimensions and location", paragraphs: ["Think about where the painting will hang and measure the available wall. The intended location helps determine a suitable format and proportions before work begins."] },
+        { heading: "Discuss materials and finish", paragraphs: ["Confirm the medium, support, dimensions and whether framing is included. Ask how the finished work will be protected for transport and what care it may require once it arrives."] },
+        { heading: "Agree on the process and timing", paragraphs: ["Before confirming, make sure you understand the proposal, price, payment stages and estimated production time. Allow for the fact that handmade work takes time and that drying or finishing may affect the schedule."] },
+        { heading: "Allow room for the artist's interpretation", paragraphs: ["The most successful commissions balance a clear brief with trust. Explain what is important to you, ask questions early and give the artist room to create a coherent original work rather than a mechanical copy of a reference."] },
+      ],
+      takeaway: "A good commission begins with a clear idea, agreed dimensions and expectations, and enough creative freedom for an original work to emerge.",
+    },
+    ru: {
+      title: "Как заказать оригинальную картину",
+      description: "Что обсудить перед заказом авторской работы: размер, сюжет, референсы, материалы и сроки.",
+      intro: "Заказ картины — это сотрудничество художника и человека, который будет жить с готовой работой. Понятная отправная точка помогает выстроить процесс и при этом оставляет место для авторской интерпретации.",
+      sections: [
+        { heading: "Опишите идею, а не каждый мазок", paragraphs: ["Расскажите о сюжете, атмосфере или ощущении, которое хотите передать. Несколько подходящих референсов помогут обозначить направление, но оригинальный заказ должен оставлять художнику пространство для творческих решений."] },
+        { heading: "Определите размер и место", paragraphs: ["Подумайте, где будет висеть картина, и измерьте свободную стену. Будущее расположение помогает выбрать подходящий формат и пропорции ещё до начала работы."] },
+        { heading: "Обсудите материалы и оформление", paragraphs: ["Уточните технику, основу, размеры и входит ли рама в заказ. Также стоит спросить, как готовая работа будет защищена при перевозке и какой уход ей потребуется после получения."] },
+        { heading: "Согласуйте этапы и сроки", paragraphs: ["До подтверждения заказа убедитесь, что вам понятны предложение, стоимость, этапы оплаты и ориентировочное время создания. Ручная работа требует времени, а сушка и финальная обработка могут влиять на сроки."] },
+        { heading: "Оставьте место авторскому взгляду", paragraphs: ["Лучшие заказы сочетают ясное техническое задание и доверие. Объясните, что для вас принципиально, задайте вопросы заранее и позвольте художнику создать цельную оригинальную работу, а не механическую копию референса."] },
+      ],
+      takeaway: "Хороший заказ начинается с понятной идеи, согласованных размеров и ожиданий, а также свободы для создания самостоятельной авторской работы.",
+    },
+    related: [
+      { slug: "Meadow", en: "Meadow — original painting", ru: "Meadow — оригинальная картина" },
+      { slug: "Road", en: "Road — landscape painting", ru: "Road — пейзаж" },
+      { slug: "Angel", en: "Angel — original artwork", ru: "Angel — оригинальная работа" },
+    ],
+  },
 export function generateStaticParams() {
   return ["en", "ru"].flatMap((locale) => articles.map((article) => ({ locale, slug: article.slug })));
 }

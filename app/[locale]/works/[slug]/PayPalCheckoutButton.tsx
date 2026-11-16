@@ -68,8 +68,34 @@ export default function PayPalCheckoutButton({
   const appleClientRef = useRef<any>(null);
   const appleConfigRef = useRef<any>(null);
   const ru = locale === "ru";
-
-  const message = (en: string, ruText: string) => ru ? ruText : en;
+  const sk = locale === "sk";
+  const skTranslations: Record<string,string> = {
+    "Card payment failed. Check the details or choose PayPal.":"Platba kartou zlyhala. Skontrolujte údaje alebo použite PayPal.",
+    "Name on card (optional)":"Meno na karte (nepovinné)",
+    "Card number":"Číslo karty",
+    "MM / YY":"MM / RR",
+    "Card checkout could not be opened. Please try again or choose PayPal.":"Platbu kartou sa nepodarilo otvoriť. Skúste to znova alebo použite PayPal.",
+    "Google Pay payment failed. Please try another method.":"Platba cez Google Pay zlyhala. Skúste iný spôsob platby.",
+    "Google Pay is not ready on this device/browser or is not enabled for this PayPal account. Check Google Wallet has an eligible card and PayPal production Google Pay onboarding is complete.":"Google Pay nie je na tomto zariadení alebo v prehliadači pripravený, prípadne nie je aktivovaný pre tento účet PayPal. Skontrolujte, či máte v Google Wallet vhodnú kartu a či je dokončená aktivácia Google Pay v produkčnom účte PayPal.",
+    "Google Pay could not be opened. Please try another method.":"Google Pay sa nepodarilo otvoriť. Skúste iný spôsob platby.",
+    "Could not load all payment options. PayPal may still be available.":"Nepodarilo sa načítať všetky možnosti platby. PayPal môže byť naďalej dostupný.",
+    "Apple Pay validation failed. Please use another method.":"Overenie Apple Pay zlyhalo. Použite iný spôsob platby.",
+    "Apple Pay payment failed. Please try another method.":"Platba cez Apple Pay zlyhala. Skúste iný spôsob platby.",
+    "Apple Pay could not be opened. Please try another method.":"Apple Pay sa nepodarilo otvoriť. Skúste iný spôsob platby.",
+    "Could not open checkout. Please try again.":"Platbu sa nepodarilo otvoriť. Skúste to znova.",
+    "Loading Apple Pay…":"Načítava sa Apple Pay…",
+    "Loading…":"Načítava sa…",
+    "Pay with PayPal":"Zaplatiť cez PayPal",
+    "Pay by debit or credit card":"Zaplatiť debetnou alebo kreditnou kartou",
+    "Name on card":"Meno na karte",
+    "(optional)":"(nepovinné)",
+    "Expiry date":"Platnosť do",
+    "Please check your card details and try again.":"Skontrolujte údaje karty a skúste to znova.",
+    "Processing…":"Spracúva sa…",
+    "Pay by card":"Zaplatiť kartou",
+    "Secure checkout via PayPal. Wallet options appear only when supported by your browser, device and PayPal account.":"Bezpečná platba cez PayPal. Možnosti digitálnej peňaženky sa zobrazia len vtedy, keď ich podporuje váš prehliadač, zariadenie a účet PayPal."
+  };
+  const message = (en: string, ruText: string) => sk ? (skTranslations[en] || en) : ru ? ruText : en;
 
   async function createOrder(paymentMethod?: "googlepay" | "cardfields") {
     const response = await fetch("/api/paypal/create-order", {
@@ -103,7 +129,7 @@ export default function PayPalCheckoutButton({
         if (!configResponse.ok || !config.clientId) throw new Error(config.error || "PayPal is not configured");
 
         await loadScript(
-          `https://www.paypal.com/sdk/js?client-id=${encodeURIComponent(config.clientId)}&currency=EUR&intent=capture&locale=en_US&components=buttons,card-fields,funding-eligibility,applepay,googlepay&enable-funding=card`,
+          `https://www.paypal.com/sdk/js?client-id=${encodeURIComponent(config.clientId)}&currency=EUR&intent=capture&locale=${ru ? "ru_RU" : sk ? "sk_SK" : "en_US"}&components=buttons,card-fields,funding-eligibility,applepay,googlepay&enable-funding=card`,
           "paypal-payment-sdk",
         );
         if (cancelled || !window.paypal) return;
@@ -306,7 +332,7 @@ export default function PayPalCheckoutButton({
       cancelled = true;
       try { cardButton?.close?.(); } catch { /* no-op */ }
     };
-  }, [slug, ru, price]);
+  }, [slug, ru, sk, price]);
 
   function startApplePay() {
     const apple = appleClientRef.current;

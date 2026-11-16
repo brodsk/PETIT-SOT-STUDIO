@@ -58,6 +58,7 @@ export async function generateMetadata({
 export default async function Works({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   const ru = locale === "ru";
+  const sk = locale === "sk";
   const works = await getWorks();
   const breadcrumbSchema = {
     "@context": "https://schema.org",
@@ -87,7 +88,7 @@ export default async function Works({ params }: { params: Promise<{ locale: stri
         {items.map((w, i) => <Link className="archive-card" href={"/works/" + w.slug} key={w.slug}>
           <div className="archive-image art-placeholder">{w.thumbnailUrl ? <img src={w.thumbnailUrl} alt={(ru ? w.titleRu : sk ? w.titleSk : w.titleEn) + " — " + localizeMedium(w.medium, ru ? "ru" : sk ? "sk" : "en") + ", " + w.year + (ru ? ", оригинальная картина Ольги Трихлеб" : sk ? ", originálny obraz Olgy Trikhleb" : ", original painting by Olga Trikhleb")} loading="lazy" decoding="async" /> : <><span>{String(i + 1).padStart(2, "0")}</span><small>IMAGE</small></>}</div>
           <div className="archive-card-meta"><span>{ru ? w.titleRu : w.titleEn}</span><span>{w.year}</span></div>
-          <p>{localizeMedium(w.medium, ru ? "ru" : "en")}</p>
+          <p>{localizeMedium(w.medium, ru ? "ru" : sk ? "sk" : "en")}</p>
           {!w.available && <span className={`archive-card-status ${w.sold ? "archive-card-sold" : ""}`}>{w.sold ? (ru ? "ПРОДАНА" : "SOLD") : (ru ? "Архив · цена по запросу" : "Archive · price on request")}</span>}
         </Link>)}
       </div>;

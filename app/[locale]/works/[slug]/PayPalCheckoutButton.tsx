@@ -69,6 +69,7 @@ export default function PayPalCheckoutButton({
   const appleConfigRef = useRef<any>(null);
   const ru = locale === "ru";
   const sk = locale === "sk";
+  const checkoutPrefix = locale === "en" ? "" : `/${locale}`;
   const skTranslations: Record<string,string> = {
     "Card payment failed. Check the details or choose PayPal.":"Platba kartou zlyhala. Skontrolujte údaje alebo použite PayPal.",
     "Name on card (optional)":"Meno na karte (nepovinné)",
@@ -148,7 +149,7 @@ export default function PayPalCheckoutButton({
                 },
                 onApprove: ({ orderID, orderId }: { orderID?: string; orderId?: string }) => {
                   const id = orderID || orderId;
-                  if (id) window.location.assign(`/checkout/success?token=${encodeURIComponent(id)}`);
+                  if (id) window.location.assign(`${checkoutPrefix}/checkout/success?token=${encodeURIComponent(id)}`);
                 },
                 onError: (reason: unknown) => {
                   console.error("PayPal Card Fields error", reason);
@@ -199,7 +200,7 @@ export default function PayPalCheckoutButton({
                 return await createOrder();
               },
               onApprove: ({ orderID }: { orderID: string }) => {
-                window.location.assign(`/checkout/success?token=${encodeURIComponent(orderID)}`);
+                window.location.assign(`${checkoutPrefix}/checkout/success?token=${encodeURIComponent(orderID)}`);
               },
               onError: (reason: unknown) => {
                 console.error("PayPal card checkout error", reason);
@@ -253,7 +254,7 @@ export default function PayPalCheckoutButton({
                     });
                     if (confirmed.status !== "APPROVED") throw new Error("Google Pay payment was not approved");
                     await captureOrder(orderId);
-                    window.location.assign(`/checkout/success?token=${encodeURIComponent(orderId)}`);
+                    window.location.assign(`${checkoutPrefix}/checkout/success?token=${encodeURIComponent(orderId)}`);
                     return { transactionState: "SUCCESS" };
                   } catch (e) {
                     console.error("Google Pay payment failed", e);

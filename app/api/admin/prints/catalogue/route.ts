@@ -130,7 +130,9 @@ export async function POST(request: Request) {
     const artworkRatio = Number(artwork.width_cm) / Number(artwork.height_cm);
     const productRatio = productWidth / productHeight;
     const directDifference = Math.abs(artworkRatio - productRatio) / artworkRatio;
-    if (directDifference > 0.01) {
+    const rotatedDifference = Math.abs(artworkRatio - (1 / productRatio)) / artworkRatio;
+    const rotateToMatchArtwork = rotatedDifference < directDifference;
+    if (Math.min(directDifference, rotatedDifference) > 0.01) {
       return NextResponse.json({
         error: "This print size has a different aspect ratio from the original artwork. It is blocked to prevent cropping or stretching.",
         artworkRatio,
@@ -141,8 +143,10 @@ export async function POST(request: Request) {
     const unit = String(dimensions.units || "").toLowerCase();
     const toMm = unit === "mm" ? 1 : unit === "cm" ? 10 : unit === "in" ? 25.4 : 0;
     if (!toMm) return NextResponse.json({ error: "Unsupported Prodigi dimension unit." }, { status: 422 });
-    const widthMm = Math.round(productWidth * toMm);
-    const heightMm = Math.round(productHeight * toMm);
+    const rawWidthMm = Math.round(productWidth * toMm);
+    const rawHeightMm = Math.round(productHeight * toMm);
+    const widthMm = rotateToMatchArtwork ? rawHeightMm : rawWidthMm;
+    const heightMm = rotateToMatchArtwork ? rawWidthMm : rawHeightMm;
 
     const quoteResponse = await fetch("https://api.prodigi.com/v4.0/quotes", {
       method: "POST",

@@ -1,13 +1,14 @@
 import type {Metadata} from "next";
 export async function generateMetadata({params}:{params:Promise<{locale:string}>}):Promise<Metadata>{
- const {locale}=await params;const ru=locale==="ru";const title=ru?"Условия заказа картины | PETIT.SOT STUDIO":"Custom Painting Commission Terms | PETIT.SOT STUDIO";
- const description=ru?"Условия индивидуального заказа оригинальной картины у PETIT.SOT STUDIO.":"Terms for ordering an original custom painting from PETIT.SOT STUDIO.";
+ const {locale}=await params;const ru=locale==="ru";const sk=locale==="sk";const title=ru?"Условия заказа картины | PETIT.SOT STUDIO":sk?"Podmienky objednávky obrazu | PETIT.SOT STUDIO":"Custom Painting Commission Terms | PETIT.SOT STUDIO";
+ const description=ru?"Условия индивидуального заказа оригинальной картины у PETIT.SOT STUDIO.":sk?"Podmienky objednávky originálneho obrazu na mieru od PETIT.SOT STUDIO.":"Terms for ordering an original custom painting from PETIT.SOT STUDIO.";
  const base="https://www.petitsot.com/commission-terms";
  const russian="https://www.petitsot.com/ru/commission-terms";
- return {title,description,alternates:{canonical:ru?russian:base,languages:{en:base,ru:russian,"x-default":base}}};
+ const slovak="https://www.petitsot.com/sk/commission-terms";
+ return {title,description,alternates:{canonical:ru?russian:sk?slovak:base,languages:{en:base,ru:russian,sk:slovak,"x-default":base}}};
 }
 export default async function CommissionTermsPage({params}:{params:Promise<{locale:string}>}){
- const {locale}=await params;const ru=locale==="ru";
+ const {locale}=await params;const ru=locale==="ru";const sk=locale==="sk";
  const sections=ru?[
   ["1. Заявка и предварительная оценка","Отправка заявки — это запрос, а не принятый заказ. Онлайн-цена и сроки являются предварительной оценкой, рассчитанной по размеру и сложности композиции. Ольга Трихлеб лично рассматривает каждую заявку и может уточнить композицию, стоимость, материалы и сроки. При отправке заявки оплата не взимается."],
   ["2. Концепция, созданная ИИ","Сгенерированное изображение — это визуальная концепция для обсуждения композиции, атмосферы и цвета. Это не фотография готовой картины, не техническая спецификация и не обещание точного воспроизведения. Итоговая работа создаётся художницей вручную и может отличаться деталями, мазками, цветовыми сочетаниями и интерпретацией."],
@@ -17,6 +18,15 @@ export default async function CommissionTermsPage({params}:{params:Promise<{loca
   ["6. Доставка и подлинность","Картина упаковывается и отправляется после получения оставшейся части оплаты. Стоимость доставки, направление и ориентировочные сроки перевозки подтверждаются в окончательном предложении. К каждой завершённой картине прилагается сертификат подлинности PETIT.SOT STUDIO с уникальным номером проверки и QR-кодом."],
   ["7. Авторские права","Художница сохраняет авторские права и все права на воспроизведение картины, эскизов и связанных изображений, если отдельная письменная лицензия или передача прав не согласована отдельно. Покупатель приобретает физический оригинал картины, но не получает автоматически права на коммерческое воспроизведение."],
   ["8. Контакты","По вопросам индивидуального заказа пишите на manager@petitsot.com и укажите номер заявки, если он уже присвоен."]
+ ]:sk?[
+  ["1. Žiadosť a predbežný odhad","Odoslanie žiadosti je nezáväzný dopyt, nie potvrdená objednávka. Online cena a termín sú predbežné odhady vypočítané podľa požadovaných rozmerov a náročnosti kompozície. Olga Trikhleb osobne posúdi každú žiadosť a pred prijatím objednávky môže upraviť kompozíciu, cenu, materiály alebo termín. Pri odoslaní úvodnej žiadosti sa neplatí."],
+  ["2. Náhľad konceptu vytvorený umelou inteligenciou","Vygenerovaný obrázok je ilustračný koncept, ktorý pomáha prediskutovať kompozíciu, atmosféru a farby. Nie je fotografiou hotového obrazu, technickou špecifikáciou ani prísľubom presnej reprodukcie. Výsledné dielo vytvorí výtvarníčka ručne a môže sa líšiť v detailoch, ťahoch štetca, farebných vzťahoch a interpretácii."],
+  ["3. Potvrdenie a platba","Po posúdení výtvarníčka potvrdí možnosť realizácie, konečnú cenu, rozsah práce a predpokladaný termín. Tvorba sa začne až po súhlase zákazníka s týmito podmienkami a po úhrade 50 % zálohy cez PayPal. Záloha je súčasťou celkovej ceny, nie dodatočným poplatkom. Zvyšných 50 % sa platí po dokončení obrazu, keď je pripravený na odoslanie, a musí byť uhradených pred expedíciou. Platobné údaje spracúva PayPal; PETIT.SOT STUDIO neukladá údaje o platobných kartách."],
+  ["4. Tvorba a počiatočné schnutie","Predpokladaný čas zahŕňa maľovanie a počiatočné schnutie potrebné na bezpečnú manipuláciu a zabalenie. Olejové farby schnú rôzne dlho podľa pigmentu, hrúbky vrstvy, podmienok v ateliéri a techniky. Hrubšie a štruktúrované vrstvy môžu vyžadovať viac času. Ak dôjde k významnému oneskoreniu, výtvarníčka o tom zákazníka informuje. Záverečný ochranný lak môže potrebovať dlhší čas na vyschnutie a v prípade potreby sa dohodne osobitne."],
+  ["5. Zrušenie, vrátenie a práva spotrebiteľa","Obrazy na objednávku sa vytvárajú podľa individuálnych požiadaviek zákazníka. V závislosti od okolností sa na personalizovanú objednávku môže vzťahovať výnimka zo 14-dňového práva na odstúpenie od zmluvy uzavretej na diaľku podľa príslušných právnych predpisov. Tým nie sú dotknuté zákonné práva pri vadnom tovare alebo nesúlade s dohodnutou objednávkou. Ak výtvarníčka nemôže prijatú objednávku dokončiť, suma za nevykonanú časť sa vráti. Ak zákazník po začatí práce požiada o zrušenie, vykonaná časť a vzniknuté náklady sa posúdia individuálne; prípadné zrážky alebo vrátenie peňazí sa uskutočnia len v rozsahu povolenom zákonom a dohodnutými podmienkami."],
+  ["6. Doručenie a pravosť","Obraz sa zabalí a odošle po prijatí zostávajúcej časti platby. Cena dopravy, cieľová krajina a predpokladaný čas doručenia budú potvrdené v konečnej ponuke. Ku každému dokončenému obrazu sa prikladá certifikát pravosti PETIT.SOT STUDIO s jedinečným overovacím číslom a QR kódom."],
+  ["7. Autorské práva","Výtvarníčka si ponecháva autorské práva a všetky práva na rozmnožovanie obrazu, skíc a súvisiacich obrázkov, pokiaľ nie je osobitne dohodnutá písomná licencia alebo prevod práv. Kupujúci nadobúda fyzický originál obrazu, nie však automaticky práva na jeho komerčné rozmnožovanie."],
+  ["8. Kontakt","V prípade otázok o objednávke napíšte na manager@petitsot.com a uveďte číslo objednávky, ak vám už bolo pridelené."]
  ]:[
   ["1. Request and estimate","Submitting a commission request is an enquiry, not an accepted order. The online price and timeline are preliminary estimates calculated from the requested dimensions and composition complexity. Olga Trikhleb reviews each request and may adjust the composition, price, materials or timeline before accepting it. No payment is taken when you submit the initial request."],
   ["2. AI-generated concept preview","The generated image is an illustrative concept to help discuss composition, atmosphere and colour. It is not a photograph of the finished painting, a technical specification, or a promise of an exact reproduction. The final work is painted by hand by the artist and may differ in details, brushwork, colour relationships and interpretation."],
@@ -29,8 +39,8 @@ export default async function CommissionTermsPage({params}:{params:Promise<{loca
  ];
  return <main className="mx-auto w-full max-w-3xl px-6 py-16 text-neutral-900">
   <p className="mb-3 text-xs uppercase tracking-[0.2em] text-neutral-500">PETIT.SOT STUDIO</p>
-  <h1 className="mb-4 text-4xl tracking-tight">{ru?"Условия заказа картины":"Custom Painting Commissions"}</h1>
-  <p className="mb-10 text-sm text-neutral-500">{ru?"Условия индивидуального заказа · Обновлено: 13 ноября 2026":"Commission terms · Last updated: 13 November 2026"}</p>
+  <h1 className="mb-4 text-4xl tracking-tight">{ru?"Условия заказа картины":sk?"Podmienky objednávky obrazu":"Custom Painting Commissions"}</h1>
+  <p className="mb-10 text-sm text-neutral-500">{ru?"Условия индивидуального заказа · Обновлено: 13 ноября 2026":sk?"Podmienky individuálnej objednávky · Aktualizované: 13. novembra 2026":"Commission terms · Last updated: 13 November 2026"}</p>
   <div className="space-y-8 leading-7">{sections.map(([heading,body])=><section key={heading}><h2 className="mb-2 text-xl">{heading}</h2><p>{body}</p></section>)}</div>
  </main>;
 }

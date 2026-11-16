@@ -19,6 +19,7 @@ export default function FineArtPrintCheckout({ variants, locale }: {
 }) {
   const ru = locale === "ru";
   const sk = locale === "sk";
+  const checkoutPrefix = locale === "en" ? "" : "/" + locale;
   const t = (en:string, ruText:string, skText:string) => ru ? ruText : sk ? skText : en;
   const [selected, setSelected] = useState(variants[0]?.id || "");
   const [country, setCountry] = useState("SK");
@@ -72,7 +73,7 @@ export default function FineArtPrintCheckout({ variants, locale }: {
             return data.orderId;
           },
           onApprove: ({ orderID }: { orderID: string }) => {
-            window.location.assign("/checkout/print-success?token=" + encodeURIComponent(orderID));
+            window.location.assign(checkoutPrefix + "/checkout/print-success?token=" + encodeURIComponent(orderID));
           },
           onCancel: () => setError(t("Checkout was cancelled. You can try again.","Оплата отменена. Вы можете попробовать снова.","Platba bola zrušená. Môžete to skúsiť znova.")),
           onError: (reason: unknown) => {

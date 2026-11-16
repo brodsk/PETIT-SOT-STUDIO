@@ -7,59 +7,43 @@ import MotionEffects from "../components/MotionEffects";
 
 const SITE_URL = "https://www.petitsot.com";
 
-export async function generateMetadata({
-  params,
-}: {
-  params: Promise<{ locale: string }>;
-}): Promise<Metadata> {
-  const { locale } = await params;
-  const ru = locale === "ru";
-  const canonical = ru ? `${SITE_URL}/ru` : SITE_URL;
+const copy = {
+  en: { title: "Olga Trikhleb — Contemporary Artist", description: "Official portfolio of contemporary artist Olga Trikhleb: original paintings, artistic practice and selected available works.", works: "Works", prints: "Fine Art Prints", commission: "Commission", journal: "Journal", about: "About", contact: "Contact", artist: "About the artist", legal: "Legal information", licensing: "Image Licensing", privacy: "Privacy Policy", returns: "Returns & Refunds" },
+  ru: { title: "Ольга Трихлеб — художница", description: "Официальный сайт художницы Ольги Трихлеб: оригинальная живопись, авторские картины и доступные работы.", works: "Работы", prints: "Репродукции", commission: "На заказ", journal: "Журнал", about: "О студии", contact: "Контакты", artist: "О художнице", legal: "Юридическая информация", licensing: "Лицензирование изображений", privacy: "Конфиденциальность", returns: "Возвраты и возврат средств" },
+  sk: { title: "Olga Trikhleb — súčasná výtvarníčka", description: "Oficiálna stránka výtvarníčky Olgy Trikhleb. Objavte originálne obrazy, umeleckú tvorbu a dostupné diela v PETIT.SOT STUDIO.", works: "Diela", prints: "Umelecké reprodukcie", commission: "Maľba na objednávku", journal: "Články", about: "O autorke", contact: "Kontakt", artist: "O autorke", legal: "Právne informácie", licensing: "Licencia k obrázkom", privacy: "Ochrana súkromia", returns: "Vrátenie tovaru a peňazí" },
+} as const;
 
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+  const { locale } = await params;
+  if (!(locale in copy)) return {};
+  const lang = locale as keyof typeof copy;
+  const canonical = locale === "en" ? SITE_URL : `${SITE_URL}/${locale}`;
   return {
-    title: ru ? "Ольга Трихлеб — художница" : "Olga Trikhleb — Contemporary Artist",
-    description: ru
-      ? "Официальный сайт художницы Ольги Трихлеб: оригинальная живопись, авторские картины и доступные работы."
-      : "Official portfolio of contemporary artist Olga Trikhleb: original paintings, artistic practice and selected available works.",
-    alternates: {
-      canonical,
-      languages: { en: SITE_URL, ru: `${SITE_URL}/ru`, "x-default": SITE_URL },
-    },
-    openGraph: {
-      title: ru ? "Ольга Трихлеб — художница" : "Olga Trikhleb — Contemporary Artist",
-      description: ru
-        ? "Оригинальная живопись и работы Ольги Трихлеб."
-        : "Original paintings and selected works by Olga Trikhleb.",
-      url: canonical,
-      locale: ru ? "ru_RU" : "en_GB",
-    },
+    title: copy[lang].title,
+    description: copy[lang].description,
+    alternates: { canonical, languages: { en: SITE_URL, ru: `${SITE_URL}/ru`, sk: `${SITE_URL}/sk`, "x-default": SITE_URL } },
+    openGraph: { title: copy[lang].title, description: copy[lang].description, url: canonical, locale: locale === "ru" ? "ru_RU" : locale === "sk" ? "sk_SK" : "en_GB" },
   };
 }
 
-export default async function LocaleLayout({
-  children,
-  params,
-}: {
-  children: React.ReactNode;
-  params: Promise<{ locale: string }>;
-}) {
+export default async function LocaleLayout({ children, params }: { children: React.ReactNode; params: Promise<{ locale: string }> }) {
   const { locale } = await params;
-  if (locale !== "en" && locale !== "ru") notFound();
-  const ru = locale === "ru";
-
+  if (!(locale in copy)) notFound();
+  const lang = locale as keyof typeof copy;
+  const t = copy[lang];
   return (
     <div data-locale={locale} lang={locale}>
       <header className="site-header">
-        <Link href="/" className="wordmark">
+        <Link href={locale === "en" ? "/" : `/${locale}`} className="wordmark">
           PETIT.SOT <span className="wordmark-divider">|</span> <span>STUDIO</span>
         </Link>
         <nav>
-          <Link href="/works">{ru ? "Работы" : "Works"}</Link>
-          <Link href="/prints">{ru ? "Принты" : "Prints"}</Link>
-          <Link href="/commission">{ru ? "На заказ" : "Commission"}</Link>
-          <Link href="/journal">{ru ? "Журнал" : "Journal"}</Link>
-          <Link href="/about">{ru ? "О студии" : "About"}</Link>
-          <Link href="/contact">{ru ? "Контакты" : "Contact"}</Link>
+          <Link href="/works">{t.works}</Link>
+          <Link href="/prints">{t.prints}</Link>
+          <Link href="/commission">{t.commission}</Link>
+          <Link href="/journal">{t.journal}</Link>
+          <Link href="/about">{t.about}</Link>
+          <Link href="/contact">{t.contact}</Link>
           <LanguageSwitcher locale={locale} />
         </nav>
       </header>
@@ -68,14 +52,12 @@ export default async function LocaleLayout({
       <BackToTop />
       <footer>
         <span>© {new Date().getFullYear()} PETIT.SOT STUDIO</span>
-        <Link href="/about">{ru ? "О художнице" : "About the artist"}</Link>
-        <a href="https://www.instagram.com/petit.sot.art" target="_blank" rel="noreferrer">
-          Instagram ↗
-        </a>
-        <nav aria-label={ru ? "Юридическая информация" : "Legal information"} className="footer-legal-links" style={{ display: "flex", gap: "16px", flexWrap: "wrap" }}>
-          <Link href="/image-licensing">{ru ? "Лицензирование изображений" : "Image Licensing"}</Link>
-          <Link href="/privacy-policy">{ru ? "Конфиденциальность" : "Privacy Policy"}</Link>
-          <Link href="/return-policy">{ru ? "Возвраты и возврат средств" : "Returns & Refunds"}</Link>
+        <Link href="/about">{t.artist}</Link>
+        <a href="https://www.instagram.com/petit.sot.art" target="_blank" rel="noreferrer">Instagram ↗</a>
+        <nav aria-label={t.legal} className="footer-legal-links" style={{ display: "flex", gap: "16px", flexWrap: "wrap" }}>
+          <Link href="/image-licensing">{t.licensing}</Link>
+          <Link href="/privacy-policy">{t.privacy}</Link>
+          <Link href="/return-policy">{t.returns}</Link>
         </nav>
       </footer>
     </div>

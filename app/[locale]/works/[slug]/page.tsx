@@ -139,6 +139,7 @@ export default async function WorkPage({
     .eq("artwork_id", w.id).eq("active", true).order("sort_order", { ascending: true }) : { data: [] };
 
   const title = ru ? w.titleRu : sk ? w.titleSk : w.titleEn;
+  const workTypeSk = /oil|масл/i.test(w.medium || "") ? "Originálna olejomaľba" : /acrylic|акрил/i.test(w.medium || "") ? "Originálna akrylová maľba" : "Originálne umelecké dielo";
   const description = (ru ? w.descriptionRu : sk ? w.descriptionSk : w.descriptionEn) || (sk ? `${workTypeSk} „${title}“ od Olgy Trikhleb. Pozrite si rozmery, techniku a možnosti zakúpenia.` : `${title} — artwork by Olga Trikhleb.`);
   const canonical = sk ? `${SITE_URL}/sk/obrazy/${w.slug}` : `${SITE_URL}${ru ? "/ru" : ""}/works/${w.slug}`;
   const breadcrumbSchema = {

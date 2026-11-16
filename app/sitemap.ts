@@ -8,7 +8,7 @@ function languageAlternates(path: string, includeRussian = true) {
   return {
     languages: {
       en: `${SITE_URL}${cleanPath}`,
-      ...(path === "/trencin-art-studio" ? { sk: `${SITE_URL}/sk/trencin-art-studio` } : {}),
+      ...(path === "/trencin-art-studio" ? { sk: `${SITE_URL}/sk/trencin-art-studio` } : path.startsWith("/works/") ? { sk: `${SITE_URL}/sk/obrazy/${path.split("/").pop()}` } : {}),
       ...(includeRussian ? { ru: `${SITE_URL}/ru${cleanPath}` } : {}),
       "x-default": `${SITE_URL}${cleanPath}`,
     },
@@ -72,6 +72,20 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         priority: 0.8,
         ...(images ? { images } : {}),
         ...languageAlternates(path),
+      },
+      {
+        url: `${SITE_URL}/sk/obrazy/${work.slug}`,
+        changeFrequency: "monthly" as const,
+        priority: 0.8,
+        ...(images ? { images } : {}),
+        alternates: {
+          languages: {
+            en: `${SITE_URL}${path}`,
+            ru: `${SITE_URL}/ru${path}`,
+            sk: `${SITE_URL}/sk/obrazy/${work.slug}`,
+            "x-default": `${SITE_URL}${path}`,
+          },
+        },
       },
     ];
   });

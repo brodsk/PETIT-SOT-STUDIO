@@ -1,9 +1,20 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getWork, localizeMedium } from "../../../../../../lib/works";
+import { getWork, localizeMedium } from "../../../../../lib/works";
 
 const SITE_URL = "https://www.petitsot.com";
+
+function slovakMedium(value: string) {
+  const raw = (value || "").toLowerCase();
+  const surface = /paper|papier|бумаг/.test(raw) ? "na papieri" : /wood|drevo|дерев/.test(raw) ? "na dreve" : "na plátne";
+  if (/oil|масл/.test(raw)) return "Olej " + surface;
+  if (/acrylic|акрил/.test(raw)) return "Akryl " + surface;
+  if (/watercolou?r|акварел/.test(raw)) return "Akvarel " + surface;
+  if (/gouache|гуаш/.test(raw)) return "Gvaš " + surface;
+  if (/mixed media|смешан/.test(raw)) return "Kombinovaná technika";
+  return value || "Maľba";
+}
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string; slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
@@ -11,7 +22,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   if (!work) return {};
   const title = work.titleEn + " — originálny obraz od Olgy Trikhleb | PETIT.SOT";
   const availability = work.available ? "Dostupný originálny obraz." : work.sold ? "Originálny obraz bol predaný." : "Dielo je súčasťou archívu.";
-  const description = availability + " " + work.titleEn + " od maliarky Olgy Trikhleb z Trenčína. " + localizeMedium(work.medium, "en") + ", " + work.size + ", " + work.year + ". Pozrite si fotografie a informácie o diele.";
+  const description = availability + " " + work.titleEn + " od maliarky Olgy Trikhleb z Trenčína. " + slovakMedium(work.medium) + ", " + work.size + ", " + work.year + ". Pozrite si fotografie a informácie o diele.";
   const canonical = SITE_URL + "/sk/obrazy/" + work.slug;
   return {
     title,

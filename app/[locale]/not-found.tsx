@@ -26,7 +26,7 @@ export default function NotFound() {
       <p className={styles.description}>
         {isRu
           ? "Такой страницы здесь нет — но вы можете вернуться к работам Ольги."
-          : "This page isn’t here, but you can return to Olga’s works and explore the collection."}
+          : isSk ? "Táto stránka tu nie je, ale môžete sa vrátiť k dielam Olgy a prezrieť si kolekciu." : "This page isn’t here, but you can return to Olga’s works and explore the collection."}
       </p>
 
       <div className={styles.actions}>

@@ -3,8 +3,8 @@ import styles from "./commission-seo.module.css";
 
 const SITE_URL = "https://www.petitsot.com";
 
-export default function CommissionSeoContent({ ru }: { ru: boolean }) {
-  const pageUrl = `${SITE_URL}${ru ? "/ru" : ""}/commission`;
+export default function CommissionSeoContent({ ru, sk = false }: { ru: boolean; sk?: boolean }) {
+  const pageUrl = `${SITE_URL}${ru ? "/ru" : sk ? "/sk" : ""}/commission`;
   const faqs = ru
     ? [
         { question: "Сколько стоит картина на заказ?", answer: "Предварительная стоимость начинается от 180 евро за небольшой формат. Цена зависит от размера, сюжета и сложности работы. Калькулятор на странице показывает ориентир, а окончательную стоимость Ольга подтверждает после личного рассмотрения идеи." },
@@ -13,7 +13,15 @@ export default function CommissionSeoContent({ ru }: { ru: boolean }) {
         { question: "Сколько времени занимает создание картины?", answer: "Срок зависит от размера и сложности композиции. После изучения заявки Ольга сообщит индивидуальную оценку сроков до подтверждения заказа." },
         { question: "Как оформить заказ?", answer: "Опишите идею, выберите размер, при желании добавьте фотографию-референс и отправьте заявку. Ольга лично рассмотрит запрос и свяжется с вами по электронной почте, чтобы обсудить детали, окончательную цену и сроки. Отправка заявки не требует оплаты." },
       ]
-    : [
+    : sk
+      ? [
+        { question: "Koľko stojí obraz na objednávku?", answer: "Orientačná cena objednávky sa začína na 180 € pri menšom formáte. Konečná cena závisí od rozmerov plátna, motívu a náročnosti. Kalkulačka poskytuje predbežný odhad; Olga potvrdí konečnú cenu po posúdení vášho nápadu." },
+        { question: "Je možné objednať obraz podľa vlastnej fotografie?", answer: "Áno. K žiadosti môžete priložiť fotografiu alebo vizuálnu referenciu, napríklad krajinu, výhľad z okna, obľúbené miesto alebo ukážku atmosféry, ktorú chcete zachytiť. Pomôže to Olge lepšie pochopiť vašu predstavu." },
+        { question: "Môžem si vybrať rozmery a farby?", answer: "Áno. Vo formulári uveďte preferovanú šírku, výšku a farebnú paletu. Ak si nie ste istí presným formátom, zadajte približné rozmery a podrobnosti môžete prediskutovať s Olgou." },
+        { question: "Ako dlho trvá vytvorenie obrazu?", answer: "Čas závisí od rozmerov plátna a náročnosti kompozície. Po posúdení vašej žiadosti vám Olga oznámi individuálny odhad termínu ešte pred potvrdením objednávky." },
+        { question: "Ako si objednám originálny obraz?", answer: "Opíšte svoj nápad, vyberte rozmery plátna, prípadne priložte referenčnú fotografiu a odošlite žiadosť. Olga ju osobne posúdi a kontaktuje vás e-mailom, aby ste spoločne prebrali podrobnosti, konečnú cenu a termín. Odoslanie žiadosti je bezplatné." },
+      ]
+      : [
         { question: "How much does a custom painting cost?", answer: "Indicative commission prices start at €180 for a small format. The final price depends on the canvas size, subject and complexity. The estimator on this page provides an initial guide; Olga confirms the final quote after reviewing your idea." },
         { question: "Can I commission a painting from my own photo?", answer: "Yes. You can attach a photograph or visual reference to your request, such as a landscape, a view from your window, a favourite place or an example of the atmosphere you would like to capture. It helps Olga understand your vision." },
         { question: "Can I choose the canvas size and colours?", answer: "Yes. Enter your preferred width, height and colour palette in the commission form. If you are unsure about the exact format, submit approximate dimensions and discuss the details with Olga." },
@@ -27,11 +35,11 @@ export default function CommissionSeoContent({ ru }: { ru: boolean }) {
       {
         "@type": "Service",
         "@id": `${pageUrl}#service`,
-        name: ru ? "Авторская картина на заказ" : "Original painting commission",
-        serviceType: ru ? "Индивидуальный заказ авторской живописи" : "Custom original artwork and painting commission",
+        name: ru ? "Авторская картина на заказ" : sk ? "Originálny obraz na objednávku" : "Original painting commission",
+        serviceType: ru ? "Индивидуальный заказ авторской живописи" : sk ? "Tvorba originálneho obrazu na mieru" : "Custom original artwork and painting commission",
         description: ru
           ? "Индивидуальная авторская картина художницы Ольги Трихлеб по идее и референсам заказчика."
-          : "A personalised original painting created by artist Olga Trikhleb from the client's idea and visual references. Enquiries are welcome from collectors worldwide.",
+          : sk ? "Originálny obraz vytvorený výtvarníčkou Olgou Trikhleb podľa predstavy a vizuálnych podkladov zákazníka. Objednávky prijímame od záujemcov zo Slovenska aj zo zahraničia." : "A personalised original painting created by artist Olga Trikhleb from the client's idea and visual references. Enquiries are welcome from collectors worldwide.",
         provider: { "@type": "Person", "@id": `${SITE_URL}/#artist`, name: "Olga Trikhleb", url: `${SITE_URL}/about` },
         areaServed: ["Slovakia", "Worldwide"],
         url: pageUrl,
@@ -41,14 +49,14 @@ export default function CommissionSeoContent({ ru }: { ru: boolean }) {
           lowPrice: 180,
           availability: "https://schema.org/OnlineOnly",
           url: pageUrl,
-          description: ru ? "Предварительная цена; окончательная стоимость зависит от размера и сложности." : "Indicative starting price; final quote depends on size and complexity.",
+          description: ru ? "Предварительная цена; окончательная стоимость зависит от размера и сложности." : sk ? "Orientačná východisková cena; konečná suma závisí od rozmerov a náročnosti." : "Indicative starting price; final quote depends on size and complexity.",
         },
       },
       {
         "@type": "BreadcrumbList",
         itemListElement: [
-          { "@type": "ListItem", position: 1, name: ru ? "Главная" : "Home", item: `${SITE_URL}${ru ? "/ru" : ""}` },
-          { "@type": "ListItem", position: 2, name: ru ? "Картины на заказ" : "Custom painting commissions", item: pageUrl },
+          { "@type": "ListItem", position: 1, name: ru ? "Главная" : sk ? "Domov" : "Home", item: `${SITE_URL}${ru ? "/ru" : ""}` },
+          { "@type": "ListItem", position: 2, name: ru ? "Картины на заказ" : sk ? "Obrazy na objednávku" : "Custom painting commissions", item: pageUrl },
         ],
       },
       {
@@ -66,49 +74,49 @@ export default function CommissionSeoContent({ ru }: { ru: boolean }) {
     <section className={styles.content} aria-labelledby="commission-guide-title">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }} />
       <div className={styles.inner}>
-        <p className={styles.eyebrow}>{ru ? "ИНДИВИДУАЛЬНАЯ ЖИВОПИСЬ · PETIT.SOT" : "PERSONALISED ARTWORK · PETIT.SOT STUDIO"}</p>
-        <h2 id="commission-guide-title">{ru ? "Авторская картина, созданная по вашей идее." : "A one-of-a-kind painting, created from your idea."}</h2>
+        <p className={styles.eyebrow}>{ru ? "ИНДИВИДУАЛЬНАЯ ЖИВОПИСЬ · PETIT.SOT" : sk ? "ORIGINÁLNA TVORBA NA MIERU · PETIT.SOT STUDIO" : "PERSONALISED ARTWORK · PETIT.SOT STUDIO"}</p>
+        <h2 id="commission-guide-title">{ru ? "Авторская картина, созданная по вашей идее." : sk ? "Jedinečný obraz vytvorený podľa vašej predstavy." : "A one-of-a-kind painting, created from your idea."}</h2>
         <p className={styles.intro}>{ru
           ? "Заказная живопись — это возможность превратить важное для вас место, воспоминание или образ в оригинальную работу Ольги Трихлеб. Вместо выбора готовой картины вы вместе с художницей определяете сюжет, настроение, формат и цветовое решение."
-          : "A painting commission is a way to turn a meaningful place, memory or image into an original work by Olga Trikhleb. Rather than choosing an existing artwork, you begin with your own idea and work with the artist to shape the subject, mood, canvas size and colour palette."}</p>
+          : sk ? "Objednávka obrazu je príležitosťou premeniť dôležité miesto, spomienku alebo predstavu na originálne dielo Olgy Trikhleb. Namiesto výberu hotového obrazu začínate vlastným nápadom a spolu s výtvarníčkou určíte motív, náladu, rozmery plátna a farebnú paletu." : "A painting commission is a way to turn a meaningful place, memory or image into an original work by Olga Trikhleb. Rather than choosing an existing artwork, you begin with your own idea and work with the artist to shape the subject, mood, canvas size and colour palette."}</p>
 
         <div className={styles.columns}>
           <article>
             <span className={styles.number}>01</span>
-            <h3>{ru ? "Пейзажи и места с историей" : "Custom landscape paintings"}</h3>
+            <h3>{ru ? "Пейзажи и места с историей" : sk ? "Krajiny vytvorené na objednávku" : "Custom landscape paintings"}</h3>
             <p>{ru
               ? "Атмосферный пейзаж, морской берег, деревенская улица или вид из окна — расскажите, какое место вы хотели бы сохранить в живописи. Фотография поможет передать детали, а художественное решение останется авторским."
-              : "An atmospheric landscape, a quiet seascape, a village street or the view from your window — tell Olga about the place you would like to preserve in paint. A reference photograph can guide the details while the interpretation remains the artist's own."}</p>
+              : sk ? "Atmosférická krajina, pokojné morské pobrežie, dedinská ulica alebo výhľad z vášho okna — povedzte Olge, ktoré miesto by ste si chceli uchovať v podobe obrazu. Referenčná fotografia môže pomôcť zachytiť detaily, umelecké spracovanie však zostáva autorskou interpretáciou." : "An atmospheric landscape, a quiet seascape, a village street or the view from your window — tell Olga about the place you would like to preserve in paint. A reference photograph can guide the details while the interpretation remains the artist's own."}</p>
           </article>
           <article>
             <span className={styles.number}>02</span>
-            <h3>{ru ? "Размер и цветовая палитра" : "A personalised size and colour palette"}</h3>
+            <h3>{ru ? "Размер и цветовая палитра" : sk ? "Individuálne rozmery a farebná paleta" : "A personalised size and colour palette"}</h3>
             <p>{ru
               ? "Выберите подходящий формат и опишите предпочтительные оттенки. Можно начать с примерного размера и нескольких слов о желаемом настроении — окончательные детали обсуждаются перед подтверждением заказа."
-              : "Choose a canvas format and share the colours you have in mind. You can start with approximate dimensions and a few words about the mood you want to create; the final details are discussed before the commission is confirmed."}</p>
+              : sk ? "Vyberte si formát plátna a opíšte farby, ktoré si predstavujete. Môžete začať približnými rozmermi a niekoľkými slovami o želanej atmosfére; konečné podrobnosti sa dohodnú pred potvrdením objednávky." : "Choose a canvas format and share the colours you have in mind. You can start with approximate dimensions and a few words about the mood you want to create; the final details are discussed before the commission is confirmed."}</p>
           </article>
           <article>
             <span className={styles.number}>03</span>
-            <h3>{ru ? "Личное обсуждение с художницей" : "A personal conversation with the artist"}</h3>
+            <h3>{ru ? "Личное обсуждение с художницей" : sk ? "Osobná konzultácia s výtvarníčkou" : "A personal conversation with the artist"}</h3>
             <p>{ru
               ? "Каждую заявку Ольга рассматривает лично. Она уточнит детали, подтвердит стоимость и ориентировочные сроки, чтобы до начала работы у вас было ясное понимание заказа."
-              : "Olga personally reviews every enquiry. She will clarify the brief and confirm the final price and estimated timeline, so you understand the commission before work begins."}</p>
+              : sk ? "Olga osobne posudzuje každú žiadosť. Spresní zadanie a potvrdí konečnú cenu aj predpokladaný termín, aby ste mali jasno ešte pred začiatkom práce." : "Olga personally reviews every enquiry. She will clarify the brief and confirm the final price and estimated timeline, so you understand the commission before work begins."}</p>
           </article>
         </div>
 
         <div className={styles.location}>
-          <h3>{ru ? "PETIT.SOT STUDIO — независимая художественная студия в Тренчине, Словакия" : "PETIT.SOT STUDIO — an independent art studio in Trenčín, Slovakia"}</h3>
+          <h3>{ru ? "PETIT.SOT STUDIO — независимая художественная студия в Тренчине, Словакия" : sk ? "PETIT.SOT STUDIO — nezávislé umelecké štúdio v Trenčíne na Slovensku" : "PETIT.SOT STUDIO — an independent art studio in Trenčín, Slovakia"}</h3>
           <p>{ru
             ? "Ольга Трихлеб создаёт оригинальные картины в собственной художественной практике. Заказ начинается с вашей идеи: вы можете описать сюжет, приложить визуальный референс и обсудить индивидуальный формат."
-            : "Artist Olga Trikhleb develops her original painting practice at PETIT.SOT STUDIO in Slovakia and welcomes commission enquiries from collectors worldwide. Every commission begins with your idea: describe the subject, attach a visual reference and discuss a format made for your space."}</p>
+            : sk ? "Výtvarníčka Olga Trikhleb rozvíja svoju autorskú tvorbu v PETIT.SOT STUDIO na Slovensku a prijíma objednávky aj zo zahraničia. Každá objednávka sa začína vašou predstavou: opíšte motív, priložte vizuálnu referenciu a prediskutujte formát vhodný pre váš priestor." : "Artist Olga Trikhleb develops her original painting practice at PETIT.SOT STUDIO in Slovakia and welcomes commission enquiries from collectors worldwide. Every commission begins with your idea: describe the subject, attach a visual reference and discuss a format made for your space."}</p>
           <p>{ru
             ? <>Посмотрите <Link href="/works">готовые картины</Link> и <Link href="/about">узнайте больше об Ольге</Link>.</>
             : <>Explore the <Link href="/works">original paintings</Link> or <Link href="/about">learn more about Olga Trikhleb</Link>.</>}</p>
         </div>
 
         <div className={styles.faq}>
-          <p className={styles.eyebrow}>{ru ? "ВОПРОСЫ И ОТВЕТЫ" : "QUESTIONS & ANSWERS"}</p>
-          <h2>{ru ? "Частые вопросы о картинах на заказ" : "Custom painting commission FAQs"}</h2>
+          <p className={styles.eyebrow}>{ru ? "ВОПРОСЫ И ОТВЕТЫ" : sk ? "OTÁZKY A ODPOVEDE" : "QUESTIONS & ANSWERS"}</p>
+          <h2>{ru ? "Частые вопросы о картинах на заказ" : sk ? "Časté otázky o obrazoch na objednávku" : "Custom painting commission FAQs"}</h2>
           {faqs.map((faq) => (
             <details key={faq.question} className={styles.faqItem}>
               <summary>{faq.question}</summary>
@@ -117,8 +125,8 @@ export default function CommissionSeoContent({ ru }: { ru: boolean }) {
           ))}
         </div>
         <div className={styles.bottomCta}>
-          <p>{ru ? "Есть идея для картины?" : "Have an idea for a painting?"}</p>
-          <Link href="/commission">{ru ? "Оформить заявку" : "Start your commission"} <span>↗</span></Link>
+          <p>{ru ? "Есть идея для картины?" : sk ? "Máte predstavu o svojom obraze?" : "Have an idea for a painting?"}</p>
+          <Link href="/commission">{ru ? "Оформить заявку" : sk ? "Zadať objednávku" : "Start your commission"} <span>↗</span></Link>
         </div>
       </div>
     </section>

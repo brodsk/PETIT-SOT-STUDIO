@@ -5,12 +5,17 @@ const SITE_URL = "https://www.petitsot.com";
 
 function languageAlternates(path: string, includeRussian = true) {
   const cleanPath = path === "/" ? "" : path;
+  const slovakPath = path === "/trencin-art-studio"
+    ? "/sk/trencin-art-studio"
+    : path.startsWith("/works/")
+      ? "/sk/obrazy/" + path.split("/").pop()
+      : "/sk" + cleanPath;
   return {
     languages: {
-      en: `${SITE_URL}${cleanPath}`,
-      ...(path === "/trencin-art-studio" ? { sk: `${SITE_URL}/sk/trencin-art-studio` } : path.startsWith("/works/") ? { sk: `${SITE_URL}/sk/obrazy/${path.split("/").pop()}` } : {}),
-      ...(includeRussian ? { ru: `${SITE_URL}/ru${cleanPath}` } : {}),
-      "x-default": `${SITE_URL}${cleanPath}`,
+      en: SITE_URL + cleanPath,
+      ...(includeRussian ? { ru: SITE_URL + "/ru" + cleanPath } : {}),
+      sk: SITE_URL + slovakPath,
+      "x-default": SITE_URL + cleanPath,
     },
   };
 }
@@ -37,21 +42,31 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const staticPages: MetadataRoute.Sitemap = staticPaths.flatMap(({ path, changeFrequency, priority }) => {
     const includeRussian = path !== "/trencin-art-studio";
+    const slovakPath = path === "/trencin-art-studio"
+      ? "/sk/trencin-art-studio"
+      : "/sk" + (path === "/" ? "" : path);
     const englishPage = {
-      url: `${SITE_URL}${path === "/" ? "" : path}`,
+      url: SITE_URL + (path === "/" ? "" : path),
       changeFrequency,
       priority,
       ...languageAlternates(path, includeRussian),
     };
-    if (!includeRussian) return [englishPage];
+    const slovakPage = {
+      url: SITE_URL + slovakPath,
+      changeFrequency,
+      priority,
+      ...languageAlternates(path, includeRussian),
+    };
+    if (!includeRussian) return [englishPage, slovakPage];
     return [
       englishPage,
       {
-        url: `${SITE_URL}/ru${path === "/" ? "" : path}`,
+        url: SITE_URL + "/ru" + (path === "/" ? "" : path),
         changeFrequency,
         priority,
         ...languageAlternates(path),
       },
+      slovakPage,
     ];
   });
 

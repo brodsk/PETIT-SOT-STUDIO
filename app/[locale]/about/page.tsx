@@ -24,7 +24,7 @@ export default async function About({ params }: { params: Promise<{ locale: stri
   const { locale } = await params;
   const ru = locale === "ru";
   const sk = locale === "sk";
-  const pageUrl = `${SITE_URL}${ru ? "/ru" : ""}/about`;
+  const pageUrl = `${SITE_URL}${ru ? "/ru" : sk ? "/sk" : ""}/about`;
   const artistSchema = {
     "@context": "https://schema.org",
     "@type": "ProfilePage",
@@ -36,7 +36,7 @@ export default async function About({ params }: { params: Promise<{ locale: stri
       "@id": `${SITE_URL}/#artist`,
       name: "Olga Trikhleb",
       url: `${SITE_URL}/about`,
-      jobTitle: sk ? "Výtvarníčka" : "Visual artist",
+      jobTitle: ru ? "Художница" : sk ? "Výtvarníčka" : "Visual artist",
       homeLocation: { "@type": "City", name: "Trenčín", containedInPlace: { "@type": "Country", name: "Slovakia" } },
       worksFor: { "@id": `${SITE_URL}/#studio` },
       sameAs: ["https://www.instagram.com/petit.sot.art"],

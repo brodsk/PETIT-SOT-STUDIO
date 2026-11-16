@@ -5,8 +5,9 @@ import { createClient } from "../../../lib/supabase/client";
 
 type Artwork = { id: string; slug: string; title: string; width_cm: number | null; height_cm: number | null; status: string };
 type Variant = { id: string; artwork_id: string; prodigi_sku: string; size_label: string; width_mm: number; height_mm: number; retail_price_eur: number; active: boolean };
+type PrintOrder = { id: string; prodigi_order_id: string | null; paypal_order_id: string | null; status_stage: string; paid_amount_eur: number | null; recipient: any; created_at: string; submitted_to_prodigi_at: string | null; fulfillment_error: string | null };
 
-export default function PrintsAdmin({ artworks, initialVariants }: { artworks: Artwork[]; initialVariants: Variant[] }) {
+export default function PrintsAdmin({ artworks, initialVariants, initialOrders }: { artworks: Artwork[]; initialVariants: Variant[]; initialOrders: PrintOrder[] }) {
   const [variants, setVariants] = useState(initialVariants);
   const [artworkId, setArtworkId] = useState(artworks[0]?.id || "");
   const [sku, setSku] = useState("");
@@ -109,6 +110,22 @@ export default function PrintsAdmin({ artworks, initialVariants }: { artworks: A
             <button disabled={busy} onClick={() => toggle(item)}>{item.active ? "Выключить" : "Активировать"}</button>
             <button disabled={busy} onClick={() => remove(item)}>Удалить</button>
           </div>
+        </article>;
+      })}
+    </section>
+    <section style={{ marginTop: 42 }}>
+      <h2 style={{ fontSize: 20, fontWeight: 500 }}>Заказы принтов ({initialOrders.length})</h2>
+      {initialOrders.length === 0 ? <p style={{ opacity: .65 }}>Пока оплаченных заказов нет.</p> : initialOrders.map(order => {
+        const address = order.recipient?.address || {};
+        return <article key={order.id} style={{ padding: "16px 0", borderBottom: "1px solid #ddd" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+            <strong>{order.status_stage}</strong>
+            <strong>{order.paid_amount_eur == null ? "—" : "€" + Number(order.paid_amount_eur).toFixed(2)}</strong>
+          </div>
+          <div style={{ fontSize: 13, opacity: .75, marginTop: 5 }}>{order.recipient?.name || "Получатель"} · {[address.line1,address.townOrCity,address.postalOrZipCode,address.countryCode].filter(Boolean).join(", ")}</div>
+          <div style={{ fontSize: 12, opacity: .65, marginTop: 4 }}>PayPal: {order.paypal_order_id || "—"} · Prodigi: {order.prodigi_order_id || "ожидает отправки"}</div>
+          <div style={{ fontSize: 12, opacity: .65 }}>{new Date(order.created_at).toLocaleString("en-GB")}</div>
+          {order.fulfillment_error && <p style={{ color: "#9b3027", fontSize: 12 }}>{order.fulfillment_error}</p>}
         </article>;
       })}
     </section>

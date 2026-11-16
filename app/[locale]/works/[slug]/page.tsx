@@ -17,11 +17,11 @@ export async function generateMetadata({
   params: Promise<{ locale: string; slug: string }>;
 }): Promise<Metadata> {
   const { locale, slug } = await params;
-  const ru = locale === "ru";
+  const ru = locale === "ru";\n  const sk = locale === "sk";
   const w = await getWork(slug);
   if (!w) return {};
 
-  const title = ru ? w.titleRu : w.titleEn;
+  const title = ru ? w.titleRu : sk ? w.titleSk : w.titleEn;
   const rawMedium = (w.medium || "").toLowerCase();
   const isOil = /oil|масл/.test(rawMedium);
   const isAcrylic = /acrylic|акрил/.test(rawMedium);
@@ -107,7 +107,7 @@ export async function generateMetadata({
       description,
       url: canonical,
       siteName: "PETIT.SOT STUDIO",
-      locale: ru ? "ru_RU" : "en_GB",
+      locale: sk ? "sk_SK" : ru ? "ru_RU" : "en_GB",
       ...(image ? { images: [{ url: image, alt: title }] } : {}),
     },
     twitter: {
@@ -134,7 +134,7 @@ export default async function WorkPage({
     .eq("artwork_id", w.id).eq("active", true).order("sort_order", { ascending: true }) : { data: [] };
 
   const title = ru ? w.titleRu : w.titleEn;
-  const description = (ru ? w.descriptionRu : w.descriptionEn) || `${title} — artwork by Olga Trikhleb.`;
+  const description = (ru ? w.descriptionRu : sk ? (w.descriptionSk || w.descriptionEn) : w.descriptionEn) || `${title} — artwork by Olga Trikhleb.`;
   const canonical = `${SITE_URL}${ru ? "/ru" : ""}/works/${w.slug}`;
   const breadcrumbSchema = {
     "@context": "https://schema.org",
@@ -143,13 +143,13 @@ export default async function WorkPage({
       {
         "@type": "ListItem",
         position: 1,
-        name: ru ? "Главная" : "Home",
+        name: ru ? "Главная" : sk ? "Domov" : "Home",
         item: `${SITE_URL}${ru ? "/ru" : ""}`,
       },
       {
         "@type": "ListItem",
         position: 2,
-        name: ru ? "Работы" : "Works",
+        name: ru ? "Работы" : sk ? "Diela" : "Works",
         item: `${SITE_URL}${ru ? "/ru" : ""}/works`,
       },
       {
@@ -175,7 +175,7 @@ export default async function WorkPage({
     url: canonical,
     name: title,
     description,
-    inLanguage: ru ? "ru" : "en",
+    inLanguage: sk ? "sk" : ru ? "ru" : "en",
     ...(primaryImage
       ? {
           primaryImageOfPage: {
@@ -211,7 +211,7 @@ export default async function WorkPage({
     },
     creator: { "@id": `${SITE_URL}/#artist` },
     artform: "Painting",
-    artMedium: localizeMedium(w.medium, ru ? "ru" : "en"),
+    artMedium: localizeMedium(w.medium, sk ? "sk" : ru ? "ru" : "en"),
     ...(w.year && w.year !== "—" ? { dateCreated: w.year } : {}),
     ...(w.widthCm ? { width: { "@type": "QuantitativeValue", value: w.widthCm, unitCode: "CMT", unitText: "cm" } } : {}),
     ...(w.heightCm ? { height: { "@type": "QuantitativeValue", value: w.heightCm, unitCode: "CMT", unitText: "cm" } } : {}),
@@ -271,21 +271,21 @@ export default async function WorkPage({
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
       />
-      <Link href="/works" className="back">← {ru ? "Архив" : "Archive"}</Link>
+      <Link href="/works" className="back">← {ru ? "Архив" : sk ? "Galéria" : "Archive"}</Link>
       <ArtworkViewer images={w.images.length ? w.images : w.imageUrl ? [w.imageUrl] : []} thumbnailImages={w.thumbnailImages} alt={`${title} — ${localizeMedium(w.medium, ru ? "ru" : "en")}, ${w.year}${ru ? ", оригинальная картина Ольги Трихлеб" : ", original painting by Olga Trikhleb"}`} slug={w.slug}/>
       <aside className="work-info">
         <p className="eyebrow">PETIT.SOT / {w.year}</p>
         <h1>{title}</h1>
         <dl>
-          <div><dt>{ru ? "Материал" : "Medium"}</dt><dd>{localizeMedium(w.medium, ru ? "ru" : "en")}</dd></div>
-          <div><dt>{ru ? "Размер" : "Size"}</dt><dd>{w.size}</dd></div>
-          <div><dt>{ru ? "Год" : "Year"}</dt><dd>{w.year}</dd></div>
+          <div><dt>{ru ? "Материал" : sk ? "Technika" : "Medium"}</dt><dd>{localizeMedium(w.medium, ru ? "ru" : "en")}</dd></div>
+          <div><dt>{ru ? "Размер" : sk ? "Rozmery" : "Size"}</dt><dd>{w.size}</dd></div>
+          <div><dt>{ru ? "Год" : sk ? "Rok" : "Year"}</dt><dd>{w.year}</dd></div>
         </dl>
         <Link className="interior-button" href={`/wall-preview/${encodeURIComponent(w.slug)}`}>
-          <span>{ru ? "Примерить на своей стене" : "Preview on your wall"}</span><span className="interior-button-arrow">↗</span>
+          <span>{ru ? "Примерить на своей стене" : sk ? "Vyskúšať obraz na vlastnej stene" : "Preview on your wall"}</span><span className="interior-button-arrow">↗</span>
         </Link>
         <p className="work-description">{description}</p>
-        <div className="purchase-box">{w.available ? <><div><span className="purchase-label">{ru ? "Доступна" : "Available"}</span><strong>{w.price > 0 ? new Intl.NumberFormat(ru ? "ru-RU" : "en-GB", {style:"currency", currency:w.currency}).format(w.price) : (ru ? "Цена по запросу" : "Price on request")}</strong></div>{w.price > 0 && <PayPalCheckoutButton slug={w.slug} locale={locale} price={w.price} />}{w.etsyListingUrl ? <a className="purchase-button" href={w.etsyListingUrl} target="_blank" rel="noopener noreferrer">{ru ? "Купить на Etsy" : "Buy on Etsy"} <span>↗</span></a> : <Link className="purchase-button" href={"/contact?work=" + encodeURIComponent(title)}>{ru ? "Приобрести работу" : "Acquire this work"} <span>↗</span></Link>}{w.sasheListingUrl && <a className="purchase-button purchase-button-sashe" href={w.sasheListingUrl} target="_blank" rel="noopener noreferrer">{ru ? "Купить на SAShE" : "Buy on SAShE"} <span>↗</span></a>}<p>{w.etsyListingUrl ? (ru ? "Выберите площадку, чтобы оформить покупку." : "Choose a marketplace to complete your purchase.") : (ru ? "Ссылка на Etsy пока не добавлена. Можно посмотреть работы в магазине SAShE или отправить запрос." : "The Etsy listing link isn’t available yet. You can visit our SAShE shop or send a purchase enquiry.")}</p></> : w.sold ? <><div><span className="purchase-label">{ru ? "ПРОДАНА" : "SOLD"}</span><strong>{w.price > 0 ? new Intl.NumberFormat(ru ? "ru-RU" : "en-GB", {style:"currency", currency:w.currency}).format(w.price) : (ru ? "Цена по запросу" : "Price on request")}</strong></div></> : <><span className="purchase-label">{ru ? "АРХИВ" : "ARCHIVE"}</span><strong>{ru ? "Сейчас не продаётся" : "Not currently for sale"}</strong><p>{ru ? "Эта работа находится в архиве. Если хотите обсудить похожую картину, оставьте запрос." : "This artwork is part of the archive. Contact us to discuss a similar commission."}</p><div className="archive-enquiry"><h2>{ru ? "Заказать похожую работу" : "Enquire about a similar artwork"}</h2><ContactForm ru={ru} initialMessage={ru ? "Здравствуйте! Хотел(а) бы обсудить похожую работу по мотивам картины «"+title+"»." : "Hello! I would like to enquire about a similar artwork inspired by “"+title+"”."} /></div></>}</div>
+        <div className="purchase-box">{w.available ? <><div><span className="purchase-label">{ru ? "Доступна" : sk ? "Dostupné" : "Available"}</span><strong>{w.price > 0 ? new Intl.NumberFormat(ru ? "ru-RU" : "en-GB", {style:"currency", currency:w.currency}).format(w.price) : (ru ? "Цена по запросу" : sk ? "Cena na vyžiadanie" : "Price on request")}</strong></div>{w.price > 0 && <PayPalCheckoutButton slug={w.slug} locale={locale} price={w.price} />}{w.etsyListingUrl ? <a className="purchase-button" href={w.etsyListingUrl} target="_blank" rel="noopener noreferrer">{ru ? "Купить на Etsy" : sk ? "Kúpiť na Etsy" : "Buy on Etsy"} <span>↗</span></a> : <Link className="purchase-button" href={"/contact?work=" + encodeURIComponent(title)}>{ru ? "Приобрести работу" : sk ? "Kúpiť toto dielo" : "Acquire this work"} <span>↗</span></Link>}{w.sasheListingUrl && <a className="purchase-button purchase-button-sashe" href={w.sasheListingUrl} target="_blank" rel="noopener noreferrer">{ru ? "Купить на SAShE" : sk ? "Kúpiť na SAShE" : "Buy on SAShE"} <span>↗</span></a>}<p>{w.etsyListingUrl ? (ru ? "Выберите площадку, чтобы оформить покупку." : "Choose a marketplace to complete your purchase.") : (ru ? "Ссылка на Etsy пока не добавлена. Можно посмотреть работы в магазине SAShE или отправить запрос." : "The Etsy listing link isn’t available yet. You can visit our SAShE shop or send a purchase enquiry.")}</p></> : w.sold ? <><div><span className="purchase-label">{ru ? "ПРОДАНА" : sk ? "PREDANÉ" : "SOLD"}</span><strong>{w.price > 0 ? new Intl.NumberFormat(ru ? "ru-RU" : "en-GB", {style:"currency", currency:w.currency}).format(w.price) : (ru ? "Цена по запросу" : "Price on request")}</strong></div></> : <><span className="purchase-label">{ru ? "АРХИВ" : sk ? "ARCHÍV" : "ARCHIVE"}</span><strong>{ru ? "Сейчас не продаётся" : sk ? "Momentálne nie je na predaj" : "Not currently for sale"}</strong><p>{ru ? "Эта работа находится в архиве. Если хотите обсудить похожую картину, оставьте запрос." : sk ? "Toto dielo je súčasťou archívu. Ak máte záujem o podobný obraz, pošlite nám správu." : "This artwork is part of the archive. Contact us to discuss a similar commission."}</p><div className="archive-enquiry"><h2>{ru ? "Заказать похожую работу" : sk ? "Dopyt na podobné dielo" : "Enquire about a similar artwork"}</h2><ContactForm ru={ru} initialMessage={ru ? "Здравствуйте! Хотел(а) бы обсудить похожую работу по мотивам картины «"+title+"»." : "Hello! I would like to enquire about a similar artwork inspired by “"+title+"”."} /></div></>}</div>
         {printVariants && printVariants.length > 0 && <FineArtPrintCheckout variants={printVariants} locale={locale} />}
       </aside>
     </main>

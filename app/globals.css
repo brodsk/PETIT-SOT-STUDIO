@@ -4094,7 +4094,7 @@ div[data-locale] > footer {
   .prints-intro h1 {
     width: 100%;
     max-width: 100%;
-    font-size: clamp(42px, 16.5vw, 108px);
+    font-size: clamp(34px, 11.5vw, 78px);
     line-height: .92;
     letter-spacing: -.055em;
     margin: 42px 0 28px;

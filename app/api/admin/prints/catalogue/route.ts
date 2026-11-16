@@ -161,6 +161,11 @@ export async function POST(request: Request) {
     });
     const quote = await quoteResponse.json().catch(() => ({}));
     if (!quoteResponse.ok) return NextResponse.json({ error: quote?.message || "Prodigi quote failed." }, { status: 502 });
+    const standardQuote = (quote.quotes || []).find((item: any) => String(item.shipmentMethod).toLowerCase() === "standard");
+    if (!standardQuote?.costSummary?.items || !standardQuote?.costSummary?.shipping ||
+        standardQuote.costSummary.items.currency !== "EUR" || standardQuote.costSummary.shipping.currency !== "EUR") {
+      return NextResponse.json({ error: "Prodigi did not return a complete Standard delivery quote in EUR for this SKU." }, { status: 422 });
+    }
 
     const { data: saved, error: saveError } = await auth.supabase
       .from("petit_sot_print_variants")

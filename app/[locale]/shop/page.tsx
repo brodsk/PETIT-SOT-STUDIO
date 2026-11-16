@@ -12,11 +12,12 @@ export const metadata: Metadata = {
 export default async function TelegramShop({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   const ru = locale === "ru";
+  const sk = locale === "sk";
   const works = (await getWorks()).filter((work) => work.available);
   const formatPrice = (price: number, currency: string) =>
     price > 0
-      ? new Intl.NumberFormat(ru ? "ru-RU" : "en-IE", { style: "currency", currency }).format(price)
-      : ru ? "Цена по запросу" : "Price on request";
+      ? new Intl.NumberFormat(ru ? "ru-RU" : sk ? "sk-SK" : "en-IE", { style: "currency", currency }).format(price)
+      : ru ? "Цена по запросу" : sk ? "Cena na vyžiadanie" : "Price on request";
 
   return (
     <>
@@ -43,13 +44,13 @@ export default async function TelegramShop({ params }: { params: Promise<{ local
       `}</Script>
       <main className="gallery-archive" style={{ paddingTop: "clamp(28px, 5vw, 64px)" }}>
         <div className="archive-mast">
-          <span className="eyebrow">PETIT.SOT / {ru ? "МАГАЗИН" : "SHOP"}</span>
+          <span className="eyebrow">PETIT.SOT / {ru ? "МАГАЗИН" : sk ? "OBCHOD" : "SHOP"}</span>
           <h1 style={{ fontSize: "clamp(58px, 12vw, 142px)", overflowWrap: "anywhere" }}>
-            {ru ? "Работы" : "Artworks"}
+            {ru ? "Работы" : sk ? "Diela" : "Artworks"}
           </h1>
           <p>{ru
             ? "Оригинальные работы Ольги Трихлеб. Выберите картину, чтобы узнать подробности и варианты приобретения."
-            : "Original artworks by Olga Trikhleb. Select a painting to explore the details and purchase options."}</p>
+            : sk ? "Originálne obrazy Olgy Trikhleb. Vyberte si dielo a prezrite si jeho detaily a možnosti zakúpenia." : "Original artworks by Olga Trikhleb. Select a painting to explore the details and purchase options."}</p>
         </div>
 
         <div className="archive-grid archive-grid-even">
@@ -57,17 +58,17 @@ export default async function TelegramShop({ params }: { params: Promise<{ local
             <Link className="archive-card" href={"/works/" + work.slug} key={work.slug}>
               <div className="archive-image art-placeholder">
                 {work.imageUrl
-                  ? <img src={work.imageUrl} alt={ru ? work.titleRu : work.titleEn} loading="lazy" decoding="async" />
-                  : <span>{ru ? "Нет изображения" : "Image unavailable"}</span>}
+                  ? <img src={work.imageUrl} alt={ru ? work.titleRu : sk ? work.titleSk : work.titleEn} loading="lazy" decoding="async" />
+                  : <span>{ru ? "Нет изображения" : sk ? "Obrázok nie je dostupný" : "Image unavailable"}</span>}
               </div>
               <div className="archive-card-meta">
-                <span>{ru ? work.titleRu : work.titleEn}</span>
+                <span>{ru ? work.titleRu : sk ? work.titleSk : work.titleEn}</span>
                 <span>{work.year}</span>
               </div>
-              <p>{localizeMedium(work.medium, ru ? "ru" : "en")}</p>
+              <p>{localizeMedium(work.medium, ru ? "ru" : sk ? "sk" : "en")}</p>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, marginTop: 14, borderTop: "1px solid #c8c4bc", paddingTop: 12 }}>
                 <span style={{ fontSize: 12 }}>{formatPrice(work.price, work.currency)}</span>
-                <span style={{ fontSize: 9, textTransform: "uppercase", letterSpacing: ".1em" }}>{ru ? "Подробнее ↗" : "View work ↗"}</span>
+                <span style={{ fontSize: 9, textTransform: "uppercase", letterSpacing: ".1em" }}>{ru ? "Подробнее ↗" : sk ? "Zobraziť dielo ↗" : "View work ↗"}</span>
               </div>
             </Link>
           ))}
@@ -76,10 +77,10 @@ export default async function TelegramShop({ params }: { params: Promise<{ local
         {works.length === 0 && (
           <div style={{ borderTop: "1px solid #aaa59d", padding: "42px 0 70px" }}>
             <p style={{ fontFamily: "Georgia, serif", fontSize: 30, margin: "0 0 14px" }}>
-              {ru ? "Новые работы скоро появятся." : "New works coming soon."}
+              {ru ? "Новые работы скоро появятся." : sk ? "Čoskoro pribudnú nové diela." : "New works coming soon."}
             </p>
             <p style={{ maxWidth: 360, fontSize: 12, lineHeight: 1.6 }}>
-              {ru ? "Напишите нам в Instagram, если хотите узнать о будущих работах." : "Follow us on Instagram for updates on upcoming works."}
+              {ru ? "Напишите нам в Instagram, если хотите узнать о будущих работах." : sk ? "Sledujte nás na Instagrame a dozviete sa o nových dielach." : "Follow us on Instagram for updates on upcoming works."}
             </p>
             <a className="purchase-button" style={{ maxWidth: 420, marginTop: 24 }} href="https://www.instagram.com/petit.sot.art/" target="_blank" rel="noreferrer">
               Instagram <span>↗</span>
@@ -89,7 +90,7 @@ export default async function TelegramShop({ params }: { params: Promise<{ local
 
         <div style={{ borderTop: "1px solid #aaa59d", marginTop: 24, paddingTop: 18, display: "flex", justifyContent: "space-between", gap: 18, fontSize: 9, textTransform: "uppercase", letterSpacing: ".1em" }}>
           <span>{ru ? "Ольга Трихлеб" : "Olga Trikhleb"}</span>
-          <Link href="/works" style={{ color: "inherit", textDecoration: "none" }}>{ru ? "Полный архив ↗" : "Full archive ↗"}</Link>
+          <Link href="/works" style={{ color: "inherit", textDecoration: "none" }}>{ru ? "Полный архив ↗" : sk ? "Celý archív ↗" : "Full archive ↗"}</Link>
         </div>
       </main>
     </>

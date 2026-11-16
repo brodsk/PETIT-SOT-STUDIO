@@ -375,7 +375,7 @@ export default function PayPalCheckoutButton({
           if (result.status !== "APPROVED") throw new Error("Apple Pay order was not approved");
           await captureOrder(orderId);
           session.completePayment(window.ApplePaySession.STATUS_SUCCESS);
-          window.location.assign(`/checkout/success?token=${encodeURIComponent(orderId)}`);
+          window.location.assign(`${checkoutPrefix}/checkout/success?token=${encodeURIComponent(orderId)}`);
         } catch (e) {
           console.error("Apple Pay payment failed", e);
           session.completePayment(window.ApplePaySession.STATUS_FAILURE);

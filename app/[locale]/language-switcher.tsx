@@ -7,6 +7,7 @@ export default function LanguageSwitcher({ locale }: { locale: string }) {
   const legacyCatalogue = pathname === "/sk/obrazy" || pathname === "/sk/obrazy/";
   const legacyCommission = pathname === "/sk/malba-na-objednavku";
   const legacyStudio = pathname === "/sk/trencin-art-studio";
+  const activeLocale = legacyArtwork || legacyCatalogue || legacyCommission || legacyStudio ? "sk" : locale;
 
   const target = (language: string) => {
     if (legacyArtwork) {
@@ -38,7 +39,7 @@ export default function LanguageSwitcher({ locale }: { locale: string }) {
       {(["en", "ru", "sk"] as const).map((language, index) => (
         <span key={language}>
           {index > 0 && <i aria-hidden="true"> / </i>}
-          <a href={target(language)} onClick={() => switchLanguage(language)} className={locale === language ? "active" : ""} lang={language} aria-current={locale === language ? "page" : undefined}>{language.toUpperCase()}</a>
+          <a href={target(language)} onClick={() => switchLanguage(language)} className={activeLocale === language ? "active" : ""} lang={language} aria-current={activeLocale === language ? "page" : undefined}>{language.toUpperCase()}</a>
         </span>
       ))}
     </span>

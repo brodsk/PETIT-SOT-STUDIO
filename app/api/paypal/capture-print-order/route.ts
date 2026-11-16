@@ -47,8 +47,11 @@ export async function POST(request: Request) {
     if (!verifyResponse.ok) return NextResponse.json({ error: "Could not verify PayPal payment." }, { status: 400 });
 
     const unit = verified.purchase_units?.[0];
-    const variantId = clean(unit?.custom_id, 80);
-    if (!/^[0-9a-f-]{36}$/i.test(variantId)) return NextResponse.json({ error: "This payment is not a PETIT.SOT print order." }, { status: 400 });
+    const customId = clean(unit?.custom_id, 100);
+    const customMatch = customId.match(/^([0-9a-f-]{36}):([A-Z]{2})$/i);
+    if (!customMatch) return NextResponse.json({ error: "This payment is not a PETIT.SOT print order." }, { status: 400 });
+    const variantId = customMatch[1];
+    const expectedCountry = customMatch[2].toUpperCase();
 
     const db = createAdminClient();
     const { data: existing } = await db.from("petit_sot_print_orders")
@@ -113,14 +116,15 @@ export async function POST(request: Request) {
       },
     };
     if (!recipient.name || !recipient.address.line1 || !recipient.address.postalOrZipCode ||
-        !/^[A-Z]{2}$/.test(recipient.address.countryCode) || !recipient.address.townOrCity) {
+        !/^[A-Z]{2}$/.test(recipient.address.countryCode) || !recipient.address.townOrCity ||
+        recipient.address.countryCode !== expectedCountry) {
       await db.from("petit_sot_print_orders").upsert({
         paypal_order_id: orderId,
         paypal_capture_id: capture?.id || null,
         variant_id: variant.id,
         artwork_id: variant.artwork_id,
         paid_amount_eur: paidTotal,
-        status_stage: "paid_address_incomplete",
+        status_stage: recipient.address.countryCode && recipient.address.countryCode !== expectedCountry ? "paid_shipping_country_mismatch" : "paid_address_incomplete",
         recipient,
         callback_payload: { source: "paypal", fulfillment: "pending_address_review" },
         last_callback_at: new Date().toISOString(),

@@ -23,7 +23,7 @@ async function getArticleImage(slug: string) {
 
 type Section = { heading: string; paragraphs: string[]; bullets?: string[] };
 type LocalArticle = { title: string; description: string; intro: string; sections: Section[]; takeaway: string };
-type Article = { slug: string; en: LocalArticle; ru: LocalArticle; sk: LocalArticle; related: { slug: string; en: string; ru: string; sk: string }[] };
+type Article = { slug: string; en: LocalArticle; ru: LocalArticle; sk?: LocalArticle; related: { slug: string; en: string; ru: string; sk?: string }[] };
 
 const articles: Article[] = [
   {
@@ -212,7 +212,7 @@ const articles: Article[] = [
 ];
 
 export function generateStaticParams() {
-  return ["en", "ru"].flatMap((locale) => articles.map((article) => ({ locale, slug: article.slug })));
+  return ["en", "ru", "sk"].flatMap((locale) => articles.map((article) => ({ locale, slug: article.slug })));
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string; slug: string }> }): Promise<Metadata> {
@@ -221,7 +221,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   if (!article) return {};
   const ru = locale === "ru";
   const sk = locale === "sk";
-  const content = ru ? article.ru : sk ? article.sk : article.en;
+  const content = ru ? article.ru : sk ? (article.sk || article.en) : article.en;
   const canonical = `${SITE_URL}${ru ? "/ru" : sk ? "/sk" : ""}/journal/${slug}`;
   const articleImage = await getArticleImage(slug);
   return {
@@ -304,7 +304,7 @@ export default async function JournalArticlePage({ params }: { params: Promise<{
           <div className="about-section-label"><span>↗</span><span>{ru ? "ПРИМЕРЫ" : sk ? "SÚVISIACE DIELA" : "RELATED WORKS"}</span></div>
           <div className="about-section-copy">
             <h2>{ru ? "Картины PETIT.SOT STUDIO" : sk ? "Obrazy PETIT.SOT STUDIO" : "Paintings at PETIT.SOT STUDIO"}</h2>
-            <ul>{article.related.map((item) => <li key={item.slug}><Link href={`/works/${item.slug}`}>{ru ? item.ru : sk ? item.sk : item.en}</Link></li>)}</ul>
+            <ul>{article.related.map((item) => <li key={item.slug}><Link href={`/works/${item.slug}`}>{ru ? item.ru : sk ? (item.sk || item.en) : item.en}</Link></li>)}</ul>
             <p><Link href="/journal">{ru ? "Вернуться к руководствам" : sk ? "Späť na všetky články" : "Back to all guides"} ↗</Link></p>
           </div>
         </section>

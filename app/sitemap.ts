@@ -116,6 +116,19 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         },
       },
     },
+    {
+      url: `${SITE_URL}/sk/malba-na-objednavku`,
+      changeFrequency: "monthly",
+      priority: 0.85,
+      alternates: {
+        languages: {
+          sk: `${SITE_URL}/sk/malba-na-objednavku`,
+          en: `${SITE_URL}/commission`,
+          ru: `${SITE_URL}/ru/commission`,
+          "x-default": `${SITE_URL}/commission`,
+        },
+      },
+    },
   ];
 
   return [...staticPages, ...slovakLocalLanding, ...artworkPages];

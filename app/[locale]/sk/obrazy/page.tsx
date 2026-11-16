@@ -1,9 +1,20 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { getWorks, localizeMedium } from "../../../../lib/works";
+import { getWorks } from "../../../../lib/works";
 
 const SITE_URL = "https://www.petitsot.com";
 const PAGE_URL = SITE_URL + "/sk/obrazy";
+
+function slovakMedium(value: string) {
+  const raw = (value || "").toLowerCase();
+  const surface = /paper|papier|бумаг/.test(raw) ? "na papieri" : /wood|drevo|дерев/.test(raw) ? "na dreve" : "na plátne";
+  if (/oil|масл/.test(raw)) return "Olej " + surface;
+  if (/acrylic|акрил/.test(raw)) return "Akryl " + surface;
+  if (/watercolou?r|акварел/.test(raw)) return "Akvarel " + surface;
+  if (/gouache|гуаш/.test(raw)) return "Gvaš " + surface;
+  if (/mixed media|смешан/.test(raw)) return "Kombinovaná technika";
+  return value || "Maľba";
+}
 
 export async function generateMetadata(): Promise<Metadata> {
   const title = "Originálne obrazy na predaj | PETIT.SOT STUDIO";
@@ -55,7 +66,7 @@ export default async function SlovakWorksPage() {
               : <span>{work.titleEn}</span>}
           </div>
           <div className="archive-card-meta"><span>{work.titleEn}</span><span>{work.year}</span></div>
-          <p>{localizeMedium(work.medium, "en")}</p>
+          <p>{slovakMedium(work.medium)}</p>
           <span className="archive-card-status">{work.available ? "Dostupný originál" : work.sold ? "Predané" : "Archív"}</span>
         </Link>
       ))}

@@ -51,7 +51,7 @@ export default async function SlovakWorksPage() {
       itemListElement: works.map((work, index) => ({
         "@type": "ListItem",
         position: index + 1,
-        name: work.titleSk || (work.titleSk || work.titleEn),
+        name: work.titleSk || work.titleEn,
         url: SITE_URL + "/sk/obrazy/" + work.slug,
       })),
     },
@@ -62,8 +62,8 @@ export default async function SlovakWorksPage() {
         <Link className="archive-card" href={"/sk/obrazy/" + work.slug} key={work.slug}>
           <div className="archive-image art-placeholder">
             {work.thumbnailUrl || work.imageUrl
-              ? <img src={work.thumbnailUrl || work.imageUrl} alt={work.titleEn + " — originálny obraz od Olgy Trikhleb"} loading="lazy" decoding="async" />
-              : <span>{work.titleEn}</span>}
+              ? <img src={work.thumbnailUrl || work.imageUrl} alt={(work.titleSk || work.titleEn) + " — originálny obraz od Olgy Trikhleb"} loading="lazy" decoding="async" />
+              : <span>{work.titleSk || work.titleEn}</span>}
           </div>
           <div className="archive-card-meta"><span>{work.titleEn}</span><span>{work.year}</span></div>
           <p>{slovakMedium(work.medium)}</p>

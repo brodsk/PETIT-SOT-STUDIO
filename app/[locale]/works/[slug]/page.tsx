@@ -5,6 +5,8 @@ import Link from "next/link";
 import ArtworkViewer from "./ArtworkViewer";
 import PayPalCheckoutButton from "./PayPalCheckoutButton";
 import ContactForm from "../../contact/ContactForm";
+import FineArtPrintCheckout from "./FineArtPrintCheckout";
+import { createClient } from "../../../../lib/supabase/server";
 
 const SITE_URL = "https://www.petitsot.com";
 const IMAGE_LICENSE_URL = `${SITE_URL}/image-licensing`;
@@ -125,6 +127,10 @@ export default async function WorkPage({
   const ru = locale === "ru";
   const w = await getWork(slug);
   if (!w) notFound();
+  const supabase = await createClient();
+  const { data: printVariants } = w.id ? await supabase.from("petit_sot_print_variants")
+    .select("id,size_label,width_mm,height_mm,retail_price_eur")
+    .eq("artwork_id", w.id).eq("active", true).order("sort_order", { ascending: true }) : { data: [] };
 
   const title = ru ? w.titleRu : w.titleEn;
   const description = (ru ? w.descriptionRu : w.descriptionEn) || `${title} — artwork by Olga Trikhleb.`;
@@ -279,6 +285,7 @@ export default async function WorkPage({
         </Link>
         <p className="work-description">{description}</p>
         <div className="purchase-box">{w.available ? <><div><span className="purchase-label">{ru ? "Доступна" : "Available"}</span><strong>{w.price > 0 ? new Intl.NumberFormat(ru ? "ru-RU" : "en-GB", {style:"currency", currency:w.currency}).format(w.price) : (ru ? "Цена по запросу" : "Price on request")}</strong></div>{w.price > 0 && <PayPalCheckoutButton slug={w.slug} locale={locale} price={w.price} />}{w.etsyListingUrl ? <a className="purchase-button" href={w.etsyListingUrl} target="_blank" rel="noopener noreferrer">{ru ? "Купить на Etsy" : "Buy on Etsy"} <span>↗</span></a> : <Link className="purchase-button" href={"/contact?work=" + encodeURIComponent(title)}>{ru ? "Приобрести работу" : "Acquire this work"} <span>↗</span></Link>}{w.sasheListingUrl && <a className="purchase-button purchase-button-sashe" href={w.sasheListingUrl} target="_blank" rel="noopener noreferrer">{ru ? "Купить на SAShE" : "Buy on SAShE"} <span>↗</span></a>}<p>{w.etsyListingUrl ? (ru ? "Выберите площадку, чтобы оформить покупку." : "Choose a marketplace to complete your purchase.") : (ru ? "Ссылка на Etsy пока не добавлена. Можно посмотреть работы в магазине SAShE или отправить запрос." : "The Etsy listing link isn’t available yet. You can visit our SAShE shop or send a purchase enquiry.")}</p></> : w.sold ? <><div><span className="purchase-label">{ru ? "ПРОДАНА" : "SOLD"}</span><strong>{w.price > 0 ? new Intl.NumberFormat(ru ? "ru-RU" : "en-GB", {style:"currency", currency:w.currency}).format(w.price) : (ru ? "Цена по запросу" : "Price on request")}</strong></div></> : <><span className="purchase-label">{ru ? "АРХИВ" : "ARCHIVE"}</span><strong>{ru ? "Сейчас не продаётся" : "Not currently for sale"}</strong><p>{ru ? "Эта работа находится в архиве. Если хотите обсудить похожую картину, оставьте запрос." : "This artwork is part of the archive. Contact us to discuss a similar commission."}</p><div className="archive-enquiry"><h2>{ru ? "Заказать похожую работу" : "Enquire about a similar artwork"}</h2><ContactForm ru={ru} initialMessage={ru ? "Здравствуйте! Хотел(а) бы обсудить похожую работу по мотивам картины «"+title+"»." : "Hello! I would like to enquire about a similar artwork inspired by “"+title+"”."} /></div></>}</div>
+        {printVariants && printVariants.length > 0 && <FineArtPrintCheckout variants={printVariants} locale={locale} />}
       </aside>
     </main>
   );

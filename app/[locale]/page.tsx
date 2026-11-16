@@ -11,19 +11,26 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale } = await params;
   const ru = locale === "ru";
+  const sk = locale === "sk";
   const title = ru
     ? "Художница из Тренчина — Ольга Трихлеб | PETIT.SOT STUDIO"
-    : "Original Paintings for Sale Online & Contemporary Art";
+    : sk
+      ? "Originálne obrazy a súčasné umenie — Olga Trikhleb | PETIT.SOT STUDIO"
+      : "Original Paintings for Sale Online & Contemporary Art";
   const description = ru
     ? "Ольга Трихлеб — художница из Тренчина, Словакия. PETIT.SOT STUDIO представляет оригинальную живопись, современные картины и независимое художественное творчество в городе — Европейской культурной столице 2026 года."
-    : "Discover one-of-a-kind original paintings by contemporary artist Olga Trikhleb. Explore original landscape, seascape and city paintings for your home, collect unique artwork online or enquire about a custom painting commission. Based in Slovakia, presented to art lovers worldwide.";
+    : sk
+      ? "Objavte originálne obrazy súčasnej výtvarníčky Olgy Trikhleb. Prezrite si krajinky, morské a mestské motívy, vyberte si jedinečné umelecké dielo alebo sa informujte o maľbe na objednávku. PETIT.SOT STUDIO sídli v Trenčíne na Slovensku."
+      : "Discover one-of-a-kind original paintings by contemporary artist Olga Trikhleb. Explore original landscape, seascape and city paintings for your home, collect unique artwork online or enquire about a custom painting commission. Based in Slovakia, presented to art lovers worldwide.";
 
-  const canonical = ru ? `${SITE_URL}/ru` : SITE_URL;
+  const canonical = sk ? `${SITE_URL}/sk` : ru ? `${SITE_URL}/ru` : SITE_URL;
   const works = await getWorks();
   const previewImage = works.find((work) => work.imageUrl)?.imageUrl;
   const previewAlt = ru
     ? "Оригинальная картина Ольги Трихлеб — PETIT.SOT STUDIO"
-    : "Original painting by Olga Trikhleb — PETIT.SOT STUDIO";
+    : sk
+      ? "Originálny obraz Olgy Trikhleb — PETIT.SOT STUDIO"
+      : "Original painting by Olga Trikhleb — PETIT.SOT STUDIO";
 
   return {
     title,
@@ -33,6 +40,7 @@ export async function generateMetadata({
       languages: {
         en: SITE_URL,
         ru: `${SITE_URL}/ru`,
+        sk: `${SITE_URL}/sk`,
         "x-default": SITE_URL,
       },
     },
@@ -42,7 +50,7 @@ export async function generateMetadata({
       description,
       url: canonical,
       siteName: "PETIT.SOT STUDIO",
-      locale: ru ? "ru_RU" : "en_GB",
+      locale: ru ? "ru_RU" : sk ? "sk_SK" : "en_GB",
       ...(previewImage ? { images: [{ url: previewImage, alt: previewAlt }] } : {}),
     },
     twitter: {
@@ -57,13 +65,14 @@ export async function generateMetadata({
 export default async function Home({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   const ru = locale === "ru";
+  const sk = locale === "sk";
   const works = await getWorks();
   const primaryWork = works.find((work) => work.imageUrl);
   const primaryImage = primaryWork?.imageUrl;
   const primaryImageAlt = primaryWork
-    ? `${ru ? primaryWork.titleRu : primaryWork.titleEn} — ${ru ? "оригинальная картина Ольги Трихлеб" : "original painting by Olga Trikhleb"}`
-    : (ru ? "Оригинальная картина Ольги Трихлеб" : "Original painting by Olga Trikhleb");
-  const pageUrl = `${SITE_URL}${ru ? "/ru" : ""}`;
+    ? `${ru ? primaryWork.titleRu : sk ? primaryWork.titleSk : primaryWork.titleEn} — ${ru ? "оригинальная картина Ольги Трихлеб" : sk ? "originálny obraz Olgy Trikhleb" : "original painting by Olga Trikhleb"}`
+    : (ru ? "Оригинальная картина Ольги Трихлеб" : sk ? "Originálny obraz Olgy Trikhleb" : "Original painting by Olga Trikhleb");
+  const pageUrl = `${SITE_URL}${ru ? "/ru" : sk ? "/sk" : ""}`;
   const schema = {
     "@context": "https://schema.org",
     "@graph": [
@@ -71,8 +80,8 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
         "@type": "WebPage",
         "@id": `${pageUrl}#webpage`,
         url: pageUrl,
-        name: ru ? "PETIT.SOT STUDIO — художественная студия в Тренчине" : "PETIT.SOT STUDIO — Original Paintings by Olga Trikhleb",
-        inLanguage: ru ? "ru" : "en",
+        name: ru ? "PETIT.SOT STUDIO — художественная студия в Тренчине" : sk ? "PETIT.SOT STUDIO — originálne obrazy Olgy Trikhleb" : "PETIT.SOT STUDIO — Original Paintings by Olga Trikhleb",
+        inLanguage: ru ? "ru" : sk ? "sk" : "en",
         ...(primaryImage
           ? {
               primaryImageOfPage: {
@@ -102,7 +111,9 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
         url: SITE_URL,
         description: ru
           ? "Независимая художественная студия Ольги Трихлеб, базирующаяся в Тренчине, Словакия."
-          : "An independent art studio by artist Olga Trikhleb, based in Trenčín, Slovakia.",
+          : sk
+            ? "Nezávislé umelecké štúdio výtvarníčky Olgy Trikhleb so sídlom v Trenčíne na Slovensku."
+            : "An independent art studio by artist Olga Trikhleb, based in Trenčín, Slovakia.",
         location: { "@type": "Place", name: "Trenčín, Slovakia" },
         areaServed: ["Slovakia", "Worldwide"],
         sameAs: ["https://www.instagram.com/petit.sot.art", "https://petitsot.etsy.com", "https://www.sashe.sk/petitsot"],
@@ -113,7 +124,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
         "@id": `${SITE_URL}/#artist`,
         name: "Olga Trikhleb",
         url: `${SITE_URL}/about`,
-        jobTitle: ru ? "Художница" : "Visual artist",
+        jobTitle: ru ? "Художница" : sk ? "Výtvarníčka" : "Visual artist",
         worksFor: { "@id": `${SITE_URL}/#studio` },
         sameAs: ["https://www.instagram.com/petit.sot.art"],
         homeLocation: { "@type": "City", name: "Trenčín", containedInPlace: { "@type": "Country", name: "Slovakia" } },
@@ -126,25 +137,25 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
     <main className="gallery-home">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }} />
       <section className="hero-gallery">
-        <div className="hero-top"><span>OLGA TRIKHLEB</span><span className="hero-artist">{ru ? "Художница" : "Artist"} / {new Date().getFullYear()}</span></div>
+        <div className="hero-top"><span>OLGA TRIKHLEB</span><span className="hero-artist">{ru ? "Художница" : sk ? "Výtvarníčka" : "Artist"} / {new Date().getFullYear()}</span></div>
         <div className="hero-title-wrap">
           <h1 className="hero-wordmark">PETIT.SOT <span className="wordmark-divider">|</span> <span>STUDIO</span></h1>
           <span className="hero-orbit hero-orbit-a"></span><span className="hero-orbit hero-orbit-b"></span>
         </div>
-        <div className="hero-bottom"><p>{ru ? "Независимая художественная студия в Тренчине, Словакия. Оригинальная живопись Ольги Трихлеб." : "An independent art studio in Trenčín, Slovakia. Original paintings by Olga Trikhleb."}</p><Link className="arrow-link" href="/works">{ru ? "Смотреть работы" : "View works"} <span>↗</span></Link></div>
+        <div className="hero-bottom"><p>{ru ? "Независимая художественная студия в Тренчине, Словакия. Оригинальная живопись Ольги Трихлеб." : sk ? "Nezávislé umelecké štúdio v Trenčíne na Slovensku. Originálne obrazy Olgy Trikhleb." : "An independent art studio in Trenčín, Slovakia. Original paintings by Olga Trikhleb."}</p><Link className="arrow-link" href="/works">{ru ? "Смотреть работы" : sk ? "Pozrieť diela" : "View works"} <span>↗</span></Link></div>
       </section>
 
       <section className="gallery-tiles gallery-tiles-all">
-        <div className="gallery-tiles-head"><span>{ru ? "Работы" : "Works"}</span><span>{String(works.length).padStart(2, "0")} {ru ? "работ" : "works"}</span></div>
+        <div className="gallery-tiles-head"><span>{ru ? "Работы" : sk ? "Diela" : "Works"}</span><span>{String(works.length).padStart(2, "0")} {ru ? "работ" : sk ? "diel" : "works"}</span></div>
         <div className="gallery-tiles-grid">
           {works.map((w, i) => <Link href={"/works/" + w.slug} className="gallery-tile" key={w.slug}>
-            <div className="art-placeholder">{w.thumbnailUrl ? <img src={w.thumbnailUrl} alt={(ru ? w.titleRu : w.titleEn) + " — " + localizeMedium(w.medium, ru ? "ru" : "en") + ", " + w.year + (ru ? ", оригинальная картина Ольги Трихлеб" : ", original painting by Olga Trikhleb")} loading={i < 4 ? "eager" : "lazy"} decoding="async" /> : <><span>{String(i + 1).padStart(2, "0")}</span><small>{ru ? "ИЗОБРАЖЕНИЕ" : "IMAGE"} / {w.year}</small></>}</div>
+            <div className="art-placeholder">{w.thumbnailUrl ? <img src={w.thumbnailUrl} alt={(ru ? w.titleRu : sk ? w.titleSk : w.titleEn) + " — " + localizeMedium(w.medium, ru ? "ru" : sk ? "sk" : "en") + ", " + w.year + (ru ? ", оригинальная картина Ольги Трихлеб" : sk ? ", originálny obraz Olgy Trikhleb" : ", original painting by Olga Trikhleb")} loading={i < 4 ? "eager" : "lazy"} decoding="async" /> : <><span>{String(i + 1).padStart(2, "0")}</span><small>{ru ? "ИЗОБРАЖЕНИЕ" : sk ? "OBRAZ" : "IMAGE"} / {w.year}</small></>}</div>
             <div className="work-meta"><span>{ru ? w.titleRu : w.titleEn}</span><span>{w.year}</span></div>
           </Link>)}
         </div>
       </section>
 
-      <section className="gallery-statement"><span>02—04</span><p>{ru ? "Каждая работа — отдельный объект. Архив растёт постепенно." : "Each work exists as an independent object. The archive grows slowly."}</p><Link className="arrow-link" href="/about">{ru ? "О студии" : "About the studio"} <span>↗</span></Link><Link className="arrow-link" href="/commission">{ru ? "Заказать картину" : "Commission a painting"} <span>↗</span></Link></section>
+      <section className="gallery-statement"><span>02—04</span><p>{ru ? "Каждая работа — отдельный объект. Архив растёт постепенно." : sk ? "Každé dielo je samostatným originálom. Kolekcia sa postupne rozrastá." : "Each work exists as an independent object. The archive grows slowly."}</p><Link className="arrow-link" href="/about">{ru ? "О студии" : sk ? "O štúdiu" : "About the studio"} <span>↗</span></Link><Link className="arrow-link" href="/commission">{ru ? "Заказать картину" : sk ? "Objednať obraz" : "Commission a painting"} <span>↗</span></Link></section>
     </main>
   );
 }

@@ -38,10 +38,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { path: "/journal/how-to-hang-a-painting", changeFrequency: "yearly" as const, priority: 0.6 },
     { path: "/journal/commission-an-original-painting", changeFrequency: "yearly" as const, priority: 0.6 },
     { path: "/contact", changeFrequency: "monthly" as const, priority: 0.6 },
+    { path: "/privacy-policy", changeFrequency: "yearly" as const, priority: 0.3 },
+    { path: "/return-policy", changeFrequency: "yearly" as const, priority: 0.3 },
+    { path: "/image-licensing", changeFrequency: "yearly" as const, priority: 0.3 },
   ];
 
   const staticPages: MetadataRoute.Sitemap = staticPaths.flatMap(({ path, changeFrequency, priority }) => {
-    const includeRussian = path !== "/trencin-art-studio";
+    const includeRussian = !["/trencin-art-studio", "/privacy-policy", "/return-policy", "/image-licensing"].includes(path);
     const slovakPath = path === "/trencin-art-studio"
       ? "/sk/trencin-art-studio"
       : "/sk" + (path === "/" ? "" : path);

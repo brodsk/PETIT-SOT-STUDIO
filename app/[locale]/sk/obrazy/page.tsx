@@ -51,7 +51,7 @@ export default async function SlovakWorksPage() {
       itemListElement: works.map((work, index) => ({
         "@type": "ListItem",
         position: index + 1,
-        name: work.titleEn,
+        name: work.titleSk || (work.titleSk || work.titleEn),
         url: SITE_URL + "/sk/obrazy/" + work.slug,
       })),
     },

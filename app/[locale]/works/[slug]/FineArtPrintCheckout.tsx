@@ -18,6 +18,8 @@ export default function FineArtPrintCheckout({ variants, locale }: {
   locale: string;
 }) {
   const ru = locale === "ru";
+  const sk = locale === "sk";
+  const t = (en:string, ruText:string, skText:string) => ru ? ruText : sk ? skText : en;
   const [selected, setSelected] = useState(variants[0]?.id || "");
   const [country, setCountry] = useState("SK");
   const [error, setError] = useState("");
@@ -35,7 +37,7 @@ export default function FineArtPrintCheckout({ variants, locale }: {
         const configResponse = await fetch("/api/paypal/client-config", { cache: "no-store" });
         const config = await configResponse.json();
         if (!configResponse.ok || !config.clientId) throw new Error(config.error || "PayPal is not configured");
-        const src = "https://www.paypal.com/sdk/js?client-id=" + encodeURIComponent(config.clientId) + "&currency=EUR&intent=capture&locale=en_US&components=buttons,card-fields,funding-eligibility,applepay,googlepay&enable-funding=card";
+        const src = "https://www.paypal.com/sdk/js?client-id=" + encodeURIComponent(config.clientId) + "&currency=EUR&intent=capture&locale="+(ru?"ru_RU":sk?"sk_SK":"en_US")+"&components=buttons,card-fields,funding-eligibility,applepay,googlepay&enable-funding=card";
         if (!window.paypal) {
           await new Promise<void>((resolve, reject) => {
             const existing = document.querySelector<HTMLScriptElement>('script[data-sdk-marker="paypal-payment-sdk"]');
@@ -72,41 +74,41 @@ export default function FineArtPrintCheckout({ variants, locale }: {
           onApprove: ({ orderID }: { orderID: string }) => {
             window.location.assign("/checkout/print-success?token=" + encodeURIComponent(orderID));
           },
-          onCancel: () => setError(ru ? "Оплата отменена. Вы можете попробовать снова." : "Checkout was cancelled. You can try again."),
+          onCancel: () => setError(t("Checkout was cancelled. You can try again.","Оплата отменена. Вы можете попробовать снова.","Platba bola zrušená. Môžete to skúsiť znova.")),
           onError: (reason: unknown) => {
             console.error("Fine art print PayPal error", reason);
-            setError(ru ? "Не удалось открыть оплату. Попробуйте ещё раз." : "Could not open payment. Please try again.");
+            setError(t("Could not open payment. Please try again.","Не удалось открыть оплату. Попробуйте ещё раз.","Platbu sa nepodarilo otvoriť. Skúste to znova."));
           },
         });
         if (buttons.isEligible()) await buttons.render(mountRef.current);
-        else setError(ru ? "PayPal сейчас недоступен в этом браузере." : "PayPal is not available in this browser.");
+        else setError(t("PayPal is not available in this browser.","PayPal сейчас недоступен в этом браузере.","PayPal nie je v tomto prehliadači dostupný."));
       } catch (e) {
-        if (!cancelled) setError(e instanceof Error ? e.message : "Checkout unavailable");
+        if (!cancelled) setError(e instanceof Error ? e.message : t("Checkout unavailable","Оплата временно недоступна.","Platba je momentálne nedostupná."));
       } finally {
         if (!cancelled) setLoading(false);
       }
     }
     setup();
     return () => { cancelled = true; try { buttons?.close?.(); } catch {} };
-  }, [selected, country, ru]);
+  }, [selected, country, ru, sk]);
 
   const active = variants.find(v => v.id === selected);
   return <section className="fine-art-print-checkout" style={{ marginTop: 28, paddingTop: 24, borderTop: "1px solid var(--line, #ddd)" }}>
-    <p className="purchase-label">{ru ? "FINE ART PRINTS" : "FINE ART PRINTS"}</p>
+    <p className="purchase-label">{ru ? "ХУДОЖЕСТВЕННЫЕ ПРИНТЫ" : sk ? "UMELECKÉ REPRODUKCIE" : "FINE ART PRINTS"}</p>
     <h2 style={{ fontFamily: "Georgia,serif", fontWeight: 400, fontSize: 25, margin: "8px 0 14px" }}>
-      {ru ? "Заказать художественный принт" : "Order a Fine Art Print"}
+      {t("Order a Fine Art Print","Заказать художественный принт","Objednať umeleckú reprodukciu")}
     </h2>
-    <label style={{ display: "block", fontSize: 13, marginBottom: 6 }}>{ru ? "Размер" : "Print size"}</label>
+    <label style={{ display: "block", fontSize: 13, marginBottom: 6 }}>{t("Print size","Размер","Veľkosť reprodukcie")}</label>
     <select value={selected} onChange={e => setSelected(e.target.value)} style={{ width: "100%", padding: 12, marginBottom: 14 }}>
       {variants.map(v => <option key={v.id} value={v.id}>{v.size_label} · {v.width_mm} × {v.height_mm} mm — €{Number(v.retail_price_eur).toFixed(2)}</option>)}
     </select>
-    <label style={{ display: "block", fontSize: 13, marginBottom: 6 }}>{ru ? "Страна доставки" : "Delivery country"}</label>
+    <label style={{ display: "block", fontSize: 13, marginBottom: 6 }}>{t("Delivery country","Страна доставки","Krajina doručenia")}</label>
     <select value={country} onChange={e => setCountry(e.target.value)} style={{ width: "100%", padding: 12, marginBottom: 12 }}>
-      {COUNTRIES.map(([code,name]) => <option key={code} value={code}>{name}</option>)}
+      {COUNTRIES.map(([code,name]) => <option key={code} value={code}>{new Intl.DisplayNames([ru?"ru":sk?"sk":"en"],{type:"region"}).of(code)||name}</option>)}
     </select>
-    {active && <p style={{ fontSize: 13, opacity: .72 }}>{ru ? "Стоимость доставки будет рассчитана Prodigi и добавлена перед подтверждением оплаты." : "Delivery is quoted by Prodigi and added before you approve the payment."}</p>}
+    {active && <p style={{ fontSize: 13, opacity: .72 }}>{t("Delivery is quoted by Prodigi and added before you approve the payment.","Стоимость доставки будет рассчитана Prodigi и добавлена перед подтверждением оплаты.","Cenu dopravy vypočíta Prodigi a pripočíta ju pred potvrdením platby.")}</p>}
     <div ref={mountRef} />
-    {loading && <p style={{ fontSize: 12, opacity: .6 }}>{ru ? "Загрузка оплаты…" : "Loading checkout…"}</p>}
+    {loading && <p style={{ fontSize: 12, opacity: .6 }}>{t("Loading checkout…","Загрузка оплаты…","Načítava sa platba…")}</p>}
     {error && <p role="alert" style={{ color: "#9b3027", fontSize: 13 }}>{error}</p>}
   </section>;
 }

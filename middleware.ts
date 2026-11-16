@@ -1,69 +1,56 @@
 import { NextResponse, type NextRequest } from "next/server";
 
-const LOCALES = ["en", "ru"] as const;
+const LOCALES = ["en", "ru", "sk"] as const;
 type Locale = (typeof LOCALES)[number];
 
 function getPreferredLocale(request: NextRequest): Locale {
-  return request.cookies.get("NEXT_LOCALE")?.value === "ru" ? "ru" : "en";
+  const value = request.cookies.get("NEXT_LOCALE")?.value;
+  return value === "ru" || value === "sk" ? value : "en";
 }
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  // Apple Pay domain verification files must be served directly from /public,
-  // without locale rewrites or redirects.
-  if (pathname.startsWith("/.well-known/")) {
+  if (pathname.startsWith("/.well-known/")) return NextResponse.next();
+
+  if (["/privacy-policy", "/image-licensing", "/return-policy"].includes(pathname)) {
     return NextResponse.next();
   }
-
-  const first = pathname.split("/").filter(Boolean)[0];
-
-  // Public legal pages keep stable, unlocalized URLs.
-  if (
-    pathname === "/privacy-policy" ||
-    pathname === "/image-licensing" ||
-    pathname === "/return-policy"
-  ) {
-    return NextResponse.next();
-  }
-
-  // Keep locale handling local to middleware: do not make Supabase network
-  // requests here. Protected pages and API handlers perform their own auth
-  // checks, avoiding an external auth request on every admin/API navigation.
   if (pathname.startsWith("/admin") || pathname.startsWith("/api")) {
     return NextResponse.next();
   }
 
-  // A single Slovak-language local landing page lives at /sk without adding a Slovak site-wide locale.
-  if (first === "sk") {
+  // Keep the established Slovak SEO landing pages working at their original URLs.
+  if (
+    pathname === "/sk/obrazy" || pathname.startsWith("/sk/obrazy/") ||
+    pathname === "/sk/malba-na-objednavku" ||
+    pathname === "/sk/trencin-art-studio"
+  ) {
     const url = request.nextUrl.clone();
     url.pathname = `/en${pathname}`;
     return NextResponse.rewrite(url);
   }
 
-  // English keeps clean URLs. Russian has explicit /ru URLs.
+  const first = pathname.split("/").filter(Boolean)[0];
+
   if (first === "en") {
     const cleanPath = pathname.replace(/^\/en(?=\/|$)/, "") || "/";
     const url = request.nextUrl.clone();
     url.pathname = cleanPath;
     const response = NextResponse.redirect(url, 308);
-    response.cookies.set("NEXT_LOCALE", "en", {
-      path: "/", maxAge: 60 * 60 * 24 * 365, sameSite: "lax",
-    });
+    response.cookies.set("NEXT_LOCALE", "en", { path: "/", maxAge: 31536000, sameSite: "lax" });
     return response;
   }
 
-  if (first === "ru") {
+  if (first === "ru" || first === "sk") {
     const response = NextResponse.next();
-    response.cookies.set("NEXT_LOCALE", "ru", {
-      path: "/", maxAge: 60 * 60 * 24 * 365, sameSite: "lax",
-    });
+    response.cookies.set("NEXT_LOCALE", first, { path: "/", maxAge: 31536000, sameSite: "lax" });
     return response;
   }
 
   const locale = getPreferredLocale(request);
-  if (locale === "ru") {
+  if (locale !== "en") {
     const url = request.nextUrl.clone();
-    url.pathname = `/ru${pathname === "/" ? "" : pathname}`;
+    url.pathname = `/${locale}${pathname === "/" ? "" : pathname}`;
     return NextResponse.redirect(url, 307);
   }
 

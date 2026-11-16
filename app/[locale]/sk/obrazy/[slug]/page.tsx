@@ -20,9 +20,11 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   const { slug } = await params;
   const work = await getWork(slug);
   if (!work) return {};
-  const title = work.titleEn + " — originálny obraz od Olgy Trikhleb | PETIT.SOT";
+  const artworkTitle = work.titleSk || work.titleEn;
+  const artworkDescription = work.descriptionSk || `${artworkTitle} je originálne umelecké dielo Olgy Trikhleb.`;
+  const title = artworkTitle + " — originálny obraz od Olgy Trikhleb | PETIT.SOT";
   const availability = work.available ? "Dostupný originálny obraz." : work.sold ? "Originálny obraz bol predaný." : "Dielo je súčasťou archívu.";
-  const description = availability + " " + work.titleEn + " od maliarky Olgy Trikhleb z Trenčína. " + slovakMedium(work.medium) + ", " + work.size + ", " + work.year + ". Pozrite si fotografie a informácie o diele.";
+  const description = artworkDescription + " " + availability + " " + slovakMedium(work.medium) + ", " + work.size + ", " + work.year + ". Pozrite si fotografie a informácie o diele.";
   const canonical = SITE_URL + "/sk/obrazy/" + work.slug;
   return {
     title,
@@ -43,7 +45,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
       url: canonical,
       siteName: "PETIT.SOT STUDIO",
       locale: "sk_SK",
-      ...(work.imageUrl ? { images: [{ url: work.imageUrl, alt: work.titleEn + " — originálny obraz od Olgy Trikhleb" }] } : {}),
+      ...(work.imageUrl ? { images: [{ url: work.imageUrl, alt: artworkTitle + " — originálny obraz od Olgy Trikhleb" }] } : {}),
     },
   };
 }
@@ -63,7 +65,7 @@ export default async function SlovakArtworkPage({ params }: { params: Promise<{ 
         "@type": "WebPage",
         "@id": canonical + "#webpage",
         url: canonical,
-        name: work.titleEn + " — originálny obraz Olgy Trikhleb",
+        name: artworkTitle + " — originálny obraz Olgy Trikhleb",
         description,
         inLanguage: "sk",
         about: { "@id": canonical + "#artwork" },
@@ -71,7 +73,7 @@ export default async function SlovakArtworkPage({ params }: { params: Promise<{ 
       {
         "@type": "VisualArtwork",
         "@id": canonical + "#artwork",
-        name: work.titleEn,
+        name: artworkTitle,
         description,
         image: work.images.length ? work.images : work.imageUrl ? [work.imageUrl] : [],
         url: canonical,
@@ -91,17 +93,17 @@ export default async function SlovakArtworkPage({ params }: { params: Promise<{ 
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(artworkSchema) }} />
       <section className="about-hero">
         <p className="eyebrow">PETIT.SOT STUDIO · OLGA TRIKHLEB</p>
-        <h1>{work.titleEn}<br /><i>Originálny obraz.</i></h1>
+        <h1>{artworkTitle}<br /><i>Originálny obraz.</i></h1>
         <div className="about-lead">
           <span className="about-index">PETIT.SOT / {work.year}</span>
           <p>{description}</p>
         </div>
       </section>
-      {work.imageUrl && <section className="about-portrait"><div className="about-portrait-image"><img src={work.imageUrl} alt={work.titleEn + " — originálny obraz od Olgy Trikhleb"} loading="eager" /></div><div className="about-portrait-caption"><span>{work.titleEn}</span><span>Olga Trikhleb · PETIT.SOT</span></div></section>}
+      {work.imageUrl && <section className="about-portrait"><div className="about-portrait-image"><img src={work.imageUrl} alt={artworkTitle + " — originálny obraz od Olgy Trikhleb"} loading="eager" /></div><div className="about-portrait-caption"><span>{artworkTitle}</span><span>Olga Trikhleb · PETIT.SOT</span></div></section>}
       <section className="about-section">
         <div className="about-section-label"><span>01</span><span>Informácie o diele</span></div>
         <div className="about-section-copy">
-          <h2>{work.titleEn} — autorská maľba</h2>
+          <h2>{artworkTitle} — autorská maľba</h2>
           <p>{description}</p>
           <p><strong>Technika:</strong> {medium}<br /><strong>Rozmery:</strong> {work.size}<br /><strong>Rok:</strong> {work.year}<br /><strong>Stav:</strong> {availability}</p>
           {work.available && <p><strong>Cena:</strong> {work.price > 0 ? new Intl.NumberFormat("sk-SK", { style: "currency", currency: work.currency }).format(work.price) : "Cena na vyžiadanie"}</p>}

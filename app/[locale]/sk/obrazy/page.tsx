@@ -1,0 +1,90 @@
+import type { Metadata } from "next";
+import Link from "next/link";
+import { getWorks, localizeMedium } from "../../../../../lib/works";
+
+const SITE_URL = "https://www.petitsot.com";
+const PAGE_URL = SITE_URL + "/sk/obrazy";
+
+export async function generateMetadata(): Promise<Metadata> {
+  const title = "Originálne obrazy na predaj | PETIT.SOT STUDIO";
+  const description = "Prezrite si originálne obrazy maliarky Olgy Trikhleb. Autorská maľba, krajiny a mestské motívy z nezávislého umeleckého štúdia v Trenčíne na Slovensku.";
+  return {
+    title,
+    description,
+    alternates: {
+      canonical: PAGE_URL,
+      languages: {
+        sk: PAGE_URL,
+        en: SITE_URL + "/works",
+        ru: SITE_URL + "/ru/works",
+        "x-default": SITE_URL + "/works",
+      },
+    },
+    openGraph: { type: "website", title, description, url: PAGE_URL, siteName: "PETIT.SOT STUDIO", locale: "sk_SK" },
+  };
+}
+
+export default async function SlovakWorksPage() {
+  const works = await getWorks();
+  const available = works.filter((work) => work.available);
+  const archive = works.filter((work) => !work.available);
+  const schema = {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    name: "Originálne obrazy Olgy Trikhleb",
+    description: "Kolekcia originálnych obrazov a autorskej maľby od Olgy Trikhleb z Trenčína na Slovensku.",
+    url: PAGE_URL,
+    inLanguage: "sk",
+    mainEntity: {
+      "@type": "ItemList",
+      itemListElement: works.map((work, index) => ({
+        "@type": "ListItem",
+        position: index + 1,
+        name: work.titleEn,
+        url: SITE_URL + "/sk/obrazy/" + work.slug,
+      })),
+    },
+  };
+  const renderWorks = (items: typeof works) => (
+    <div className="archive-grid archive-grid-even">
+      {items.map((work) => (
+        <Link className="archive-card" href={"/sk/obrazy/" + work.slug} key={work.slug}>
+          <div className="archive-image art-placeholder">
+            {work.thumbnailUrl || work.imageUrl
+              ? <img src={work.thumbnailUrl || work.imageUrl} alt={work.titleEn + " — originálny obraz od Olgy Trikhleb"} loading="lazy" decoding="async" />
+              : <span>{work.titleEn}</span>}
+          </div>
+          <div className="archive-card-meta"><span>{work.titleEn}</span><span>{work.year}</span></div>
+          <p>{localizeMedium(work.medium, "en")}</p>
+          <span className="archive-card-status">{work.available ? "Dostupný originál" : work.sold ? "Predané" : "Archív"}</span>
+        </Link>
+      ))}
+    </div>
+  );
+
+  return (
+    <main className="text-page about-page" lang="sk">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }} />
+      <section className="about-hero">
+        <p className="eyebrow">PETIT.SOT STUDIO · TRENČÍN, SLOVENSKO</p>
+        <h1>Originálne<br /><i>obrazy.</i></h1>
+        <div className="about-lead">
+          <span className="about-index">PETIT.SOT / KOLEKCIA</span>
+          <p>Objavte originálne obrazy Olgy Trikhleb, nezávislej maliarky pôsobiacej v Trenčíne. Kolekcia predstavuje autorskú maľbu, krajiny, morské motívy a mestské scény. Pri každom diele nájdete informácie o technike, rozmeroch a dostupnosti.</p>
+        </div>
+      </section>
+      {available.length > 0 && <section className="works-section"><div className="works-section-heading"><span className="eyebrow">AKTUÁLNA PONUKA</span><h2>Obrazy na predaj</h2><p>Originálne diela, ktoré sú momentálne dostupné na kúpu.</p></div>{renderWorks(available)}</section>}
+      {archive.length > 0 && <section className="works-section works-archive-section"><div className="works-section-heading"><span className="eyebrow">ARCHÍV</span><h2>Predchádzajúce práce</h2><p>Predané a archivované diela z umeleckej tvorby Olgy Trikhleb.</p></div>{renderWorks(archive)}</section>}
+      {works.length === 0 && <section className="about-section"><div className="about-section-copy"><h2>Kolekcia sa pripravuje.</h2><p>Nové originálne obrazy budú v katalógu postupne dopĺňané.</p></div></section>}
+      <section className="about-originals">
+        <p className="eyebrow">OLGA TRIKHLEB · MALIARKA Z TRENČÍNA</p>
+        <p className="about-originals-statement">Originálna maľba. Jedinečné diela. PETIT.SOT STUDIO.</p>
+        <div className="about-originals-bottom">
+          <span>Trenčín · Slovensko</span>
+          <Link className="arrow-link" href="/sk/trencin-art-studio">O štúdiu <span>↗</span></Link>
+          <Link className="arrow-link" href="/commission">Maľba na objednávku <span>↗</span></Link>
+        </div>
+      </section>
+    </main>
+  );
+}

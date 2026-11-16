@@ -55,9 +55,11 @@ export default async function SlovakArtworkPage({ params }: { params: Promise<{ 
   const work = await getWork(slug);
   if (!work) notFound();
   const canonical = SITE_URL + "/sk/obrazy/" + work.slug;
+  const artworkTitle = work.titleSk || work.titleEn;
+  const artworkDescription = work.descriptionSk || `${artworkTitle} je originálne umelecké dielo Olgy Trikhleb.`;
   const medium = slovakMedium(work.medium);
   const availability = work.available ? "Dostupný originálny obraz" : work.sold ? "Predané" : "Dielo v archíve";
-  const description = work.titleEn + " je originálne výtvarné dielo maliarky Olgy Trikhleb, ktorá pôsobí v Trenčíne na Slovensku. Ide o samostatnú autorskú prácu; technika: " + medium + "; rozmery: " + work.size + "; rok: " + work.year + ".";
+  const description = artworkDescription + " Technika: " + medium + "; rozmery: " + work.size + "; rok: " + work.year + ". " + availability + ".";
   const artworkSchema = {
     "@context": "https://schema.org",
     "@graph": [

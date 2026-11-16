@@ -29,7 +29,7 @@ export async function generateMetadata({
     title: ru ? `Примерка «${title}» на стене — PETIT.SOT` : sk ? `Vyskúšajte obraz „${title}“ na svojej stene | PETIT.SOT` : `Preview ${title} on Your Wall — PETIT.SOT`,
     description: ru
       ? `Посмотрите, как картина «${title}» будет выглядеть на вашей стене. Загрузите фото комнаты и настройте размещение.`
-      : `See how “${title}” by Olga Trikhleb could look on your wall. Upload a room photo and adjust its placement.`,
+      : sk ? `Pozrite sa, ako bude obraz „${title}“ vyzerať na vašej stene. Nahrajte fotografiu miestnosti a upravte jeho umiestnenie.` : `See how “${title}” by Olga Trikhleb could look on your wall. Upload a room photo and adjust its placement.`,
     alternates: {
       canonical,
       languages: {

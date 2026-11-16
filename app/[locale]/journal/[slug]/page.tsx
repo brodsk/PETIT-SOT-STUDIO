@@ -244,7 +244,7 @@ export default async function JournalArticlePage({ params }: { params: Promise<{
   if (!article) notFound();
   const ru = locale === "ru";
   const sk = locale === "sk";
-  const content = ru ? article.ru : sk ? article.sk : article.en;
+  const content: LocalArticle = (ru ? article.ru : sk ? article.sk : article.en) ?? article.en;
   const canonical = `${SITE_URL}${ru ? "/ru" : sk ? "/sk" : ""}/journal/${slug}`;
   const articleImage = await getArticleImage(slug);
   const schema = {

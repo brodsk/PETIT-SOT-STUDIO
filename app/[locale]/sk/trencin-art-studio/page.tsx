@@ -126,7 +126,7 @@ export default function SlovakTrencinArtStudio() {
         <div className="about-section-copy">
           <h2>Obraz vytvorený podľa vašej predstavy.</h2>
           <p>Ak hľadáte obraz na mieru, môžete sa informovať o autorskej maľbe na objednávku. Pošlite nám námet, preferovaný rozmer a prípadné referencie. Spoločne preberieme možnosti, cenu a predpokladaný termín ešte pred potvrdením objednávky.</p>
-          <Link className="arrow-link" href="/commission">Objednať originálny obraz <span>↗</span></Link>
+          <Link className="arrow-link" href="/sk/malba-na-objednavku">Objednať originálny obraz <span>↗</span></Link>
         </div>
       </section>
 

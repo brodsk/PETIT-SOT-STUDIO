@@ -55,7 +55,7 @@ export default function CommissionSeoContent({ ru, sk = false }: { ru: boolean; 
       {
         "@type": "BreadcrumbList",
         itemListElement: [
-          { "@type": "ListItem", position: 1, name: ru ? "Главная" : sk ? "Domov" : "Home", item: `${SITE_URL}${ru ? "/ru" : ""}` },
+          { "@type": "ListItem", position: 1, name: ru ? "Главная" : sk ? "Domov" : "Home", item: `${SITE_URL}${ru ? "/ru" : sk ? "/sk" : ""}` },
           { "@type": "ListItem", position: 2, name: ru ? "Картины на заказ" : sk ? "Obrazy na objednávku" : "Custom painting commissions", item: pageUrl },
         ],
       },
@@ -111,7 +111,7 @@ export default function CommissionSeoContent({ ru, sk = false }: { ru: boolean; 
             : sk ? "Výtvarníčka Olga Trikhleb rozvíja svoju autorskú tvorbu v PETIT.SOT STUDIO na Slovensku a prijíma objednávky aj zo zahraničia. Každá objednávka sa začína vašou predstavou: opíšte motív, priložte vizuálnu referenciu a prediskutujte formát vhodný pre váš priestor." : "Artist Olga Trikhleb develops her original painting practice at PETIT.SOT STUDIO in Slovakia and welcomes commission enquiries from collectors worldwide. Every commission begins with your idea: describe the subject, attach a visual reference and discuss a format made for your space."}</p>
           <p>{ru
             ? <>Посмотрите <Link href="/works">готовые картины</Link> и <Link href="/about">узнайте больше об Ольге</Link>.</>
-            : <>Explore the <Link href="/works">original paintings</Link> or <Link href="/about">learn more about Olga Trikhleb</Link>.</>}</p>
+            : sk ? <>Pozrite si <Link href="/works">originálne obrazy</Link> a <Link href="/about">zistite viac o Olge Trikhleb</Link>.</> : <>Explore the <Link href="/works">original paintings</Link> or <Link href="/about">learn more about Olga Trikhleb</Link>.</>}</p>
         </div>
 
         <div className={styles.faq}>

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getWork, localizeMedium } from "../../../../../lib/works";
+import { getWork } from "../../../../../lib/works";
 
 const SITE_URL = "https://www.petitsot.com";
 

@@ -35,22 +35,22 @@ export default function FineArtPrintCheckout({ variants, locale }: {
         const configResponse = await fetch("/api/paypal/client-config", { cache: "no-store" });
         const config = await configResponse.json();
         if (!configResponse.ok || !config.clientId) throw new Error(config.error || "PayPal is not configured");
-        const src = "https://www.paypal.com/sdk/js?client-id=" + encodeURIComponent(config.clientId) + "&currency=EUR&intent=capture&components=buttons";
+        const src = "https://www.paypal.com/sdk/js?client-id=" + encodeURIComponent(config.clientId) + "&currency=EUR&intent=capture&locale=en_US&components=buttons,card-fields,funding-eligibility,applepay,googlepay&enable-funding=card";
         if (!window.paypal) {
           await new Promise<void>((resolve, reject) => {
-            const existing = document.querySelector<HTMLScriptElement>('script[data-petit-print-paypal="true"]');
-            if (existing) {
-              existing.addEventListener("load", () => resolve(), { once: true });
+            const existing = document.querySelector<HTMLScriptElement>('script[data-sdk-marker="paypal-payment-sdk"]');
+            if (existing && existing.src === src) {
+              if (existing.dataset.loaded === "true" || window.paypal) return resolve();
+              existing.addEventListener("load", () => { existing.dataset.loaded = "true"; resolve(); }, { once: true });
               existing.addEventListener("error", () => reject(new Error("PayPal SDK failed to load")), { once: true });
-              if (window.paypal) resolve();
               return;
             }
             const script = document.createElement("script");
             script.src = src;
             script.async = true;
-            script.dataset.petitPrintPaypal = "true";
-            script.onload = () => resolve();
-            script.onerror = () => reject(new Error("PayPal SDK failed to load"));
+            script.dataset.sdkMarker = "paypal-payment-sdk";
+            script.addEventListener("load", () => { script.dataset.loaded = "true"; resolve(); }, { once: true });
+            script.addEventListener("error", () => reject(new Error("PayPal SDK failed to load")), { once: true });
             document.head.appendChild(script);
           });
         }

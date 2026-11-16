@@ -6,5 +6,5 @@ export default async function WallPreviewIndex({
   params: Promise<{ locale: string }>;
 }) {
   const { locale } = await params;
-  redirect(`${locale === "ru" ? "/ru" : ""}/works`);
+  redirect(`${locale === "ru" ? "/ru" : locale === "sk" ? "/sk" : ""}/works`);
 }

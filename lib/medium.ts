@@ -1,8 +1,8 @@
-export function localizeMedium(value:string|undefined|null, locale:"ru"|"en"="en"){
+export function localizeMedium(value:string|undefined|null, locale:"ru"|"en"|"sk"="en"){
  const raw=(value||"").trim();
  if(!raw) return "—";
  const key=raw.toLowerCase().replace(/[–—]/g,"-").replace(/\\s+/g," ").replace(/[ё]/g,"е");
- const map:Record<string,{ru:string;en:string}>={
+ const map:Record<string,{ru:string;en:string;sk:string}>={
   "масло на холсте":{ru:"Масло на холсте",en:"Oil on canvas"},
   "масло на дереве":{ru:"Масло на дереве",en:"Oil on wood"},
   "масло на бумаге":{ru:"Масло на бумаге",en:"Oil on paper"},

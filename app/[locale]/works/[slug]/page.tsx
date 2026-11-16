@@ -97,6 +97,7 @@ export async function generateMetadata({
       languages: {
         en: `${SITE_URL}/works/${w.slug}`,
         ru: `${SITE_URL}/ru/works/${w.slug}`,
+        sk: `${SITE_URL}/sk/obrazy/${w.slug}`,
         "x-default": `${SITE_URL}/works/${w.slug}`,
       },
     },

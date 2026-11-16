@@ -22,10 +22,11 @@ export async function generateMetadata({
   const work = await getWork(slug);
   if (!work) return {};
   const ru = locale === "ru";
-  const title = ru ? work.titleRu : work.titleEn;
-  const canonical = `${SITE_URL}${ru ? "/ru" : ""}/wall-preview/${work.slug}`;
+  const sk = locale === "sk";
+  const title = ru ? work.titleRu : sk ? work.titleSk : work.titleEn;
+  const canonical = `${SITE_URL}${ru ? "/ru" : sk ? "/sk" : ""}/wall-preview/${work.slug}`;
   return {
-    title: ru ? `Примерка «${title}» на стене — PETIT.SOT` : `Preview ${title} on Your Wall — PETIT.SOT`,
+    title: ru ? `Примерка «${title}» на стене — PETIT.SOT` : sk ? `Vyskúšajte obraz „${title}“ na svojej stene | PETIT.SOT` : `Preview ${title} on Your Wall — PETIT.SOT`,
     description: ru
       ? `Посмотрите, как картина «${title}» будет выглядеть на вашей стене. Загрузите фото комнаты и настройте размещение.`
       : `See how “${title}” by Olga Trikhleb could look on your wall. Upload a room photo and adjust its placement.`,
@@ -34,6 +35,7 @@ export async function generateMetadata({
       languages: {
         en: `${SITE_URL}/wall-preview/${work.slug}`,
         ru: `${SITE_URL}/ru/wall-preview/${work.slug}`,
+        sk: `${SITE_URL}/sk/wall-preview/${work.slug}`,
         "x-default": `${SITE_URL}/wall-preview/${work.slug}`,
       },
     },
@@ -48,26 +50,27 @@ export default async function ArtworkWallPreview({
 }) {
   const { locale, slug } = await params;
   const ru = locale === "ru";
+  const sk = locale === "sk";
   const work = await getWork(slug);
   if (!work || !work.imageUrl) notFound();
   const dimensions = getDimensions(work.size || "");
   const artworkChoices = [{
     id: work.id ?? work.slug,
     slug: work.slug,
-    title: ru ? work.titleRu : work.titleEn,
+    title: ru ? work.titleRu : sk ? work.titleSk : work.titleEn,
     image: work.imageUrl,
     width: dimensions.width,
     height: dimensions.height,
   }];
-  const title = ru ? work.titleRu : work.titleEn;
+  const title = ru ? work.titleRu : sk ? work.titleSk : work.titleEn;
   return (
     <main className="ar-page">
       <div className="ar-page-head">
-        <span className="eyebrow">PETIT.SOT / PHOTO PREVIEW</span>
-        <h1>{ru ? `Примерка «${title}» на своей стене` : `Preview “${title}” on your wall`}</h1>
-        <p>{ru ? "Загрузите фото комнаты, чтобы увидеть именно эту картину на своей стене." : "Upload a room photo to see this specific painting on your wall."}</p>
+        <span className="eyebrow">PETIT.SOT / {ru ? "ПРИМЕРКА ПО ФОТО" : sk ? "NÁHĽAD NA FOTOGRAFII" : "PHOTO PREVIEW"}</span>
+        <h1>{ru ? `Примерка «${title}» на своей стене` : sk ? `Vyskúšajte obraz „${title}“ na svojej stene` : `Preview “${title}” on your wall`}</h1>
+        <p>{ru ? "Загрузите фото комнаты, чтобы увидеть именно эту картину на своей стене." : sk ? "Nahrajte fotografiu miestnosti a pozrite si tento konkrétny obraz na svojej stene." : "Upload a room photo to see this specific painting on your wall."}</p>
       </div>
-      <PhotoWallPreview ru={ru} artworkChoices={artworkChoices} initialArtwork={work.slug} />
+      <PhotoWallPreview ru={ru} sk={sk} artworkChoices={artworkChoices} initialArtwork={work.slug} />
     </main>
   );
 }

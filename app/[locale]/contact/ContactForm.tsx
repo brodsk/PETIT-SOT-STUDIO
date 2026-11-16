@@ -136,7 +136,7 @@ export default function ContactForm({ru,sk=false,initialMessage=""}:{ru:boolean;
         </div>
       )}
       <button type="submit" disabled={status === "sending" || (Boolean(TURNSTILE_SITE_KEY) && (!captchaToken || !captchaReady))}>
-        <span>{status === "sending" ? (ru ? "Отправка…" : "Sending…") : (ru ? "Отправить" : "Send")}</span>
+        <span>{status === "sending" ? (ru ? "Отправка…" : sk ? "Odosiela sa…" : "Sending…") : (ru ? "Отправить" : sk ? "Odoslať" : "Send")}</span>
         <strong>↗</strong>
       </button>
       {status === "sent" && <p className="contact-form-status success">{ru ? "Сообщение отправлено. Спасибо." : sk ? "Správa bola odoslaná. Ďakujeme." : "Message sent. Thank you."}</p>}

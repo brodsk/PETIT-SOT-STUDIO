@@ -9,6 +9,8 @@ function getOrderId(payload: any): string {
     payload?.order?.id,
     payload?.orderId,
     payload?.order_id,
+    payload?.subject,
+    payload?.data?.order?.id,
     payload?.id,
   ];
   return candidates.find((value) =>
@@ -66,7 +68,8 @@ export async function POST(request: Request) {
 
   const stage = String(order.status?.stage || "unknown").slice(0, 80);
   const safePayload = {
-    callbackType: typeof payload?.type === "string" ? payload.type.slice(0, 80) : null,
+    callbackType: typeof payload?.type === "string" ? payload.type.slice(0, 160) : null,
+    callbackId: typeof payload?.id === "string" ? payload.id.slice(0, 120) : null,
     callbackStatus: typeof payload?.status === "string" ? payload.status.slice(0, 80) : null,
     verifiedAt: new Date().toISOString(),
   };

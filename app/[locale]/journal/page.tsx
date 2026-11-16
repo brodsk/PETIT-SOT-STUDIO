@@ -80,7 +80,7 @@ export default async function JournalPage({ params }: { params: Promise<{ locale
           <span className="about-index">PETIT.SOT / JOURNAL</span>
           <p>{ru
             ? "Практические статьи о том, как выбирать оригинальные картины, заказывать живопись и заботиться о произведениях искусства."
-            : "Praktické články o výbere originálnych obrazov, objednávaní umeleckých diel, ich vystavovaní v domácnosti a starostlivosti o ne."}</p>
+            : sk ? "Praktické články o výbere originálnych obrazov, objednávaní umeleckých diel, ich vystavovaní v domácnosti a starostlivosti o ne." : "Thoughtful articles on choosing original paintings, commissioning artwork and caring for art."}</p>
         </div>
       </section>
       <section className="works-section">

@@ -55,6 +55,7 @@ export default async function LocaleLayout({
         </Link>
         <nav>
           <Link href="/works">{ru ? "Работы" : "Works"}</Link>
+          <Link href="/prints">{ru ? "Принты" : "Prints"}</Link>
           <Link href="/commission">{ru ? "На заказ" : "Commission"}</Link>
           <Link href="/journal">{ru ? "Журнал" : "Journal"}</Link>
           <Link href="/about">{ru ? "О студии" : "About"}</Link>

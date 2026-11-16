@@ -4051,3 +4051,66 @@ div[data-locale] > footer {
 .prints-empty p{max-width:440px;line-height:1.6;margin:0 0 30px}
 @media(max-width:900px){.prints-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:700px){.prints-page{padding:6vh 20px 10vh}.prints-intro{display:block;margin-bottom:7vh}.prints-intro h1{font-size:22vw;margin:45px 0 28px}.prints-intro-copy{font-size:13px}.prints-grid{grid-template-columns:1fr 1fr;gap:34px 12px}.prints-card-meta h2{font-size:13px}.prints-card-meta p{font-size:8px}.prints-card-bottom{font-size:9px;flex-wrap:wrap}.prints-empty{padding:6vh 0 9vh}}
+
+
+/* Fine art prints: prevent oversized Russian heading from overflowing mobile screens. */
+.prints-page,
+.prints-page * {
+  box-sizing: border-box;
+}
+.prints-page {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: clip;
+}
+.prints-intro {
+  min-width: 0;
+}
+.prints-intro h1 {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  font-size: clamp(52px, 8.5vw, 118px);
+  line-height: .9;
+  letter-spacing: -.055em;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+.prints-intro h1 i {
+  display: block;
+}
+.prints-intro-copy {
+  min-width: 0;
+}
+@media (max-width: 700px) {
+  .prints-page {
+    padding: 6vh 20px 10vh;
+  }
+  .prints-intro {
+    display: block;
+    width: 100%;
+    margin-bottom: 7vh;
+  }
+  .prints-intro h1 {
+    width: 100%;
+    max-width: 100%;
+    font-size: clamp(42px, 16.5vw, 108px);
+    line-height: .92;
+    letter-spacing: -.055em;
+    margin: 42px 0 28px;
+  }
+  .prints-intro h1 i {
+    display: block;
+  }
+  .prints-intro-copy {
+    width: 100%;
+    max-width: 100%;
+    font-size: 14px;
+    line-height: 1.65;
+    overflow-wrap: break-word;
+  }
+  .prints-empty h2 {
+    font-size: clamp(32px, 9vw, 48px);
+    line-height: 1.04;
+  }
+}

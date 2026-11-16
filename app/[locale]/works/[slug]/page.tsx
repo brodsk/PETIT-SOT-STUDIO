@@ -127,6 +127,7 @@ export default async function WorkPage({
 }) {
   const { locale, slug } = await params;
   const ru = locale === "ru";
+  const sk = locale === "sk";
   const w = await getWork(slug);
   if (!w) notFound();
   const supabase = await createClient();
@@ -134,7 +135,7 @@ export default async function WorkPage({
     .select("id,size_label,width_mm,height_mm,retail_price_eur")
     .eq("artwork_id", w.id).eq("active", true).order("sort_order", { ascending: true }) : { data: [] };
 
-  const title = ru ? w.titleRu : w.titleEn;
+  const title = ru ? w.titleRu : sk ? w.titleSk : w.titleEn;
   const description = (ru ? w.descriptionRu : sk ? (w.descriptionSk || w.descriptionEn) : w.descriptionEn) || `${title} — artwork by Olga Trikhleb.`;
   const canonical = `${SITE_URL}${ru ? "/ru" : ""}/works/${w.slug}`;
   const breadcrumbSchema = {

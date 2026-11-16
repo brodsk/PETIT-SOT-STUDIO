@@ -69,8 +69,8 @@ export default function PrivacyPolicyPage() {
         <section>
           <h2 className="mb-2 text-xl">3. Cookies and external services</h2>
           <p>
-            The site uses a first-party <code>NEXT_LOCALE</code> cookie to remember whether you prefer English
-            or Russian. It may also use functional authentication cookies for authorised administration.
+            The site uses a first-party <code>NEXT_LOCALE</code> cookie to remember whether you prefer English,
+            Russian or Slovak. It may also use functional authentication cookies for authorised administration.
             We do not intentionally use advertising cookies or analytics pixels. If you follow a link to Etsy,
             Instagram, Pinterest or another external service, that service's own privacy policy applies.
           </p>

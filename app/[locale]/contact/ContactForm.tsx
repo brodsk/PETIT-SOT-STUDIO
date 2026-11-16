@@ -19,7 +19,7 @@ declare global {
 
 const TURNSTILE_SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || "";
 
-export default function ContactForm({ru,initialMessage=""}:{ru:boolean;initialMessage?:string}) {
+export default function ContactForm({ru,sk=false,initialMessage=""}:{ru:boolean;sk?:boolean;initialMessage?:string}) {
   const [status, setStatus] = useState<"idle"|"sending"|"sent"|"error">("idle");
   const [captchaToken, setCaptchaToken] = useState("");
   const [captchaReady, setCaptchaReady] = useState(!TURNSTILE_SITE_KEY);
@@ -111,7 +111,7 @@ export default function ContactForm({ru,initialMessage=""}:{ru:boolean;initialMe
         <label>Website<input name="website" tabIndex={-1} autoComplete="off"/></label>
       </div>
       <label>
-        <span>{ru ? "Имя" : "Name"}</span>
+        <span>{ru ? "Имя" : sk ? "Meno" : "Name"}</span>
         <input name="name" type="text" required maxLength={80} autoComplete="name"/>
       </label>
       <label>
@@ -119,7 +119,7 @@ export default function ContactForm({ru,initialMessage=""}:{ru:boolean;initialMe
         <input name="email" type="email" required maxLength={254} autoComplete="email"/>
       </label>
       <label>
-        <span>{ru ? "Сообщение" : "Message"}</span>
+        <span>{ru ? "Сообщение" : sk ? "Správa" : "Message"}</span>
         <textarea name="message" required maxLength={4000} rows={6} defaultValue={initialMessage}/>
       </label>
       {TURNSTILE_SITE_KEY && (
@@ -127,11 +127,11 @@ export default function ContactForm({ru,initialMessage=""}:{ru:boolean;initialMe
           <div ref={captchaRef} className="contact-captcha" />
           {captchaError && (
             <p className="contact-form-status error">
-              {ru ? "Пройдите проверку безопасности и попробуйте снова." : "Please complete the security check and try again."}
+              {ru ? "Пройдите проверку безопасности и попробуйте снова." : sk ? "Dokončite bezpečnostnú kontrolu a skúste to znova." : "Please complete the security check and try again."}
             </p>
           )}
           {!captchaReady && !captchaError && (
-            <p className="contact-form-status">{ru ? "Загрузка проверки безопасности…" : "Loading security check…"}</p>
+            <p className="contact-form-status">{ru ? "Загрузка проверки безопасности…" : sk ? "Načítava sa bezpečnostná kontrola…" : "Loading security check…"}</p>
           )}
         </div>
       )}
@@ -139,8 +139,8 @@ export default function ContactForm({ru,initialMessage=""}:{ru:boolean;initialMe
         <span>{status === "sending" ? (ru ? "Отправка…" : "Sending…") : (ru ? "Отправить" : "Send")}</span>
         <strong>↗</strong>
       </button>
-      {status === "sent" && <p className="contact-form-status success">{ru ? "Сообщение отправлено. Спасибо." : "Message sent. Thank you."}</p>}
-      {status === "error" && <p className="contact-form-status error">{ru ? "Не удалось отправить сообщение. Попробуйте ещё раз." : "Something went wrong. Please try again."}</p>}
+      {status === "sent" && <p className="contact-form-status success">{ru ? "Сообщение отправлено. Спасибо." : sk ? "Správa bola odoslaná. Ďakujeme." : "Message sent. Thank you."}</p>}
+      {status === "error" && <p className="contact-form-status error">{ru ? "Не удалось отправить сообщение. Попробуйте ещё раз." : sk ? "Správu sa nepodarilo odoslať. Skúste to znova." : "Something went wrong. Please try again."}</p>}
     </form>
   );
 }

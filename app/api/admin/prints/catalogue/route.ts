@@ -130,8 +130,7 @@ export async function POST(request: Request) {
     const artworkRatio = Number(artwork.width_cm) / Number(artwork.height_cm);
     const productRatio = productWidth / productHeight;
     const directDifference = Math.abs(artworkRatio - productRatio) / artworkRatio;
-    const rotatedDifference = Math.abs(artworkRatio - (1 / productRatio)) / artworkRatio;
-    if (Math.min(directDifference, rotatedDifference) > 0.01) {
+    if (directDifference > 0.01) {
       return NextResponse.json({
         error: "This print size has a different aspect ratio from the original artwork. It is blocked to prevent cropping or stretching.",
         artworkRatio,

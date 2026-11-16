@@ -7,6 +7,7 @@ import styles from "./not-found.module.css";
 export default function NotFound() {
   const pathname = usePathname();
   const isRu = pathname === "/ru" || pathname.startsWith("/ru/");
+  const isSk = pathname === "/sk" || pathname.startsWith("/sk/");
 
   return (
     <main className={styles.page}>
@@ -20,7 +21,7 @@ export default function NotFound() {
       <div className={styles.rule} />
 
       <h2 className={styles.heading}>
-        {isRu ? "Кажется, эта страница потерялась." : "It seems this page got lost."}
+        {isRu ? "Кажется, эта страница потерялась." : isSk ? "Zdá sa, že sa táto stránka stratila." : "It seems this page got lost."}
       </h2>
       <p className={styles.description}>
         {isRu
@@ -29,16 +30,16 @@ export default function NotFound() {
       </p>
 
       <div className={styles.actions}>
-        <Link className={styles.primary} href={isRu ? "/ru" : "/"}>
-          {isRu ? "На главную" : "Back to home"}
+        <Link className={styles.primary} href={isRu ? "/ru" : isSk ? "/sk" : "/"}>
+          {isRu ? "На главную" : isSk ? "Späť na úvod" : "Back to home"}
           <span aria-hidden="true">↗</span>
         </Link>
-        <Link className={styles.secondary} href={isRu ? "/ru/works" : "/works"}>
-          {isRu ? "Смотреть работы" : "Explore the works"}
+        <Link className={styles.secondary} href={isRu ? "/ru/works" : isSk ? "/sk/works" : "/works"}>
+          {isRu ? "Смотреть работы" : isSk ? "Pozrieť diela" : "Explore the works"}
         </Link>
       </div>
 
-      <p className={styles.note}>{isRu ? "ОРИГИНАЛЬНАЯ ЖИВОПИСЬ · ОЛЬГА ТРИХЛЕБ" : "ORIGINAL PAINTINGS · OLGA TRIKHLEB"}</p>
+      <p className={styles.note}>{isRu ? "ОРИГИНАЛЬНАЯ ЖИВОПИСЬ · ОЛЬГА ТРИХЛЕБ" : isSk ? "ORIGINÁLNA MAĽBA · OLGA TRIKHLEB" : "ORIGINAL PAINTINGS · OLGA TRIKHLEB"}</p>
     </main>
   );
 }

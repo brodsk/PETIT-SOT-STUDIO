@@ -78,18 +78,18 @@ export async function generateMetadata({
       : sk ? `${title} — ${workTypeSk}` : `${title} — ${isOil ? "Original Oil Painting" : isAcrylic ? "Original Acrylic Painting" : "Original Artwork"} | ${seoArtwork.en.subject}`
     : ru
       ? `${title} — ${isOil ? "картина маслом" : isAcrylic ? "акриловая картина" : "оригинальная работа"}`
-      : `${title} — ${workTypeEn}`;
+      : sk ? `${title} — ${workTypeSk}` : `${title} — ${workTypeEn}`;
   // AI-generated English titles already contain the complete SEO suffix.
   const seoTitle = !ru && !sk && /\|\s*PETIT\.SOT\s*$/i.test(title) ? title : generatedSeoTitle;
-  const description = seoArtwork
-    ? ru
-      ? `${seoArtwork.ru.description} Год: ${w.year}; размер: ${w.size}.`
-      : `${seoArtwork.en.description} Year: ${w.year}; size: ${w.size}.`
-    : ru
-      ? `${workTypeRu.charAt(0).toUpperCase() + workTypeRu.slice(1)} «${title}» Ольги Трихлеб, ${w.year}, ${w.size}. Посмотрите детали работы и варианты покупки.`
-      : sk
-        ? `${workTypeSk.charAt(0).toUpperCase() + workTypeSk.slice(1)} „${title}“ od Olgy Trikhleb, rok ${w.year}, rozmery ${w.size}. Pozrite si podrobnosti diela a možnosti zakúpenia.`
-        : `${workTypeEn} “${title}” by Olga Trikhleb, ${w.year}, ${w.size}. A one-of-a-kind artwork for your home or collection. View details and purchase options.`;
+  const description = sk
+    ? (w.descriptionSk || `${workTypeSk.charAt(0).toUpperCase() + workTypeSk.slice(1)} „${title}“ od Olgy Trikhleb, rok ${w.year}, rozmery ${w.size}. Pozrite si podrobnosti diela a možnosti zakúpenia.`)
+    : seoArtwork
+      ? ru
+        ? `${seoArtwork.ru.description} Год: ${w.year}; размер: ${w.size}.`
+        : `${seoArtwork.en.description} Year: ${w.year}; size: ${w.size}.`
+      : ru
+        ? `${workTypeRu.charAt(0).toUpperCase() + workTypeRu.slice(1)} «${title}» Ольги Трихлеб, ${w.year}, ${w.size}. Посмотрите детали работы и варианты покупки.`
+        : `${workTypeEn} “${title}” by Olga Trikhleb, ${w.year}, ${w.size}. A one-of-a-kind artwork for your home or collection.`;
   const image = w.imageUrl;
   const canonical = sk ? `${SITE_URL}/sk/obrazy/${w.slug}` : `${SITE_URL}${ru ? "/ru" : ""}/works/${w.slug}`;
 
@@ -282,7 +282,7 @@ export default async function WorkPage({
         <p className="eyebrow">PETIT.SOT / {w.year}</p>
         <h1>{title}</h1>
         <dl>
-          <div><dt>{ru ? "Материал" : sk ? "Technika" : "Medium"}</dt><dd>{localizeMedium(w.medium, ru ? "ru" : "en")}</dd></div>
+          <div><dt>{ru ? "Материал" : sk ? "Technika" : "Medium"}</dt><dd>{localizeMedium(w.medium, sk ? "sk" : ru ? "ru" : "en")}</dd></div>
           <div><dt>{ru ? "Размер" : sk ? "Rozmery" : "Size"}</dt><dd>{w.size}</dd></div>
           <div><dt>{ru ? "Год" : sk ? "Rok" : "Year"}</dt><dd>{w.year}</dd></div>
         </dl>

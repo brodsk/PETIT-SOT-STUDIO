@@ -78,7 +78,7 @@ export async function POST(request: Request) {
         intent: "CAPTURE",
         purchase_units: [{
           reference_id: variantId,
-          custom_id: variantId,
+          custom_id: `${variantId}:${countryCode}`,
           description: "PETIT.SOT Fine Art Print",
           amount: {
             currency_code: "EUR",

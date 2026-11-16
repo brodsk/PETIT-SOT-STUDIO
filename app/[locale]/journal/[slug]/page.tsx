@@ -23,7 +23,7 @@ async function getArticleImage(slug: string) {
 
 type Section = { heading: string; paragraphs: string[]; bullets?: string[] };
 type LocalArticle = { title: string; description: string; intro: string; sections: Section[]; takeaway: string };
-type Article = { slug: string; en: LocalArticle; ru: LocalArticle; related: { slug: string; en: string; ru: string }[] };
+type Article = { slug: string; en: LocalArticle; ru: LocalArticle; sk: LocalArticle; related: { slug: string; en: string; ru: string; sk: string }[] };
 
 const articles: Article[] = [
   {
@@ -54,10 +54,23 @@ const articles: Article[] = [
       ],
       takeaway: "Хорошая картина для дома — та, которая уместно занимает своё место и продолжает быть вам интересной.",
     },
+    sk: {
+      title: "Ako si vybrať originálny obraz do domácnosti",
+      description: "Praktický sprievodca výberom originálneho obrazu podľa veľkosti, farieb, motívu, umiestnenia a osobného vzťahu k dielu.",
+      intro: "Výber obrazu nie je len otázkou zladenia farieb s nábytkom. Originálne umelecké dielo sa stáva súčasťou atmosféry miestnosti. Správna voľba je často tá, ku ktorej sa budete radi vracať aj po dlhšom čase.",
+      sections: [
+        { heading: "Začnite pocitom, nie nábytkom", paragraphs: ["Všímajte si, čo vás priťahuje: krajina, mestská scenéria, kvety, pokojný horizont alebo výraznejšia kompozícia. Zamyslite sa nad náladou, ktorú má obraz priniesť do miestnosti. Dielo môže s interiérom harmonizovať, nemusí však opakovať každú farbu, ktorá sa v ňom nachádza."] },
+        { heading: "Zvážte rozmery a priestor na stene", paragraphs: ["Pred výberom si zmerajte dostupnú plochu steny. Menší obraz môže vytvoriť intímny akcent na úzkej stene, polici alebo v premyslenej skupine diel. Väčší obraz môže vyniknúť nad pohovkou či komodou. Okolo diela nechajte dostatok voľného priestoru, aby nepôsobilo stiesnene.", "Ak si nie ste istí, vyznačte si plánované rozmery na stene pomocou odnímateľného papiera. Jednoducho tak posúdite proporcie ešte pred nákupom."] },
+        { heading: "Myslite na svetlo a vzdialenosť", paragraphs: ["Pozrite sa na stenu v rôznych častiach dňa. Silné priame slnečné svetlo môže časom ovplyvniť farby a materiály, preto je zvyčajne vhodnejšie miesto s nepriamym alebo regulovaným osvetlením. Zvážte aj to, odkiaľ budete obraz najčastejšie pozorovať — z druhej strany miestnosti, posediačky alebo zblízka, aby vynikla štruktúra a ťahy štetca."] },
+        { heading: "Overte si techniku a rozmery", paragraphs: ["Pred nákupom si prečítajte podrobnosti o diele. Olejomaľba, akryl a akvarel majú odlišný charakter povrchu aj nároky na starostlivosť. Skontrolujte rozmery, podklad a informáciu o ráme; nepredpokladajte, že každý obraz je už zarámovaný.", "Aj menší originál môže mať výrazný vizuálny účinok. Samotná veľkosť nerozhoduje o tom, či sa obraz hodí do vášho domova."] },
+        { heading: "Vyberte si dielo, s ktorým chcete žiť", paragraphs: ["Doprajte si čas a vráťte sa k obrazu aj neskôr. Opýtajte sa sami seba, či vás jeho motív, farby a atmosféra stále oslovujú aj po prvom dojme. Originálna maľba je osobnou voľbou a dlhodobý vzťah k dielu je dôležitejší než krátkodobý trend."] },
+      ],
+      takeaway: "Najlepší obraz do domácnosti je ten, ktorý prirodzene zapadne do priestoru a bude pre vás mať význam aj po čase.",
+    },
     related: [
-      { slug: "Meadow", en: "Meadow — landscape painting", ru: "Meadow — пейзаж" },
-      { slug: "rain", en: "Rain in the City — city painting", ru: "Rain in the City — городской сюжет" },
-      { slug: "Mallorca", en: "Coastal Sunset — seascape", ru: "Coastal Sunset — морской пейзаж" },
+      { slug: "Meadow", en: "Meadow — landscape painting", ru: "Meadow — пейзаж", sk: "Meadow — krajina" },
+      { slug: "rain", en: "Rain in the City — city painting", ru: "Rain in the City — городской сюжет", sk: "Rain in the City — mestská maľba" },
+      { slug: "Mallorca", en: "Coastal Sunset — seascape", ru: "Coastal Sunset — морской пейзаж", sk: "Coastal Sunset — prímorská krajina" },
     ],
   },
   {
@@ -89,9 +102,9 @@ const articles: Article[] = [
       takeaway: "Главное отличие простое: оригинал — уникальное физическое произведение, принт — печатное воспроизведение изображения.",
     },
     related: [
-      { slug: "Anthuriums", en: "Pink Anthuriums — acrylic on paper", ru: "Pink Anthuriums — акрил на бумаге" },
-      { slug: "road-in-the-fog", en: "Mountain Road — watercolour on paper", ru: "Mountain Road — акварель на бумаге" },
-      { slug: "Meadow", en: "Meadow — oil on canvas", ru: "Meadow — масло на холсте" },
+      { slug: "Anthuriums", en: "Pink Anthuriums — acrylic on paper", ru: "Pink Anthuriums — акрил на бумаге", sk: "Pink Anthuriums — akryl na papieri" },
+      { slug: "road-in-the-fog", en: "Mountain Road — watercolour on paper", ru: "Mountain Road — акварель на бумаге", sk: "Mountain Road — akvarel na papieri" },
+      { slug: "Meadow", en: "Meadow — oil on canvas", ru: "Meadow — масло на холсте", sk: "Meadow — olej na plátne" },
     ],
   },
   {
@@ -207,15 +220,16 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   const article = articles.find((item) => item.slug === slug);
   if (!article) return {};
   const ru = locale === "ru";
-  const content = ru ? article.ru : article.en;
-  const canonical = `${SITE_URL}${ru ? "/ru" : ""}/journal/${slug}`;
+  const sk = locale === "sk";
+  const content = ru ? article.ru : sk ? article.sk : article.en;
+  const canonical = `${SITE_URL}${ru ? "/ru" : sk ? "/sk" : ""}/journal/${slug}`;
   const articleImage = await getArticleImage(slug);
   return {
     title: content.title,
     description: content.description,
     alternates: {
       canonical,
-      languages: { en: `${SITE_URL}/journal/${slug}`, ru: `${SITE_URL}/ru/journal/${slug}`, "x-default": `${SITE_URL}/journal/${slug}` },
+      languages: { en: `${SITE_URL}/journal/${slug}`, ru: `${SITE_URL}/ru/journal/${slug}`, sk: `${SITE_URL}/sk/journal/${slug}`, "x-default": `${SITE_URL}/journal/${slug}` },
     },
     openGraph: {
       type: "article", title: content.title, description: content.description, url: canonical, siteName: "PETIT.SOT STUDIO",
@@ -229,8 +243,9 @@ export default async function JournalArticlePage({ params }: { params: Promise<{
   const article = articles.find((item) => item.slug === slug);
   if (!article) notFound();
   const ru = locale === "ru";
-  const content = ru ? article.ru : article.en;
-  const canonical = `${SITE_URL}${ru ? "/ru" : ""}/journal/${slug}`;
+  const sk = locale === "sk";
+  const content = ru ? article.ru : sk ? article.sk : article.en;
+  const canonical = `${SITE_URL}${ru ? "/ru" : sk ? "/sk" : ""}/journal/${slug}`;
   const articleImage = await getArticleImage(slug);
   const schema = {
     "@context": "https://schema.org",
@@ -241,7 +256,7 @@ export default async function JournalArticlePage({ params }: { params: Promise<{
     ...(articleImage ? { image: articleImage.src } : {}),
     datePublished: PUBLISHED,
     dateModified: PUBLISHED,
-    inLanguage: ru ? "ru" : "en",
+    inLanguage: sk ? "sk" : ru ? "ru" : "en",
     mainEntityOfPage: { "@type": "WebPage", "@id": canonical },
     author: { "@type": "Organization", "@id": `${SITE_URL}/#studio`, name: "PETIT.SOT STUDIO", url: SITE_URL },
     publisher: { "@type": "Organization", "@id": `${SITE_URL}/#studio`, name: "PETIT.SOT STUDIO", url: SITE_URL },
@@ -250,8 +265,8 @@ export default async function JournalArticlePage({ params }: { params: Promise<{
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
     itemListElement: [
-      { "@type": "ListItem", position: 1, name: ru ? "Главная" : "Home", item: `${SITE_URL}${ru ? "/ru" : ""}` },
-      { "@type": "ListItem", position: 2, name: ru ? "Гид" : "Journal", item: `${SITE_URL}${ru ? "/ru" : ""}/journal` },
+      { "@type": "ListItem", position: 1, name: ru ? "Главная" : sk ? "Domov" : "Home", item: `${SITE_URL}${ru ? "/ru" : sk ? "/sk" : ""}` },
+      { "@type": "ListItem", position: 2, name: ru ? "Гид" : sk ? "Články" : "Journal", item: `${SITE_URL}${ru ? "/ru" : sk ? "/sk" : ""}/journal` },
       { "@type": "ListItem", position: 3, name: content.title, item: canonical },
     ],
   };
@@ -261,15 +276,15 @@ export default async function JournalArticlePage({ params }: { params: Promise<{
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumb) }} />
       <article>
         <section className="journal-hero journal-article-hero">
-          <p className="eyebrow">PETIT.SOT STUDIO · {ru ? "ГИД ПО ИСКУССТВУ" : "ART GUIDE"}</p>
+          <p className="eyebrow">PETIT.SOT STUDIO · {ru ? "ГИД ПО ИСКУССТВУ" : sk ? "SPRIEVODCA UMENÍM" : "ART GUIDE"}</p>
           <h1>{content.title}</h1>
           <div className="about-lead"><span className="about-index">PETIT.SOT / JOURNAL</span><p>{content.intro}</p></div>
-          {articleImage && <figure className="journal-article-image"><img src={articleImage.src} alt={articleImage.title + " — original painting by Olga Trikhleb"} /><figcaption>{ru ? "Оригинальная работа Ольги Трихлеб" : "An original work by Olga Trikhleb"}</figcaption></figure>}
-          <p className="eyebrow">{ru ? "Материал PETIT.SOT STUDIO" : "A PETIT.SOT STUDIO guide"}</p>
+          {articleImage && <figure className="journal-article-image"><img src={articleImage.src} alt={articleImage.title + (sk ? " — originálny obraz Olgy Trikhleb" : ru ? " — оригинальная работа Ольги Трихлеб" : " — original painting by Olga Trikhleb")} /><figcaption>{ru ? "Оригинальная работа Ольги Трихлеб" : sk ? "Originálne dielo Olgy Trikhleb" : "An original work by Olga Trikhleb"}</figcaption></figure>}
+          <p className="eyebrow">{ru ? "Материал PETIT.SOT STUDIO" : sk ? "Sprievodca PETIT.SOT STUDIO" : "A PETIT.SOT STUDIO guide"}</p>
         </section>
         {content.sections.map((section, index) => (
           <section className="about-section" key={section.heading}>
-            <div className="about-section-label"><span>{String(index + 1).padStart(2, "0")}</span><span>{ru ? "ПРАКТИЧЕСКИЙ СОВЕТ" : "PRACTICAL NOTE"}</span></div>
+            <div className="about-section-label"><span>{String(index + 1).padStart(2, "0")}</span><span>{ru ? "ПРАКТИЧЕСКИЙ СОВЕТ" : sk ? "PRAKTICKÁ RADA" : "PRACTICAL NOTE"}</span></div>
             <div className="about-section-copy">
               <h2>{section.heading}</h2>
               {section.paragraphs.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
@@ -278,19 +293,19 @@ export default async function JournalArticlePage({ params }: { params: Promise<{
           </section>
         ))}
         <section className="about-originals">
-          <p className="eyebrow">{ru ? "ГЛАВНОЕ" : "IN SHORT"}</p>
+          <p className="eyebrow">{ru ? "ГЛАВНОЕ" : sk ? "V SKRATKE" : "IN SHORT"}</p>
           <p className="about-originals-statement">{content.takeaway}</p>
           <div className="about-originals-bottom">
-            <span>{ru ? "Посмотрите примеры работ" : "Explore examples from the collection"}</span>
-            <Link className="arrow-link" href="/works">{ru ? "Каталог картин" : "View paintings"} <span>↗</span></Link>
+            <span>{ru ? "Посмотрите примеры работ" : sk ? "Pozrite si ukážky z kolekcie" : "Explore examples from the collection"}</span>
+            <Link className="arrow-link" href="/works">{ru ? "Каталог картин" : sk ? "Pozrieť obrazy" : "View paintings"} <span>↗</span></Link>
           </div>
         </section>
         <section className="about-section">
-          <div className="about-section-label"><span>↗</span><span>{ru ? "ПРИМЕРЫ" : "RELATED WORKS"}</span></div>
+          <div className="about-section-label"><span>↗</span><span>{ru ? "ПРИМЕРЫ" : sk ? "SÚVISIACE DIELA" : "RELATED WORKS"}</span></div>
           <div className="about-section-copy">
-            <h2>{ru ? "Картины PETIT.SOT STUDIO" : "Paintings at PETIT.SOT STUDIO"}</h2>
-            <ul>{article.related.map((item) => <li key={item.slug}><Link href={`/works/${item.slug}`}>{ru ? item.ru : item.en}</Link></li>)}</ul>
-            <p><Link href="/journal">{ru ? "Вернуться к руководствам" : "Back to all guides"} ↗</Link></p>
+            <h2>{ru ? "Картины PETIT.SOT STUDIO" : sk ? "Obrazy PETIT.SOT STUDIO" : "Paintings at PETIT.SOT STUDIO"}</h2>
+            <ul>{article.related.map((item) => <li key={item.slug}><Link href={`/works/${item.slug}`}>{ru ? item.ru : sk ? item.sk : item.en}</Link></li>)}</ul>
+            <p><Link href="/journal">{ru ? "Вернуться к руководствам" : sk ? "Späť na všetky články" : "Back to all guides"} ↗</Link></p>
           </div>
         </section>
       </article>

@@ -117,7 +117,7 @@ export default function SlovakTrencinArtStudio() {
         <div className="about-section-copy">
           <h2>Originálne obrazy, nie reprodukcie.</h2>
           <p>V online katalógu nájdete dostupné originálne obrazy Olgy Trikhleb. Pri každom diele si môžete pozrieť fotografie, rozmery, použitú techniku a aktuálnu dostupnosť. Kolekcia zahŕňa krajiny, mestské motívy a ďalšie autorské námety.</p>
-          <Link className="arrow-link" href="/works">Pozrieť obrazy na predaj <span>↗</span></Link>
+          <Link className="arrow-link" href="/sk/obrazy">Pozrieť obrazy na predaj <span>↗</span></Link>
         </div>
       </section>
 

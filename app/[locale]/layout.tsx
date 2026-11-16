@@ -55,9 +55,9 @@ export default async function LocaleLayout({ children, params }: { children: Rea
         <Link href="/about">{t.artist}</Link>
         <a href="https://www.instagram.com/petit.sot.art" target="_blank" rel="noreferrer">Instagram ↗</a>
         <nav aria-label={t.legal} className="footer-legal-links" style={{ display: "flex", gap: "16px", flexWrap: "wrap" }}>
-          <Link href="/image-licensing">{t.licensing}</Link>
-          <Link href="/privacy-policy">{t.privacy}</Link>
-          <Link href="/return-policy">{t.returns}</Link>
+          <Link href={locale === "sk" ? "/sk/image-licensing" : "/image-licensing"}>{t.licensing}</Link>
+          <Link href={locale === "sk" ? "/sk/privacy-policy" : "/privacy-policy"}>{t.privacy}</Link>
+          <Link href={locale === "sk" ? "/sk/return-policy" : "/return-policy"}>{t.returns}</Link>
         </nav>
       </footer>
     </div>

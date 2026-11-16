@@ -1,0 +1,3 @@
+drop index if exists public.petit_sot_print_orders_paypal_order_id_uidx;
+create unique index petit_sot_print_orders_paypal_order_id_uidx
+  on public.petit_sot_print_orders(paypal_order_id);

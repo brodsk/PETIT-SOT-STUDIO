@@ -34,6 +34,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
 export default async function Contact({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   const ru = locale === "ru";
+  const sk = locale === "sk";
   return (
     <main className={`contact-page contact-form-page ${styles.page}`}>
       <div className={styles.inner}>

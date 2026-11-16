@@ -1,19 +1,22 @@
 "use client";
-import {usePathname} from "next/navigation";
+import { usePathname } from "next/navigation";
 
-export default function LanguageSwitcher({locale}:{locale:string}){
-  const pathname=usePathname()||"/";
-  const cleanPath=pathname.replace(/^\/(?:en|ru)(?=\/|$)/,"")||"/";
-  const russianPath=`/ru${cleanPath==="/"?"":cleanPath}`;
-  const switchLanguage=(nextLocale:string)=>{
-    document.cookie=`NEXT_LOCALE=${nextLocale}; Path=/; Max-Age=31536000; SameSite=Lax`;
+export default function LanguageSwitcher({ locale }: { locale: string }) {
+  const pathname = usePathname() || "/";
+  const legacySlovak = pathname === "/sk/obrazy" || pathname.startsWith("/sk/obrazy/") || pathname === "/sk/malba-na-objednavku" || pathname === "/sk/trencin-art-studio";
+  const cleanPath = legacySlovak ? "/" : pathname.replace(/^\/(?:en|ru|sk)(?=\/|$)/, "") || "/";
+  const target = (language: string) => language === "en" ? cleanPath : `/${language}${cleanPath === "/" ? "" : cleanPath}`;
+  const switchLanguage = (language: string) => {
+    document.cookie = `NEXT_LOCALE=${language}; Path=/; Max-Age=31536000; SameSite=Lax`;
   };
-  const label=(nextLocale:string)=>nextLocale.toUpperCase();
   return (
     <span className="language" aria-label="Language">
-      <a href={cleanPath} onClick={()=>switchLanguage("en")} className={locale==="en"?"active":""}>{label("en")}</a>
-      <i>/</i>
-      <a href={russianPath} onClick={()=>switchLanguage("ru")} className={locale==="ru"?"active":""}>{label("ru")}</a>
+      {(["en", "ru", "sk"] as const).map((language, index) => (
+        <span key={language}>
+          {index > 0 && <i aria-hidden="true"> / </i>}
+          <a href={target(language)} onClick={() => switchLanguage(language)} className={locale === language ? "active" : ""} lang={language} aria-current={locale === language ? "page" : undefined}>{language.toUpperCase()}</a>
+        </span>
+      ))}
     </span>
   );
 }

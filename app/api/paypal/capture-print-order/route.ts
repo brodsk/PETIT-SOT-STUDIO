@@ -126,7 +126,7 @@ export async function POST(request: Request) {
         last_callback_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       }, { onConflict: "paypal_order_id" });
-      return NextResponse.json({ error: "Payment received, but the delivery address is incomplete. Please contact PETIT.SOT before retrying." }, { status: 409 });
+      return NextResponse.json({ status: "PENDING", message: "Payment received. The delivery address needs manual review." });
     }
 
     const { data: artwork, error: artworkError } = await db.from("petit_sot_artworks")
@@ -140,7 +140,7 @@ export async function POST(request: Request) {
         callback_payload: { source: "paypal", fulfillment: "manual_review" },
         last_callback_at: new Date().toISOString(), updated_at: new Date().toISOString(),
       }, { onConflict: "paypal_order_id" });
-      return NextResponse.json({ error: "Payment received. The artwork file needs manual review before production." }, { status: 409 });
+      return NextResponse.json({ status: "PENDING", message: "Payment received. The artwork file needs manual review before production." });
     }
 
     const imageUrl = db.storage.from("petit-sot-artworks").getPublicUrl(artwork.image_path).data.publicUrl;
@@ -187,7 +187,7 @@ export async function POST(request: Request) {
         last_callback_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       }, { onConflict: "paypal_order_id" });
-      return NextResponse.json({ error: "Payment received, but production submission is delayed. PETIT.SOT has the order and will process it shortly." }, { status: 202 });
+      return NextResponse.json({ status: "PENDING", message: "Payment received. Production submission is delayed; PETIT.SOT will process the order shortly." });
     }
 
     const now = new Date().toISOString();

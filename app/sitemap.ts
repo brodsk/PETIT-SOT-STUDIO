@@ -107,18 +107,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const slovakLocalLanding: MetadataRoute.Sitemap = [
     {
-      url: `${SITE_URL}/sk/trencin-art-studio`,
-      changeFrequency: "monthly",
-      priority: 0.85,
-      alternates: {
-        languages: {
-          sk: `${SITE_URL}/sk/trencin-art-studio`,
-          en: `${SITE_URL}/trencin-art-studio`,
-          "x-default": `${SITE_URL}/trencin-art-studio`,
-        },
-      },
-    },
-    {
       url: `${SITE_URL}/sk/obrazy`,
       changeFrequency: "weekly",
       priority: 0.9,

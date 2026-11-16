@@ -1,0 +1,2 @@
+alter table public.petit_sot_print_orders alter column prodigi_order_id drop not null;
+comment on column public.petit_sot_print_orders.prodigi_order_id is 'Nullable until a paid checkout is successfully submitted to Prodigi.';

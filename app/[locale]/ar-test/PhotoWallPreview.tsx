@@ -5,11 +5,14 @@ import Link from "next/link";
 
 type Props = {
   ru: boolean;
+  sk?: boolean;
   artworkChoices: { id: string | number; slug?: string; title: string; image: string; width: number; height: number }[];
   initialArtwork?: string;
 };
 
-export default function PhotoWallPreview({ ru, artworkChoices, initialArtwork }: Props) {
+export default function PhotoWallPreview({ ru, sk = false, artworkChoices, initialArtwork }: Props) {
+  const skText: Record<string,string> = {"PHOTO PREVIEW":"NÁHĽAD OBRAZU","Preview artwork on your wall photo":"Vyskúšajte obraz na fotografii svojej steny","Upload a room photo, then drag the artwork onto the wall and adjust its angle.":"Nahrajte fotografiu miestnosti, presuňte obraz na stenu a upravte jeho uhol.","Room photo":"Fotografia miestnosti","Upload a room photo":"Nahrať fotografiu miestnosti","Tap here or use the button below":"Ťuknite sem alebo použite tlačidlo nižšie","Move artwork":"Presunúť obraz","Choose from gallery":"Vybrať z galérie","Take a photo":"Odfotiť","Save result":"Uložiť výsledok","Artwork":"Obraz","Size on photo":"Veľkosť na fotografii","Tilt left / right":"Náklon doľava / doprava","Horizontal perspective":"Vodorovná perspektíva","Vertical perspective":"Zvislá perspektíva","Reset position and angles":"Obnoviť polohu a uhly","Remove photo":"Odstrániť fotografiu","Drag the artwork with your finger. The three angle controls rotate it on all axes.":"Obraz môžete presúvať prstom. Tri ovládacie prvky umožňujú otáčanie vo všetkých osiach."};
+  const copy = (en:string, ruText:string) => sk ? (skText[en] || en) : ru ? ruText : en;
   const [roomImage, setRoomImage] = useState("");
   const [selected, setSelected] = useState(artworkChoices.find((item) => item.slug === initialArtwork)?.image || artworkChoices[0]?.image || "");
   const [size, setSize] = useState(34);
@@ -136,7 +139,7 @@ export default function PhotoWallPreview({ ru, artworkChoices, initialArtwork }:
       link.click();
     } catch (error) {
       console.error("Could not capture room preview:", error);
-      window.alert(ru ? "Не удалось сохранить фото. Попробуйте другое изображение." : "Could not save the photo. Please try another image.");
+      window.alert(copy("Could not save the photo. Please try another image.","Не удалось сохранить фото. Попробуйте другое изображение."));
     }
   };
 
@@ -151,9 +154,9 @@ export default function PhotoWallPreview({ ru, artworkChoices, initialArtwork }:
   return (
     <section className="photo-wall-tool">
       <div className="photo-wall-heading">
-        <span className="eyebrow">{ru ? "ПРИМЕРКА ПО ФОТО" : "PHOTO PREVIEW"}</span>
-        <h2>{ru ? "Примерьте картину на фото стены" : "Preview artwork on your wall photo"}</h2>
-        <p>{ru ? "Загрузите фото комнаты, затем перетащите картину на стену и настройте её угол." : "Upload a room photo, then drag the artwork onto the wall and adjust its angle."}</p>
+        <span className="eyebrow">{copy("PHOTO PREVIEW","ПРИМЕРКА ПО ФОТО")}</span>
+        <h2>{copy("Preview artwork on your wall photo","Примерьте картину на фото стены")}</h2>
+        <p>{copy("Upload a room photo, then drag the artwork onto the wall and adjust its angle.","Загрузите фото комнаты, затем перетащите картину на стену и настройте её угол.")}</p>
       </div>
       <div className="photo-wall-layout">
         <div className="photo-wall-stage-wrap">
@@ -165,17 +168,17 @@ export default function PhotoWallPreview({ ru, artworkChoices, initialArtwork }:
             onPointerCancel={() => setDragging(false)}
           >
             {roomImage ? (
-              <img className="photo-wall-room" src={roomImage} alt={ru ? "Фото комнаты" : "Room photo"} />
+              <img className="photo-wall-room" src={roomImage} alt={copy("Room photo","Фото комнаты")} />
             ) : (
               <button
                 className="photo-wall-empty"
                 type="button"
                 onClick={() => uploadRef.current?.click()}
-                aria-label={ru ? "Загрузить фото комнаты" : "Upload a room photo"}
+                aria-label={copy("Upload a room photo","Загрузить фото комнаты")}
               >
                 <span>+</span>
-                <strong>{ru ? "Загрузить фото комнаты" : "Upload a room photo"}</strong>
-                <small>{ru ? "Нажмите здесь или выберите фото ниже" : "Tap here or use the button below"}</small>
+                <strong>{copy("Upload a room photo","Загрузить фото комнаты")}</strong>
+                <small>{copy("Tap here or use the button below","Нажмите здесь или выберите фото ниже")}</small>
               </button>
             )}
             {roomImage && selected && (
@@ -191,7 +194,7 @@ export default function PhotoWallPreview({ ru, artworkChoices, initialArtwork }:
                 }}
                 onPointerDown={onPointerDown}
                 role="slider"
-                aria-label={ru ? "Переместить картину" : "Move artwork"}
+                aria-label={copy("Move artwork","Переместить картину")}
                 aria-valuemin={5}
                 aria-valuemax={95}
                 aria-valuenow={Math.round(position.x)}
@@ -203,16 +206,16 @@ export default function PhotoWallPreview({ ru, artworkChoices, initialArtwork }:
           </div>
           <div className="photo-wall-upload-actions">
             <button className="photo-wall-upload" type="button" onClick={() => uploadRef.current?.click()}>
-              {ru ? "Выбрать из галереи" : "Choose from gallery"}
+              {copy("Choose from gallery","Выбрать из галереи")}
             </button>
             <input ref={uploadRef} className="photo-wall-hidden-input" type="file" accept="image/*" onChange={(event) => { loadRoom(event.target.files?.[0]); event.currentTarget.value = ""; }} />
             <button className="photo-wall-upload" type="button" onClick={() => cameraRef.current?.click()}>
-              {ru ? "Сделать фото" : "Take a photo"}
+              {copy("Take a photo","Сделать фото")}
             </button>
             <input ref={cameraRef} className="photo-wall-hidden-input" type="file" accept="image/*" capture="environment" onChange={(event) => { loadRoom(event.target.files?.[0]); event.currentTarget.value = ""; }} />
             {roomImage && (
               <button className="photo-wall-upload photo-wall-camera" type="button" onClick={capturePreview}>
-                {ru ? "Сохранить результат" : "Save result"}
+                {copy("Save result","Сохранить результат")}
               </button>
             )}
           </div>
@@ -221,34 +224,34 @@ export default function PhotoWallPreview({ ru, artworkChoices, initialArtwork }:
         <div className="photo-wall-controls">
 {artworkChoices.length > 1 && (
             <label>
-              <span>{ru ? "Картина" : "Artwork"}</span>
+              <span>{copy("Artwork","Картина")}</span>
               <select value={selected} onChange={(event) => setSelected(event.target.value)}>
                 {artworkChoices.map((item) => <option key={item.id} value={item.image}>{item.title}</option>)}
               </select>
             </label>
           )}
           <label>
-            <span>{ru ? "Размер на фото" : "Size on photo"}</span>
+            <span>{copy("Size on photo","Размер на фото")}</span>
             <input type="range" min="8" max="72" value={size} onChange={(event) => setSize(Number(event.target.value))} />
           </label>
           <label>
-            <span>{ru ? "Наклон влево / вправо" : "Tilt left / right"} · {rotateZ}°</span>
+            <span>{copy("Tilt left / right","Наклон влево / вправо")} · {rotateZ}°</span>
             <input type="range" min="-180" max="180" value={rotateZ} onChange={(event) => setRotateZ(Number(event.target.value))} />
           </label>
           <label>
-            <span>{ru ? "Перспектива по горизонтали" : "Horizontal perspective"} · {rotateY}°</span>
+            <span>{copy("Horizontal perspective","Перспектива по горизонтали")} · {rotateY}°</span>
             <input type="range" min="-75" max="75" value={rotateY} onChange={(event) => setRotateY(Number(event.target.value))} />
           </label>
           <label>
-            <span>{ru ? "Перспектива по вертикали" : "Vertical perspective"} · {rotateX}°</span>
+            <span>{copy("Vertical perspective","Перспектива по вертикали")} · {rotateX}°</span>
             <input type="range" min="-75" max="75" value={rotateX} onChange={(event) => setRotateX(Number(event.target.value))} />
           </label>
           <div className="photo-wall-actions">
-            {roomImage && <button type="button" onClick={capturePreview}>{ru ? "Сохранить результат" : "Save result"}</button>}
-            <button type="button" onClick={reset}>{ru ? "Сбросить положение и угол" : "Reset position and angles"}</button>
-            {roomImage && <button type="button" onClick={() => setRoomImage("")}>{ru ? "Удалить фото" : "Remove photo"}</button>}
+            {roomImage && <button type="button" onClick={capturePreview}>{copy("Save result","Сохранить результат")}</button>}
+            <button type="button" onClick={reset}>{copy("Reset position and angles","Сбросить положение и угол")}</button>
+            {roomImage && <button type="button" onClick={() => setRoomImage("")}>{copy("Remove photo","Удалить фото")}</button>}
           </div>
-          <p>{ru ? "Перетаскивайте картину пальцем. Три ползунка позволяют повернуть её вокруг всех осей." : "Drag the artwork with your finger. The three angle controls rotate it on all axes."}</p>
+          <p>{copy("Drag the artwork with your finger. The three angle controls rotate it on all axes.","Перетаскивайте картину пальцем. Три ползунка позволяют повернуть её вокруг всех осей.")}</p>
         </div>
       </div>
     </section>

@@ -4136,3 +4136,9 @@ div[data-locale] > footer {
     white-space:nowrap;
   }
 }
+
+
+/* Language dropdown: keep the open menu above the homepage hero/footer labels. */
+.site-header{z-index:1000}
+.site-header nav .language-dropdown[open]{z-index:1001}
+.site-header nav .language-dropdown>div[role="group"]{z-index:10000}

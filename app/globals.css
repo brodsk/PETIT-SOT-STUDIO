@@ -4114,3 +4114,25 @@ div[data-locale] > footer {
     line-height: 1.04;
   }
 }
+
+/* Mobile navigation: keep all three language options visible */
+@media(max-width:700px){
+  .site-header nav{
+    display:flex;
+    width:100%;
+    min-width:0;
+    flex-wrap:wrap;
+    justify-content:flex-start;
+    align-items:center;
+    column-gap:12px;
+    row-gap:9px;
+  }
+  .site-header nav>a{
+    flex:0 0 auto;
+  }
+  .site-header nav .language{
+    flex:0 0 auto;
+    margin-left:auto;
+    white-space:nowrap;
+  }
+}

@@ -4152,3 +4152,24 @@ div[data-locale] > footer {
 /* Place the language selector deliberately: a small desktop offset and right alignment on mobile. */
 .site-header nav .language-dropdown{margin-left:14px}
 @media(max-width:700px){.site-header nav .language-dropdown{margin-left:auto}}
+
+
+/* Fix language menu stacking: the locale wrapper creates an isolated stacking
+   context, and the main content was painted above the header at the same level. */
+div[data-locale] > .site-header {
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 50 !important;
+}
+div[data-locale] > .site-header nav .language-dropdown {
+  position: relative !important;
+  z-index: 51 !important;
+}
+div[data-locale] > .site-header nav .language-dropdown[open] {
+  z-index: 52 !important;
+}
+div[data-locale] > .site-header nav .language-dropdown > div[role="group"] {
+  position: absolute !important;
+  z-index: 53 !important;
+  isolation: isolate;
+}

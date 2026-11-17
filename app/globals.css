@@ -4142,3 +4142,8 @@ div[data-locale] > footer {
 .site-header{z-index:1000}
 .site-header nav .language-dropdown[open]{z-index:1001}
 .site-header nav .language-dropdown>div[role="group"]{z-index:10000}
+
+
+/* Restore the header wordmark's presence on mobile without crowding navigation. */
+@media (max-width:700px){.site-header .wordmark{font-size:13px;letter-spacing:.055em}}
+@media (max-width:380px){.site-header .wordmark{font-size:12px;letter-spacing:.045em}}

@@ -4,8 +4,29 @@ const LOCALES = ["en", "ru", "sk"] as const;
 type Locale = (typeof LOCALES)[number];
 
 function getPreferredLocale(request: NextRequest): Locale {
-  const value = request.cookies.get("NEXT_LOCALE")?.value;
-  return value === "ru" || value === "sk" ? value : "en";
+  const saved = request.cookies.get("NEXT_LOCALE")?.value;
+  if (saved === "en" || saved === "ru" || saved === "sk") return saved;
+
+  const accepted = request.headers.get("accept-language") ?? "";
+  const preferences = accepted
+    .split(",")
+    .map((entry, index) => {
+      const [tag, quality] = entry.trim().split(";q=");
+      return {
+        tag: tag.toLowerCase(),
+        quality: quality === undefined ? 1 : Number.parseFloat(quality),
+        index,
+      };
+    })
+    .filter((entry) => Number.isFinite(entry.quality) && entry.quality > 0)
+    .sort((a, b) => b.quality - a.quality || a.index - b.index);
+
+  for (const preference of preferences) {
+    if (preference.tag === "sk" || preference.tag.startsWith("sk-")) return "sk";
+    if (preference.tag === "ru" || preference.tag.startsWith("ru-")) return "ru";
+    if (preference.tag === "en" || preference.tag.startsWith("en-")) return "en";
+  }
+  return "en";
 }
 
 export function middleware(request: NextRequest) {
@@ -51,12 +72,18 @@ export function middleware(request: NextRequest) {
   if (locale !== "en") {
     const url = request.nextUrl.clone();
     url.pathname = `/${locale}${pathname === "/" ? "" : pathname}`;
-    return NextResponse.redirect(url, 307);
+    const response = NextResponse.redirect(url, 307);
+    response.cookies.set("NEXT_LOCALE", locale, { path: "/", maxAge: 31536000, sameSite: "lax" });
+    return response;
   }
 
   const url = request.nextUrl.clone();
   url.pathname = `/en${pathname === "/" ? "" : pathname}`;
-  return NextResponse.rewrite(url);
+  const response = NextResponse.rewrite(url);
+  if (!request.cookies.get("NEXT_LOCALE")) {
+    response.cookies.set("NEXT_LOCALE", "en", { path: "/", maxAge: 31536000, sameSite: "lax" });
+  }
+  return response;
 }
 
 export const config = {

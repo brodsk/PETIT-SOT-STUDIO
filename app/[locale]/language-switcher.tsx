@@ -40,7 +40,7 @@ export default function LanguageSwitcher({ locale }: { locale: string }) {
   return (
     <details
       className="language language-dropdown"
-      style={{ position: "relative", display: "inline-block", marginLeft: 14, whiteSpace: "nowrap", zIndex: 1001 }}
+      style={{ position: "relative", display: "inline-block", whiteSpace: "nowrap", zIndex: 1001 }}
     >
       <summary
         aria-label={`Language: ${current}. Choose language`}

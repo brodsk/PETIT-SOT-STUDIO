@@ -3,7 +3,7 @@ import { usePathname } from "next/navigation";
 
 export default function LanguageSwitcher({ locale }: { locale: string }) {
   const pathname = usePathname() || "/";
-  const legacyArtwork = pathname.match(/^\\/sk\\/obrazy\\/([^/]+)\\/?$/);
+  const legacyArtwork = pathname.match(/^\/sk\/obrazy\/([^/]+)\/?$/);
   const legacyCatalogue = pathname === "/sk/obrazy" || pathname === "/sk/obrazy/";
   const legacyCommission = pathname === "/sk/malba-na-objednavku";
   const legacyStudio = pathname === "/sk/trencin-art-studio";
@@ -26,7 +26,7 @@ export default function LanguageSwitcher({ locale }: { locale: string }) {
       if (language === "sk") return pathname;
       return `${language === "ru" ? "/ru" : ""}/about`;
     }
-    const cleanPath = pathname.replace(/^\\/(?:en|ru|sk)(?=\\/|$)/, "") || "/";
+    const cleanPath = pathname.replace(/^\/(?:en|ru|sk)(?=\/|$)/, "") || "/";
     return language === "en" ? cleanPath : `/${language}${cleanPath === "/" ? "" : cleanPath}`;
   };
 

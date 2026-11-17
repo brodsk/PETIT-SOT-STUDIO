@@ -40,12 +40,14 @@ export default function LanguageSwitcher({ locale }: { locale: string }) {
   return (
     <details
       className="language language-dropdown"
-      style={{ position: "relative", display: "inline-block", marginLeft: 8, whiteSpace: "nowrap" }}
+      style={{ position: "relative", display: "inline-block", marginLeft: 14, whiteSpace: "nowrap", zIndex: 1001 }}
     >
       <summary
         aria-label={`Language: ${current}. Choose language`}
         style={{
           cursor: "pointer",
+          position: "relative",
+          zIndex: 10001,
           listStyle: "none",
           display: "inline-flex",
           alignItems: "center",
@@ -68,7 +70,7 @@ export default function LanguageSwitcher({ locale }: { locale: string }) {
         aria-label="Choose language"
         style={{
           position: "absolute",
-          zIndex: 30,
+          zIndex: 10000,
           top: "calc(100% + 7px)",
           right: 0,
           minWidth: 142,

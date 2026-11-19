@@ -34,9 +34,12 @@ export default async function LocaleLayout({ children, params }: { children: Rea
   return (
     <div data-locale={locale} lang={locale}>
       <header className="site-header">
-        <Link href={locale === "en" ? "/" : `/${locale}`} className="wordmark">
-          PETIT.SOT <span className="wordmark-divider">|</span> <span>STUDIO</span>
-        </Link>
+        <div className="site-header-top">
+          <Link href={locale === "en" ? "/" : `/${locale}`} className="wordmark">
+            PETIT.SOT <span className="wordmark-divider">|</span> <span>STUDIO</span>
+          </Link>
+          <LanguageSwitcher locale={locale} />
+        </div>
         <nav>
           <Link href="/works">{t.works}</Link>
           <Link href="/prints">{t.prints}</Link>
@@ -44,7 +47,6 @@ export default async function LocaleLayout({ children, params }: { children: Rea
           <Link href="/journal">{t.journal}</Link>
           <Link href="/about">{t.about}</Link>
           <Link href="/contact">{t.contact}</Link>
-          <LanguageSwitcher locale={locale} />
         </nav>
       </header>
       {children}

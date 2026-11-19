@@ -4275,3 +4275,20 @@ div[data-locale] > .site-header nav .language-dropdown > div[role="group"] {
     margin-right: -12px !important;
   }
 }
+
+
+/* Keep the language control inside the header's content boundary. */
+.site-header-top .language-dropdown {
+  margin-right: 0 !important;
+}
+@media (min-width: 601px) and (max-width: 700px) {
+  .site-header > nav {
+    flex-wrap: nowrap !important;
+    column-gap: clamp(8px, 1.8vw, 13px) !important;
+    white-space: nowrap;
+  }
+  .site-header > nav > a {
+    font-size: 10px !important;
+    white-space: nowrap;
+  }
+}

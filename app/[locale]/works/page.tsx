@@ -17,7 +17,7 @@ export async function generateMetadata({
     ? "Оригинальные картины Ольги Трихлеб в продаже онлайн. Авторская живопись, пейзажи, морские и городские сюжеты, картины для интерьера. Информация о размерах, стоимости и наличии."
     : sk ? "Prezrite si originálne obrazy súčasnej výtvarníčky Olgy Trikhleb. Objavte jedinečné krajiny, morské a mestské motívy, rozmery, techniky, ceny a dostupnosť diel." : "Browse original paintings for sale online by contemporary artist Olga Trikhleb. Discover one-of-a-kind landscape, seascape and city artwork for modern interiors, with dimensions, materials, prices and availability.";
 
-  const canonical = `${SITE_URL}${ru ? "/ru" : sk ? "/sk" : ""}/works`;
+  const canonical = sk ? `${SITE_URL}/sk/obrazy` : `${SITE_URL}${ru ? "/ru" : ""}/works`;
   const works = await getWorks();
   const previewWork = works.find((work) => work.imageUrl);
   const previewImage = previewWork?.imageUrl;
@@ -33,7 +33,7 @@ export async function generateMetadata({
       languages: {
         en: `${SITE_URL}/works`,
         ru: `${SITE_URL}/ru/works`,
-        sk: `${SITE_URL}/sk/works`,
+        sk: `${SITE_URL}/sk/obrazy`,
         "x-default": `${SITE_URL}/works`,
       },
     },
@@ -101,7 +101,7 @@ export default async function Works({
       </div>
       <nav className="works-filter" aria-label={ru ? "Фильтр работ" : sk ? "Filtrovať diela" : "Filter artworks"} style={{ display: "flex", gap: 16, flexWrap: "wrap", margin: "24px 0" }}>
         {filters.map((filter) => (
-          <Link key={filter.value} href={filter.value === "all" ? "/works" : `/works?status=${filter.value}`} aria-current={status === filter.value ? "page" : undefined} style={{ textDecoration: status === filter.value ? "underline" : "none", textUnderlineOffset: 5 }}>
+          <Link key={filter.value} href={filter.value === "all" ? (sk ? "/sk/obrazy" : "/works") : `${sk ? "/sk/obrazy" : "/works"}?status=${filter.value}`} aria-current={status === filter.value ? "page" : undefined} style={{ textDecoration: status === filter.value ? "underline" : "none", textUnderlineOffset: 5 }}>
             {filter.label}
           </Link>
         ))}
@@ -117,7 +117,7 @@ export default async function Works({
               ? new Intl.NumberFormat(ru ? "ru-RU" : sk ? "sk-SK" : "en-GB", { style: "currency", currency: work.currency }).format(work.price)
               : labels.request;
             return (
-              <Link className="archive-card" href={"/works/" + work.slug} key={work.slug}>
+              <Link className="archive-card" href={(sk ? "/sk/obrazy/" : "/works/") + work.slug} key={work.slug}>
                 <div className="archive-image art-placeholder">
                   {work.thumbnailUrl
                     ? <img src={work.thumbnailUrl} alt={`${title}, ${medium}, ${work.year}, ${ru ? "автор Ольга Трихлеб" : sk ? "autorka Olga Trikhleb" : "by Olga Trikhleb"}`} loading="lazy" decoding="async" />

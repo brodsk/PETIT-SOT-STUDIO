@@ -3,6 +3,11 @@ import { NextResponse, type NextRequest } from "next/server";
 const LOCALES = ["en", "ru", "sk"] as const;
 type Locale = (typeof LOCALES)[number];
 
+function applyRobotsHeader(response: NextResponse, isVercelHost: boolean) {
+  if (isVercelHost) response.headers.set("X-Robots-Tag", "noindex, nofollow");
+  return withRobots(response);
+}
+
 function getPreferredLocale(request: NextRequest): Locale {
   const saved = request.cookies.get("NEXT_LOCALE")?.value;
   if (saved === "en" || saved === "ru" || saved === "sk") return saved;
@@ -31,7 +36,25 @@ function getPreferredLocale(request: NextRequest): Locale {
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  if (pathname.startsWith("/.well-known/")) return NextResponse.next();
+  const isVercelHost = request.nextUrl.hostname.toLowerCase().endsWith(".vercel.app");
+  const withRobots = (response: NextResponse) => applyRobotsHeader(response, isVercelHost);
+
+  // Canonicalize artwork and wall-preview slugs before locale rewrites.
+  const segments = pathname.split("/");
+  const localeOffset = segments[1] === "ru" || segments[1] === "sk" ? 2 : 1;
+  const routeName = segments[localeOffset];
+  const slugIndex = localeOffset + 1;
+  const oldSlug = segments[slugIndex];
+  if (oldSlug && ["works", "obrazy", "wall-preview"].includes(routeName)) {
+    const canonicalSlug = oldSlug.toLowerCase().replace(/_/g, "-");
+    if (oldSlug !== canonicalSlug) {
+      const url = request.nextUrl.clone();
+      segments[slugIndex] = canonicalSlug;
+      url.pathname = segments.join("/");
+      return withRobots(NextResponse.redirect(url, 301));
+    }
+  }
+  if (pathname.startsWith("/.well-known/")) return withRobots(NextResponse.next());
 
   if (["/privacy-policy", "/image-licensing", "/return-policy"].includes(pathname)) {
     return NextResponse.next();
@@ -48,7 +71,7 @@ export function middleware(request: NextRequest) {
   ) {
     const url = request.nextUrl.clone();
     url.pathname = `/en${pathname}`;
-    return NextResponse.rewrite(url);
+    return withRobots(NextResponse.rewrite(url));
   }
 
   const first = pathname.split("/").filter(Boolean)[0];
@@ -59,7 +82,7 @@ export function middleware(request: NextRequest) {
     url.pathname = cleanPath;
     const response = NextResponse.redirect(url, 308);
     response.cookies.set("NEXT_LOCALE", "en", { path: "/", maxAge: 31536000, sameSite: "lax" });
-    return response;
+    return withRobots(response);
   }
 
   if (first === "ru" || first === "sk") {

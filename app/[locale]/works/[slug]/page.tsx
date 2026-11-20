@@ -140,7 +140,7 @@ export default async function WorkPage({
 
   const title = ru ? w.titleRu : sk ? w.titleSk : w.titleEn;
   const displayTitle = title
-    .replace(/\s*\\|\s*PETIT\.SOT\s*$/i, "")
+    .replace(/\s*\|\s*PETIT\.SOT\s*$/i, "")
     .replace(/\s+[—–-]\s+(?:Original (?:Oil|Acrylic) Painting|Original Artwork|картина маслом|акриловая картина|оригинальная работа|originálny olejomaľovaný obraz|originálny akrylový obraz|originálne umelecké dielo).*$/i, "")
     .trim();
   const workTypeSk = /oil|масл/i.test(w.medium || "") ? "Originálna olejomaľba" : /acrylic|акрил/i.test(w.medium || "") ? "Originálna akrylová maľba" : "Originálne umelecké dielo";

@@ -8,15 +8,21 @@ function localeOf(value: unknown): OrderLocale {
   return value === "ru" || value === "sk" ? value : "en";
 }
 
-function formatAddress(value: any): string {
+function formatAddress(value: any, locale: OrderLocale): string {
   if (!value || typeof value !== "object") return "";
+  const countryCode = typeof value.country_code === "string" ? value.country_code : "";
+  let country = value.country || countryCode;
+  if (!value.country && countryCode) {
+    try { country = new Intl.DisplayNames([locale], { type: "region" }).of(countryCode) || countryCode; }
+    catch { country = countryCode; }
+  }
   return [
     value.name,
     value.line1,
     value.line2,
     [value.postal_code, value.city].filter(Boolean).join(" "),
     value.state,
-    value.country,
+    country,
   ].filter((part) => typeof part === "string" && part.trim()).join(", ");
 }
 
@@ -134,7 +140,7 @@ export async function sendOrderEmails(orderId: string) {
     year: artwork.year ? String(artwork.year) : "—",
     amount: Number(order.amount_eur || 0).toFixed(2),
     currency: String(order.currency || "EUR"),
-    shippingAddress: formatAddress(order.shipping_address),
+    shippingAddress: formatAddress(order.shipping_address, locale),
     paypalTransactionId: String(order.paypal_capture_id || order.paypal_order_id || "—"),
   };
 

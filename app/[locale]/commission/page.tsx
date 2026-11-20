@@ -14,7 +14,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   const description = ru
     ? "Закажите оригинальную картину у художницы Ольги Трихлеб онлайн. Авторский сюжет, индивидуальный размер и цветовая палитра, предварительная оценка стоимости и личное обсуждение заказа."
     : "Commission a one-of-a-kind original painting by contemporary artist Olga Trikhleb. Request a custom landscape, seascape or meaningful place with your preferred canvas size and colour palette. Enquiries welcome from collectors worldwide.";
-  const url = `${SITE_URL}${ru ? "/ru" : sk ? "/sk" : ""}/commission`;
+  const url = sk ? `${SITE_URL}/sk/malba-na-objednavku` : `${SITE_URL}${ru ? "/ru" : ""}/commission`;
   return {
     title,
     description,

@@ -11,6 +11,27 @@ import { createClient } from "../../../../lib/supabase/server";
 const SITE_URL = "https://www.petitsot.com";
 const IMAGE_LICENSE_URL = `${SITE_URL}/image-licensing`;
 
+const purchaseTrustCopy = {
+  en: {
+    packaging: "Packaging & dispatch — TODO: add confirmed packaging and dispatch details.",
+    delivery: "Delivery timeframe — TODO: add verified delivery estimates by destination.",
+    authenticity: "Signature & certificate — TODO: confirm signature and certificate arrangements.",
+    returns: "Returns & Refunds",
+  },
+  ru: {
+    packaging: "Упаковка и отправка — TODO: добавить подтверждённые условия упаковки и отправки.",
+    delivery: "Сроки доставки — TODO: указать проверенные сроки по направлениям.",
+    authenticity: "Подпись и сертификат — TODO: подтвердить условия подписи и сертификата подлинности.",
+    returns: "Возвраты и возврат средств",
+  },
+  sk: {
+    packaging: "Balenie a odoslanie — TODO: doplniť potvrdené informácie o balení a odoslaní.",
+    delivery: "Čas doručenia — TODO: uviesť overené lehoty podľa krajiny.",
+    authenticity: "Podpis a certifikát — TODO: potvrdiť podmienky podpisu a certifikátu pravosti.",
+    returns: "Vrátenie tovaru a peňazí",
+  },
+} as const;
+
 export async function generateMetadata({
   params,
 }: {
@@ -19,6 +40,7 @@ export async function generateMetadata({
   const { locale, slug } = await params;
   const ru = locale === "ru";
   const sk = locale === "sk";
+  const trust = purchaseTrustCopy[sk ? "sk" : ru ? "ru" : "en"];
   const w = await getWork(slug);
   if (!w) return {};
 
@@ -296,6 +318,12 @@ export default async function WorkPage({
         </Link>
         <p className="work-description">{description}</p>
         <div className="purchase-box">{w.available ? <><div><span className="purchase-label">{ru ? "Доступна" : sk ? "Dostupné" : "Available"}</span><strong>{w.price > 0 ? new Intl.NumberFormat(ru ? "ru-RU" : sk ? "sk-SK" : "en-GB", {style:"currency", currency:w.currency}).format(w.price) : (ru ? "Цена по запросу" : sk ? "Cena na vyžiadanie" : "Price on request")}</strong></div>{w.price > 0 && <PayPalCheckoutButton slug={w.slug} locale={locale} price={w.price} />}{w.etsyListingUrl ? <a className="purchase-button" href={w.etsyListingUrl} target="_blank" rel="noopener noreferrer">{ru ? "Купить на Etsy" : sk ? "Kúpiť na Etsy" : "Buy on Etsy"} <span>↗</span></a> : <Link className="purchase-button" href={"/contact?work=" + encodeURIComponent(title)}>{ru ? "Приобрести работу" : sk ? "Kúpiť toto dielo" : "Acquire this work"} <span>↗</span></Link>}{w.sasheListingUrl && <a className="purchase-button purchase-button-sashe" href={w.sasheListingUrl} target="_blank" rel="noopener noreferrer">{ru ? "Купить на SAShE" : sk ? "Kúpiť na SAShE" : "Buy on SAShE"} <span>↗</span></a>}<p>{w.etsyListingUrl ? (ru ? "Выберите площадку, чтобы оформить покупку." : sk ? "Vyberte si platformu, na ktorej chcete dokončiť nákup." : "Choose a marketplace to complete your purchase.") : (ru ? "Ссылка на Etsy пока не добавлена. Можно посмотреть работы в магазине SAShE или отправить запрос." : sk ? "Odkaz na Etsy zatiaľ nie je k dispozícii. Dielo si môžete pozrieť v obchode SAShE alebo nám poslať otázku." : "The Etsy listing link isn’t available yet. You can visit our SAShE shop or send a purchase enquiry.")}</p></> : w.sold ? <><div><span className="purchase-label">{ru ? "ПРОДАНА" : sk ? "PREDANÉ" : "SOLD"}</span><strong>{w.price > 0 ? new Intl.NumberFormat(ru ? "ru-RU" : sk ? "sk-SK" : "en-GB", {style:"currency", currency:w.currency}).format(w.price) : (ru ? "Цена по запросу" : sk ? "Cena na vyžiadanie" : "Price on request")}</strong></div></> : <><span className="purchase-label">{ru ? "АРХИВ" : sk ? "ARCHÍV" : "ARCHIVE"}</span><strong>{ru ? "Сейчас не продаётся" : sk ? "Momentálne nie je na predaj" : "Not currently for sale"}</strong><p>{ru ? "Эта работа находится в архиве. Если хотите обсудить похожую картину, оставьте запрос." : sk ? "Toto dielo je súčasťou archívu. Ak máte záujem o podobný obraz, pošlite nám správu." : "This artwork is part of the archive. Contact us to discuss a similar commission."}</p><div className="archive-enquiry"><h2>{ru ? "Заказать похожую работу" : sk ? "Dopyt na podobné dielo" : "Enquire about a similar artwork"}</h2><ContactForm ru={ru} sk={sk} initialMessage={ru ? "Здравствуйте! Хотел(а) бы обсудить похожую работу по мотивам картины «"+title+"»." : sk ? "Dobrý deň, rád/rada by som sa informoval(a) o podobnom diele inšpirovanom obrazom „"+title+"“." : "Hello! I would like to enquire about a similar artwork inspired by “"+title+"”."} /></div></>}</div>
+        {w.available && <section className="purchase-trust" aria-label={trust.returns} style={{ marginTop: 18, paddingTop: 14, borderTop: "1px solid #e8e5e0", fontSize: 12, lineHeight: 1.6 }}>
+          <p>{trust.packaging}</p>
+          <p>{trust.delivery}</p>
+          <p>{trust.authenticity}</p>
+          <Link href={locale === "en" ? "/return-policy" : `/${locale}/return-policy`}>{trust.returns} ↗</Link>
+        </section>}
         {printVariants && printVariants.length > 0 && <FineArtPrintCheckout variants={printVariants} locale={locale} />}
       </aside>
     </main>

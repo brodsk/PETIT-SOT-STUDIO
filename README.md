@@ -46,8 +46,26 @@ Create `.env.local` for local development. Add secrets in Vercel Project Setting
 
 - `TURNSTILE_SECRET_KEY` — server-side Cloudflare Turnstile secret.
 - `NEXT_PUBLIC_TURNSTILE_SITE_KEY` — public Turnstile site key.
-- `RESEND_API_KEY` — transactional email API key.
-- `CONTACT_FROM_EMAIL` — verified sender address.
+- `RESEND_API_KEY` — legacy key used by the existing contact-email helper.
+- `CONTACT_FROM_EMAIL` — legacy sender address used by the existing contact-email helper.
+
+### Transactional order email
+
+Order confirmations and owner notifications use the existing Resend provider through the server-only adapter in `lib/email/send.ts` (Resend HTTP API; no additional browser SDK).
+
+- `EMAIL_API_KEY` — Resend API key (server-only).
+- `EMAIL_FROM` — verified sender, e.g. `PETIT.SOT STUDIO <orders@petitsot.com>`.
+- `EMAIL_REPLY_TO` — reply-to address for order correspondence.
+- `OWNER_NOTIFY_EMAIL` — studio inbox for new-order notifications.
+- `EMAIL_RETRY_SECRET` — long random secret required by `POST /api/email/retry`.
+
+The legacy `RESEND_API_KEY` and `CONTACT_FROM_EMAIL` remain supported as fallbacks by the existing contact flow and email adapter.
+
+After running `supabase/migrations/20261120000000_add_paypal_order_email_tracking.sql`, the PayPal capture route persists the confirmed original-artwork order in `petit_sot_orders` and attempts both emails. Email failures do not change the successful payment response. The retry endpoint accepts `Authorization: Bearer <EMAIL_RETRY_SECRET>` and either `{ "orderId": "<uuid>" }` or an empty JSON body to process up to 25 oldest paid orders with missing email timestamps.
+
+In local development, open `/dev/email-preview` to preview buyer messages in EN/RU/SK and the owner message in RU. It uses fixtures only and never sends mail.
+
+Shipping copy is deliberately marked TODO in `lib/email/order-templates.ts`; replace it only after the studio confirms the actual shipping terms.
 - `TELEGRAM_BOT_TOKEN` — Telegram bot token for contact notifications.
 - `TELEGRAM_CHAT_ID` — primary notification chat.
 - `TELEGRAM_ADDITIONAL_CHAT_IDS` — optional comma-separated additional chats.

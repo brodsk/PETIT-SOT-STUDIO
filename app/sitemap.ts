@@ -7,7 +7,11 @@ function languageAlternates(path: string, includeRussian = true) {
   const cleanPath = path === "/" ? "" : path;
   const slovakPath = path === "/trencin-art-studio"
     ? "/sk/trencin-art-studio"
-    : path.startsWith("/works/")
+    : path === "/works"
+      ? "/sk/obrazy"
+      : path === "/commission"
+        ? "/sk/malba-na-objednavku"
+        : path.startsWith("/works/")
       ? "/sk/obrazy/" + path.split("/").pop()
       : "/sk" + cleanPath;
   return {
@@ -47,7 +51,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     const includeRussian = !["/trencin-art-studio", "/privacy-policy", "/return-policy", "/image-licensing"].includes(path);
     const slovakPath = path === "/trencin-art-studio"
       ? "/sk/trencin-art-studio"
-      : "/sk" + (path === "/" ? "" : path);
+      : path === "/works"
+        ? "/sk/obrazy"
+        : path === "/commission"
+          ? "/sk/malba-na-objednavku"
+          : "/sk" + (path === "/" ? "" : path);
     const englishPage = {
       url: SITE_URL + (path === "/" ? "" : path),
       changeFrequency,
@@ -108,34 +116,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ];
   });
 
-  const slovakLocalLanding: MetadataRoute.Sitemap = [
-    {
-      url: `${SITE_URL}/sk/obrazy`,
-      changeFrequency: "weekly",
-      priority: 0.9,
-      alternates: {
-        languages: {
-          sk: `${SITE_URL}/sk/obrazy`,
-          en: `${SITE_URL}/works`,
-          ru: `${SITE_URL}/ru/works`,
-          "x-default": `${SITE_URL}/works`,
-        },
-      },
-    },
-    {
-      url: `${SITE_URL}/sk/malba-na-objednavku`,
-      changeFrequency: "monthly",
-      priority: 0.85,
-      alternates: {
-        languages: {
-          sk: `${SITE_URL}/sk/malba-na-objednavku`,
-          en: `${SITE_URL}/commission`,
-          ru: `${SITE_URL}/ru/commission`,
-          "x-default": `${SITE_URL}/commission`,
-        },
-      },
-    },
-  ];
+  const slovakLocalLanding: MetadataRoute.Sitemap = [];
 
   return [...staticPages, ...slovakLocalLanding, ...artworkPages];
 }

@@ -26,11 +26,9 @@ export async function generateMetadata({
   const canonical = sk ? `${SITE_URL}/sk` : ru ? `${SITE_URL}/ru` : SITE_URL;
   const works = await getWorks();
   const previewImage = works.find((work) => work.imageUrl)?.imageUrl;
-  const previewAlt = ru
-    ? "Оригинальная картина Ольги Трихлеб — PETIT.SOT STUDIO"
-    : sk
-      ? "Originálny obraz Olgy Trikhleb — PETIT.SOT STUDIO"
-      : "Original painting by Olga Trikhleb — PETIT.SOT STUDIO";
+  const previewAlt = primaryWork
+    ? primaryWork.imageAlts[ru ? "ru" : sk ? "sk" : "en"][0]
+    : (ru ? "Оригинальная картина Ольги Трихлеб — PETIT.SOT STUDIO" : sk ? "Originálny obraz Olgy Trikhleb — PETIT.SOT STUDIO" : "Original painting by Olga Trikhleb — PETIT.SOT STUDIO");
 
   return {
     title,
@@ -70,7 +68,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
   const primaryWork = works.find((work) => work.imageUrl);
   const primaryImage = primaryWork?.imageUrl;
   const primaryImageAlt = primaryWork
-    ? `${ru ? primaryWork.titleRu : sk ? primaryWork.titleSk : primaryWork.titleEn} — ${ru ? "оригинальная картина Ольги Трихлеб" : sk ? "originálny obraz Olgy Trikhleb" : "original painting by Olga Trikhleb"}`
+    ? primaryWork.imageAlts[ru ? "ru" : sk ? "sk" : "en"][0]
     : (ru ? "Оригинальная картина Ольги Трихлеб" : sk ? "Originálny obraz Olgy Trikhleb" : "Original painting by Olga Trikhleb");
   const pageUrl = `${SITE_URL}${ru ? "/ru" : sk ? "/sk" : ""}`;
   const schema = {
@@ -149,7 +147,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
         <div className="gallery-tiles-head"><span>{ru ? "Работы" : sk ? "Diela" : "Works"}</span><span>{String(works.length).padStart(2, "0")} {ru ? "работ" : sk ? "diel" : "works"}</span></div>
         <div className="gallery-tiles-grid">
           {works.map((w, i) => <Link href={(sk ? "/sk/obrazy/" : "/works/") + w.slug} className="gallery-tile" key={w.slug}>
-            <div className="art-placeholder">{w.thumbnailUrl ? <img src={w.thumbnailUrl} alt={(ru ? w.titleRu : sk ? w.titleSk : w.titleEn) + " — " + localizeMedium(w.medium, ru ? "ru" : sk ? "sk" : "en") + ", " + w.year + (ru ? ", оригинальная картина Ольги Трихлеб" : sk ? ", originálny obraz Olgy Trikhleb" : ", original painting by Olga Trikhleb")} loading={i < 4 ? "eager" : "lazy"} decoding="async" /> : <><span>{String(i + 1).padStart(2, "0")}</span><small>{ru ? "ИЗОБРАЖЕНИЕ" : sk ? "OBRAZ" : "IMAGE"} / {w.year}</small></>}</div>
+            <div className="art-placeholder">{w.thumbnailUrl ? <img src={w.thumbnailUrl} alt={w.imageAlts[ru ? "ru" : sk ? "sk" : "en"][0]} loading={i < 4 ? "eager" : "lazy"} decoding="async" /> : <><span>{String(i + 1).padStart(2, "0")}</span><small>{ru ? "ИЗОБРАЖЕНИЕ" : sk ? "OBRAZ" : "IMAGE"} / {w.year}</small></>}</div>
             <div className="work-meta"><span>{ru ? w.titleRu : sk ? w.titleSk : w.titleEn}</span><span>{w.year}</span></div>
             <div className="work-meta">
               <span>{w.available ? (ru ? "В ПРОДАЖЕ" : sk ? "DOSTUPNÉ" : "AVAILABLE") : w.sold ? (ru ? "ПРОДАНА" : sk ? "PREDANÉ" : "SOLD") : (ru ? "АРХИВ" : sk ? "ARCHÍV" : "ARCHIVE")}</span>

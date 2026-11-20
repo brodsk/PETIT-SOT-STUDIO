@@ -6,7 +6,6 @@ type Interior = {image_url:string;style:string};
 
 export default function InteriorShowcase({interiors,ru}:{interiors:Interior[];ru:boolean}){
  const [open,setOpen]=useState<number|null>(null);
- if(!interiors.length)return null;
  const labels:Record<string,string>={minimal:ru?"Минимализм / галерея":"Minimal / Gallery",modern:ru?"Современный интерьер":"Modern Apartment",warm:ru?"Тёплый интерьер":"Warm Interior",luxury:ru?"Премиальный интерьер":"Luxury"};
  const expanded=open===-1;
 
@@ -21,6 +20,7 @@ export default function InteriorShowcase({interiors,ru}:{interiors:Interior[];ru
   return()=>window.removeEventListener("keydown",onKey);
  },[open,interiors.length]);
 
+ if(!interiors.length)return null;
  const previous=()=>setOpen(i=>i===null||i===-1?i:(i-1+interiors.length)%interiors.length);
  const next=()=>setOpen(i=>i===null||i===-1?i:(i+1)%interiors.length);
 

@@ -1,7 +1,7 @@
 "use client";
 import {useEffect,useRef,useState} from "react";
 
-export default function ArtworkViewer({images,thumbnailImages,alt,slug,imageAlts}:{images,thumbnailImages,alt,slug,imageAlts}:{images:string[];thumbnailImages?:string[];alt:string;slug:string;imageAlts?:string[]}){
+export default function ArtworkViewer({images,thumbnailImages,alt,slug,imageAlts}:{images:string[];thumbnailImages?:string[];alt:string;slug:string;imageAlts?:string[]}){
  const items=images.filter(Boolean), [active,setActive]=useState(0), [open,setOpen]=useState(false);
  const viewerRef=useRef<HTMLDivElement>(null);
  const imageRef=useRef<HTMLImageElement>(null);

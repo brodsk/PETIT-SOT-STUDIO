@@ -25,9 +25,10 @@ export async function generateMetadata({
 
   const canonical = sk ? `${SITE_URL}/sk` : ru ? `${SITE_URL}/ru` : SITE_URL;
   const works = await getWorks();
-  const previewImage = works.find((work) => work.imageUrl)?.imageUrl;
-  const previewAlt = primaryWork
-    ? primaryWork.imageAlts[ru ? "ru" : sk ? "sk" : "en"][0]
+  const previewWork = works.find((work) => work.imageUrl);
+  const previewImage = previewWork?.imageUrl;
+  const previewAlt = previewWork
+    ? previewWork.imageAlts[ru ? "ru" : sk ? "sk" : "en"][0]
     : (ru ? "Оригинальная картина Ольги Трихлеб — PETIT.SOT STUDIO" : sk ? "Originálny obraz Olgy Trikhleb — PETIT.SOT STUDIO" : "Original painting by Olga Trikhleb — PETIT.SOT STUDIO");
 
   return {

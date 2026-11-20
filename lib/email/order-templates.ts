@@ -187,7 +187,8 @@ const OWNER_COPY = {
 };
 
 export function renderOwnerOrderEmail(data: OrderEmailData): RenderedEmail {
-  const safeTitle = data.artworkTitle.replace(/[\\r\\n]+/g, " ").slice(0, 160);\n  const subject = `Новый заказ #${data.orderNumber}: ${safeTitle}`;
+  const safeTitle = data.artworkTitle.replace(/[\r\n]+/g, " ").slice(0, 160);
+  const subject = `Новый заказ #${data.orderNumber}: ${safeTitle}`;
   const date = new Intl.DateTimeFormat("ru-RU", { dateStyle: "medium", timeStyle: "short", timeZone: "Europe/Bratislava" }).format(new Date(data.createdAt));
   const rows = [
     detailRow(OWNER_COPY.date, date),

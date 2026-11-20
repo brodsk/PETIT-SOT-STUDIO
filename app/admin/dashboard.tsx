@@ -2,7 +2,6 @@
 
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { createClient } from "../../lib/supabase/client";
-import heic2any from "heic2any";
 
 type Artwork={id:string;slug:string;title:string;title_en:string;year:number|null;medium:string|null;width_cm:number|null;height_cm:number|null;depth_cm:number|null;description:string;description_en:string;ai_description:string;price_eur:number;status:string;image_path:string|null;web_image_path:string|null;thumbnail_path:string|null;certificate_number:string|null;created_at:string;etsy_listing_id:number|null;etsy_state:string|null;etsy_error:string|null;etsy_listing_url:string|null};
 type ArtworkImage={id:string;artwork_id:string;image_path:string;web_image_path:string|null;thumbnail_path:string|null;sort_order:number;created_at:string};
@@ -245,6 +244,7 @@ export default function AdminDashboard({initialArtworks}:Props){
       const fileName=(source instanceof File?source.name:"").toLowerCase();
       const isHeic=/heic|heif/.test(source.type.toLowerCase())||/\\.(heic|heif)$/.test(fileName);
       try{
+        const {default:heic2any}=await import("heic2any");
         const converted=await heic2any({blob:source,toType:"image/jpeg",quality:0.9});
         const jpeg=Array.isArray(converted)?converted[0]:converted;
         return await drawAndCompress(jpeg);

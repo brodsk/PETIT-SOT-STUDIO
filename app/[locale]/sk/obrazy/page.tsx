@@ -66,7 +66,7 @@ export default async function SlovakWorksPage({ searchParams }: { searchParams: 
         <Link className="archive-card" href={"/sk/obrazy/" + work.slug} key={work.slug}>
           <div className="archive-image art-placeholder">
             {work.thumbnailUrl || work.imageUrl
-              ? <img src={work.thumbnailUrl || work.imageUrl} alt={(work.titleSk || work.titleEn) + " — originálny obraz od Olgy Trikhleb"} loading="lazy" decoding="async" />
+              ? <img src={work.thumbnailUrl || work.imageUrl} alt={work.imageAlts.sk[0]} loading="lazy" decoding="async" />
               : <span>{work.titleSk || work.titleEn}</span>}
           </div>
           <div className="archive-card-meta"><span>{work.titleSk || work.titleEn}</span><span>{work.year}</span></div>

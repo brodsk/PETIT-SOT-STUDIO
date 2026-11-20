@@ -5,7 +5,7 @@ type Locale = (typeof LOCALES)[number];
 
 function applyRobotsHeader(response: NextResponse, isVercelHost: boolean) {
   if (isVercelHost) response.headers.set("X-Robots-Tag", "noindex, nofollow");
-  return withRobots(response);
+  return response;
 }
 
 function getPreferredLocale(request: NextRequest): Locale {
@@ -60,7 +60,7 @@ export function middleware(request: NextRequest) {
     return withRobots(NextResponse.next());
   }
   if (pathname.startsWith("/admin") || pathname.startsWith("/api")) {
-    return NextResponse.next();
+    return withRobots(NextResponse.next());
   }
 
   // Keep the established Slovak SEO landing pages working at their original URLs.

@@ -102,7 +102,7 @@ export default async function SlovakArtworkPage({ params }: { params: Promise<{ 
           <p>{description}</p>
         </div>
       </section>
-      {work.imageUrl && <section className="about-portrait"><div className="about-portrait-image"><img src={work.imageUrl} alt={artworkTitle + " — originálny obraz od Olgy Trikhleb"} loading="eager" /></div><div className="about-portrait-caption"><span>{artworkTitle}</span><span>Olga Trikhleb · PETIT.SOT</span></div></section>}
+      {work.imageUrl && <section className="about-portrait"><div className="about-portrait-image"><img src={work.imageUrl} alt={work.imageAlts.sk[0]} loading="eager" /></div><div className="about-portrait-caption"><span>{artworkTitle}</span><span>Olga Trikhleb · PETIT.SOT</span></div></section>}
       <section className="about-section">
         <div className="about-section-label"><span>01</span><span>Informácie o diele</span></div>
         <div className="about-section-copy">

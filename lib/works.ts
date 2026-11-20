@@ -26,7 +26,7 @@ function mapWork(w:any,supabase:any,extraImages:string[]=[],extraThumbnails:stri
  const sasheListingUrl=SASHE_LISTINGS[slug] || SASHE_LISTINGS[slug.replace(/_/g,"-")] || null;
  const titleEn=String(w.title_en||w.title||"").trim().replaceAll("Olya Trikhleb","Olga Trikhleb").replaceAll("Olga Trihleb","Olga Trikhleb");
  const titleSk=String(w.title_sk||"").trim()||titleEn;
- const shortTitle=(value:string)=>value.trim().replace(/\\s*\\|\\s*PETIT\\.SOT\\s*$/i,"").replace(/\\s+[—–-]\\s+(?:Original|картина|акриловая|оригинальная|originálny|originálne).*$/i,"").trim();
+ const shortTitle=(value:string)=>value.trim().replace(/\s*\\|\s*PETIT\.SOT\s*$/i,"").replace(/\s+[—–-]\s+(?:Original|картина|акриловая|оригинальная|originálny|originálne).*$/i,"").trim();
  const shortEn=shortTitle(titleEn), shortRu=shortTitle(String(w.title_ru||w.title||"")), shortSk=shortTitle(titleSk);
  const year=String(w.year??"—");
  const imageAlts={

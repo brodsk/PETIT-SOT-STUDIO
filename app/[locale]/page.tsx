@@ -151,11 +151,15 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
           {works.map((w, i) => <Link href={"/works/" + w.slug} className="gallery-tile" key={w.slug}>
             <div className="art-placeholder">{w.thumbnailUrl ? <img src={w.thumbnailUrl} alt={(ru ? w.titleRu : sk ? w.titleSk : w.titleEn) + " — " + localizeMedium(w.medium, ru ? "ru" : sk ? "sk" : "en") + ", " + w.year + (ru ? ", оригинальная картина Ольги Трихлеб" : sk ? ", originálny obraz Olgy Trikhleb" : ", original painting by Olga Trikhleb")} loading={i < 4 ? "eager" : "lazy"} decoding="async" /> : <><span>{String(i + 1).padStart(2, "0")}</span><small>{ru ? "ИЗОБРАЖЕНИЕ" : sk ? "OBRAZ" : "IMAGE"} / {w.year}</small></>}</div>
             <div className="work-meta"><span>{ru ? w.titleRu : sk ? w.titleSk : w.titleEn}</span><span>{w.year}</span></div>
+            <div className="work-meta">
+              <span>{w.available ? (ru ? "В ПРОДАЖЕ" : sk ? "DOSTUPNÉ" : "AVAILABLE") : w.sold ? (ru ? "ПРОДАНА" : sk ? "PREDANÉ" : "SOLD") : (ru ? "АРХИВ" : sk ? "ARCHÍV" : "ARCHIVE")}</span>
+              <span>{w.price > 0 ? new Intl.NumberFormat(ru ? "ru-RU" : sk ? "sk-SK" : "en-GB", { style: "currency", currency: w.currency }).format(w.price) : (ru ? "Цена по запросу" : sk ? "Cena na vyžiadanie" : "Price on request")}</span>
+            </div>
           </Link>)}
         </div>
       </section>
 
-      <section className="gallery-statement"><span>02—04</span><p>{ru ? "Каждая работа — отдельный объект. Архив растёт постепенно." : sk ? "Každé dielo je samostatným originálom. Kolekcia sa postupne rozrastá." : "Each work exists as an independent object. The archive grows slowly."}</p><Link className="arrow-link" href="/about">{ru ? "О студии" : sk ? "O štúdiu" : "About the studio"} <span>↗</span></Link><Link className="arrow-link" href="/commission">{ru ? "Заказать картину" : sk ? "Objednať obraz" : "Commission a painting"} <span>↗</span></Link></section>
+      <section className="gallery-statement"><span>{ru ? "ЗАМЕТКА СТУДИИ" : sk ? "POZNÁMKA ŠTÚDIA" : "STUDIO NOTE"}</span><p>{ru ? "Каждая работа — отдельный объект. Архив растёт постепенно." : sk ? "Každé dielo je samostatným originálom. Kolekcia sa postupne rozrastá." : "Each work exists as an independent object. The archive grows slowly."}</p><Link className="arrow-link" href="/about">{ru ? "О студии" : sk ? "O štúdiu" : "About the studio"} <span>↗</span></Link><Link className="arrow-link" href="/commission">{ru ? "Заказать картину" : sk ? "Objednať obraz" : "Commission a painting"} <span>↗</span></Link></section>
     </main>
   );
 }

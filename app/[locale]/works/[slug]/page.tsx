@@ -134,7 +134,7 @@ export async function generateMetadata({
       url: canonical,
       siteName: "PETIT.SOT STUDIO",
       locale: sk ? "sk_SK" : ru ? "ru_RU" : "en_GB",
-      ...(image ? { images: [{ url: image, alt: title }] } : {}),
+      ...(image ? { images: [{ url: image, alt: w.imageAlts[sk ? "sk" : ru ? "ru" : "en"][0] }] } : {}),
     },
     twitter: {
       card: image ? "summary_large_image" : "summary",

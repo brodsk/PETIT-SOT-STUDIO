@@ -1,7 +1,7 @@
 import { createClient } from "./supabase/server";
 import { localizeMedium } from "./medium";
 
-export type PublicWork={slug:string;title:string;titleRu:string;titleEn:string;titleSk:string;year:string;medium:string;size:string;widthCm?:number;heightCm?:number;depthCm?:number;description:string;descriptionRu:string;descriptionEn:string;descriptionSk:string;price:number;currency:string;status:string;available:boolean;sold:boolean;imageUrl?:string;thumbnailUrl?:string;images:string[];thumbnailImages:string[];id?:string;etsyListingUrl?:string|null;sasheListingUrl?:string|null};
+export type PublicWork={slug:string;title:string;titleRu:string;titleEn:string;titleSk:string;year:string;medium:string;size:string;widthCm?:number;heightCm?:number;depthCm?:number;description:string;descriptionRu:string;descriptionEn:string;descriptionSk:string;price:number;currency:string;status:string;available:boolean;sold:boolean;imageUrl?:string;thumbnailUrl?:string;images:string[];thumbnailImages:string[];imageAlts:{en:string[];ru:string[];sk:string[]};id?:string;etsyListingUrl?:string|null;sasheListingUrl?:string|null};
 
 export const fallbackWorks:PublicWork[]=[];
 
@@ -18,7 +18,7 @@ const SASHE_LISTINGS: Record<string,string> = {
   "rain": "https://www.sashe.sk/petitsot/detail/originalny-olejomalovany-obraz-rain-in-the-city-mestsky-motiv",
 };
 
-function mapWork(w:any,supabase:any,extraImages:string[]=[],extraThumbnails:string[]=[]):PublicWork{
+function mapWork(w:any,supabase:any,extraImages:string[]=[],extraThumbnails:string[]=[],extraAlts:any[]=[]):PublicWork{
  const size=[w.width_cm,w.height_cm,w.depth_cm].filter((x:any)=>x!=null&&x!=="").join(" × ");
  const imageUrl=(w.web_image_path||w.image_path)?supabase.storage.from("petit-sot-artworks").getPublicUrl(w.web_image_path||w.image_path).data.publicUrl:undefined;
  const thumbnailUrl=(w.thumbnail_path||w.web_image_path||w.image_path)?supabase.storage.from("petit-sot-artworks").getPublicUrl(w.thumbnail_path||w.web_image_path||w.image_path).data.publicUrl:undefined;
@@ -26,9 +26,17 @@ function mapWork(w:any,supabase:any,extraImages:string[]=[],extraThumbnails:stri
  const sasheListingUrl=SASHE_LISTINGS[slug] || SASHE_LISTINGS[slug.replace(/_/g,"-")] || null;
  const titleEn=String(w.title_en||w.title||"").trim().replaceAll("Olya Trikhleb","Olga Trikhleb").replaceAll("Olga Trihleb","Olga Trikhleb");
  const titleSk=String(w.title_sk||"").trim()||titleEn;
+ const shortTitle=(value:string)=>value.trim().replace(/\\s*\\|\\s*PETIT\\.SOT\\s*$/i,"").replace(/\\s+[—–-]\\s+(?:Original|картина|акриловая|оригинальная|originálny|originálne).*$/i,"").trim();
+ const shortEn=shortTitle(titleEn), shortRu=shortTitle(String(w.title_ru||w.title||"")), shortSk=shortTitle(titleSk);
+ const year=String(w.year??"—");
+ const imageAlts={
+  en:[`${shortEn}, ${localizeMedium(w.medium,"en")}, ${year}, by Olga Trikhleb`,...extraAlts.map((item:any,index:number)=>String(item.alt_en||"").trim()||`${shortEn} — photo ${index+2}`)],
+  ru:[`${shortRu}, ${localizeMedium(w.medium,"ru")}, ${year}, автор Ольга Трихлеб`,...extraAlts.map((item:any,index:number)=>String(item.alt_ru||"").trim()||`${shortRu} — фото ${index+2}`)],
+  sk:[`${shortSk}, ${localizeMedium(w.medium,"sk")}, ${year}, autorka Olga Trikhleb`,...extraAlts.map((item:any,index:number)=>String(item.alt_sk||"").trim()||`${shortSk} — fotografia ${index+2}`)]
+ };
  const descriptionEn=String(w.description_en||w.ai_description||w.description||"").replaceAll("Olya Trikhleb","Olga Trikhleb").replaceAll("Olga Trihleb","Olga Trikhleb");
  const descriptionSk=String(w.description_sk||"").trim();
- return {id:w.id,slug:w.slug,title:w.title,titleRu:w.title,titleEn,titleSk,year:String(w.year??"—"),medium:w.medium||"—",size:size?size+" cm":"—",widthCm:w.width_cm!=null?Number(w.width_cm):undefined,heightCm:w.height_cm!=null?Number(w.height_cm):undefined,depthCm:w.depth_cm!=null?Number(w.depth_cm):undefined,description:w.description||w.ai_description||"",descriptionRu:w.description||"",descriptionEn,descriptionSk,price:Number(w.price_eur||0),currency:"EUR",status:String(w.status||"archived"),available:w.status==="available",sold:w.status==="sold",imageUrl,thumbnailUrl,images:imageUrl?[imageUrl,...extraImages]:extraImages,thumbnailImages:thumbnailUrl?[thumbnailUrl,...(extraThumbnails.length?extraThumbnails:extraImages)]:extraThumbnails,etsyListingUrl:w.etsy_listing_url||null,sasheListingUrl};
+ return {id:w.id,slug:w.slug,title:w.title,titleRu:w.title,titleEn,titleSk,year,medium:w.medium||"—",size:size?size+" cm":"—",widthCm:w.width_cm!=null?Number(w.width_cm):undefined,heightCm:w.height_cm!=null?Number(w.height_cm):undefined,depthCm:w.depth_cm!=null?Number(w.depth_cm):undefined,description:w.description||w.ai_description||"",descriptionRu:w.description||"",descriptionEn,descriptionSk,price:Number(w.price_eur||0),currency:"EUR",status:String(w.status||"archived"),available:w.status==="available",sold:w.status==="sold",imageUrl,thumbnailUrl,images:imageUrl?[imageUrl,...extraImages]:extraImages,thumbnailImages:thumbnailUrl?[thumbnailUrl,...(extraThumbnails.length?extraThumbnails:extraImages)]:extraThumbnails,imageAlts,etsyListingUrl:w.etsy_listing_url||null,sasheListingUrl};
 }
 
 export async function getWorks():Promise<PublicWork[]>{
@@ -39,16 +47,18 @@ export async function getWorks():Promise<PublicWork[]>{
    if(error)return fallbackWorks;
    if(!data||data.length===0)return [];
    const ids=data.map((w:any)=>w.id);
-   const {data:gallery}=await supabase.from("petit_sot_artwork_images").select("artwork_id,image_path,web_image_path,thumbnail_path,sort_order").in("artwork_id",ids).order("sort_order",{ascending:true});
+   const {data:gallery}=await supabase.from("petit_sot_artwork_images").select("*").in("artwork_id",ids).order("sort_order",{ascending:true});
    const byArtwork=new Map<string,string[]>();
    const thumbnailsByArtwork=new Map<string,string[]>();
+   const altsByArtwork=new Map<string,any[]>();
    for(const item of gallery||[]){
     const url=supabase.storage.from("petit-sot-artworks").getPublicUrl(item.web_image_path||item.image_path).data.publicUrl;
     const thumb=supabase.storage.from("petit-sot-artworks").getPublicUrl(item.thumbnail_path||item.web_image_path||item.image_path).data.publicUrl;
     const list=byArtwork.get(item.artwork_id)||[]; list.push(url); byArtwork.set(item.artwork_id,list);
     const thumbList=thumbnailsByArtwork.get(item.artwork_id)||[]; thumbList.push(thumb); thumbnailsByArtwork.set(item.artwork_id,thumbList);
+    const altList=altsByArtwork.get(item.artwork_id)||[]; altList.push(item); altsByArtwork.set(item.artwork_id,altList);
    }
-   return data.map(w=>mapWork(w,supabase,byArtwork.get(w.id)||[],thumbnailsByArtwork.get(w.id)||[]));
+   return data.map(w=>mapWork(w,supabase,byArtwork.get(w.id)||[],thumbnailsByArtwork.get(w.id)||[],altsByArtwork.get(w.id)||[]));
  }catch{return fallbackWorks;}
 }
 

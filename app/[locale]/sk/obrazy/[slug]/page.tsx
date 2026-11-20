@@ -83,6 +83,7 @@ export default async function SlovakArtworkPage({ params }: { params: Promise<{ 
         artMedium: medium,
         creator: { "@id": SITE_URL + "/#artist" },
         artist: { "@type": "Person", "@id": SITE_URL + "/#artist", name: "Olga Trikhleb", url: SITE_URL + "/about" },
+        ...(work.price > 0 ? { offers: { "@type": "Offer", url: canonical, priceCurrency: "EUR", price: work.price, availability: work.available ? "https://schema.org/InStock" : work.sold ? "https://schema.org/SoldOut" : "https://schema.org/OutOfStock" } } : {}),
         ...(work.year && work.year !== "—" ? { dateCreated: work.year } : {}),
         ...(work.widthCm ? { width: { "@type": "QuantitativeValue", value: work.widthCm, unitCode: "CMT" } } : {}),
         ...(work.heightCm ? { height: { "@type": "QuantitativeValue", value: work.heightCm, unitCode: "CMT" } } : {}),
@@ -117,8 +118,8 @@ export default async function SlovakArtworkPage({ params }: { params: Promise<{ 
         <div className="about-section-copy">
           <h2>{work.available ? "Záujem o tento originálny obraz?" : "Zaujalo vás toto dielo?"}</h2>
           <p>{work.available ? "Ak máte záujem o kúpu, pozrite si kompletné informácie a dostupné možnosti objednávky na stránke diela." : "Toto dielo momentálne nie je dostupné. Môžete sa však informovať o podobnej autorskej maľbe na objednávku."}</p>
-          <Link className="arrow-link" href={"/works/" + work.slug}>{work.available ? "Kúpiť originálny obraz" : "Pozrieť detail diela"} <span>↗</span></Link>
-          <Link className="arrow-link" href="/commission">Maľba na objednávku <span>↗</span></Link>
+          <Link className="arrow-link" href={"/sk/obrazy/" + work.slug}>{work.available ? "Kúpiť originálny obraz" : "Pozrieť detail diela"} <span>↗</span></Link>
+          <Link className="arrow-link" href="/sk/malba-na-objednavku">Maľba na objednávku <span>↗</span></Link>
         </div>
       </section>
       <section className="about-originals">

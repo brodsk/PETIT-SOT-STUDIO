@@ -40,7 +40,6 @@ export async function generateMetadata({
   const { locale, slug } = await params;
   const ru = locale === "ru";
   const sk = locale === "sk";
-  const trust = purchaseTrustCopy[sk ? "sk" : ru ? "ru" : "en"];
   const w = await getWork(slug);
   if (!w) return {};
 
@@ -153,6 +152,7 @@ export default async function WorkPage({
   const { locale, slug } = await params;
   const ru = locale === "ru";
   const sk = locale === "sk";
+  const trust = purchaseTrustCopy[sk ? "sk" : ru ? "ru" : "en"];
   const w = await getWork(slug);
   if (!w) notFound();
   const supabase = await createClient();

@@ -55,48 +55,85 @@ export async function generateMetadata({
   };
 }
 
-export default async function Works({ params }: { params: Promise<{ locale: string }> }) {
+export default async function Works({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ locale: string }>;
+  searchParams: Promise<{ status?: string }>;
+}) {
   const { locale } = await params;
+  const { status: requestedStatus } = await searchParams;
   const ru = locale === "ru";
   const sk = locale === "sk";
+  const status = requestedStatus === "available" || requestedStatus === "sold" ? requestedStatus : "all";
   const works = await getWorks();
+  const visibleWorks = works.filter((work) => {
+    if (status === "available") return work.available;
+    if (status === "sold") return work.sold;
+    return true;
+  });
+  const labels = ru
+    ? { all: "Все", available: "В продаже", sold: "Проданные", count: "работ", availableStatus: "В ПРОДАЖЕ", soldStatus: "ПРОДАНА", archiveStatus: "АРХИВ", request: "Цена по запросу" }
+    : sk
+      ? { all: "Všetky", available: "Dostupné", sold: "Predané", count: "diel", availableStatus: "DOSTUPNÉ", soldStatus: "PREDANÉ", archiveStatus: "ARCHÍV", request: "Cena na vyžiadanie" }
+      : { all: "All", available: "Available", sold: "Sold", count: "works", availableStatus: "AVAILABLE", soldStatus: "SOLD", archiveStatus: "ARCHIVE", request: "Price on request" };
   const breadcrumbSchema = {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
     itemListElement: [
-      {
-        "@type": "ListItem",
-        position: 1,
-        name: ru ? "Главная" : sk ? "Domov" : "Home",
-        item: `${SITE_URL}${ru ? "/ru" : sk ? "/sk" : ""}`,
-      },
-      {
-        "@type": "ListItem",
-        position: 2,
-        name: ru ? "Работы" : sk ? "Diela" : "Works",
-        item: `${SITE_URL}${ru ? "/ru" : sk ? "/sk" : ""}/works`,
-      },
+      { "@type": "ListItem", position: 1, name: ru ? "Главная" : sk ? "Domov" : "Home", item: `${SITE_URL}${ru ? "/ru" : sk ? "/sk" : ""}` },
+      { "@type": "ListItem", position: 2, name: ru ? "Работы" : sk ? "Diela" : "Works", item: `${SITE_URL}${ru ? "/ru" : sk ? "/sk" : ""}/works` },
     ],
   };
-  return <main className="archive gallery-archive">
-    <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
-    <div className="archive-mast"><span className="eyebrow">{ru ? "PETIT.SOT / КОЛЛЕКЦИЯ" : sk ? "PETIT.SOT / KOLEKCIA" : "PETIT.SOT / COLLECTION"}</span><h1>{ru ? "Оригинальные картины" : sk ? "Originálne obrazy" : "Original paintings"}</h1><p>{ru ? "Оригинальные картины Ольги Трихлеб в продаже: авторская живопись, пейзажи, морские и городские сюжеты для дома и интерьера. У каждой работы указаны техника, размер, год, стоимость и доступность." : sk ? "Objavte originálne obrazy výtvarníčky Olgy Trikhleb. Prezrite si jedinečné krajiny, morské a mestské scenérie. Pri každom diele nájdete techniku, rozmery, rok a aktuálnu dostupnosť." : "Discover original paintings for sale online by artist Olga Trikhleb. Explore one-of-a-kind landscapes, seascapes and city scenes for contemporary interiors. Each artwork includes its medium, dimensions, year and current availability."}</p></div>
-    {(() => {
-      const availableWorks = works.filter((work) => work.available);
-      const archivedWorks = works.filter((work) => !work.available);
-      const renderCards = (items: typeof works) => <div className="archive-grid archive-grid-even">
-        {items.map((w, i) => <Link className="archive-card" href={"/works/" + w.slug} key={w.slug}>
-          <div className="archive-image art-placeholder">{w.thumbnailUrl ? <img src={w.thumbnailUrl} alt={(ru ? w.titleRu : sk ? w.titleSk : w.titleEn) + " — " + localizeMedium(w.medium, ru ? "ru" : sk ? "sk" : "en") + ", " + w.year + (ru ? ", оригинальная картина Ольги Трихлеб" : sk ? ", originálny obraz Olgy Trikhleb" : ", original painting by Olga Trikhleb")} loading="lazy" decoding="async" /> : <><span>{String(i + 1).padStart(2, "0")}</span><small>{ru ? "ИЗОБРАЖЕНИЕ" : sk ? "OBRAZ" : "IMAGE"}</small></>}</div>
-          <div className="archive-card-meta"><span>{ru ? w.titleRu : sk ? w.titleSk : w.titleEn}</span><span>{w.year}</span></div>
-          <p>{localizeMedium(w.medium, ru ? "ru" : sk ? "sk" : "en")}</p>
-          {!w.available && <span className={`archive-card-status ${w.sold ? "archive-card-sold" : ""}`}>{w.sold ? (ru ? "ПРОДАНА" : sk ? "PREDANÉ" : "SOLD") : (ru ? "Архив · цена по запросу" : sk ? "Archív · cena na vyžiadanie" : "Archive · price on request")}</span>}
-        </Link>)}
-      </div>;
-      return <>
-        {availableWorks.length > 0 && <section className="works-section"><div className="works-section-heading"><span className="eyebrow">{ru ? "ДОСТУПНЫЕ РАБОТЫ" : sk ? "DOSTUPNÉ DIELA" : "AVAILABLE WORKS"}</span><h2>{ru ? "В продаже" : sk ? "Na predaj" : "For sale"}</h2></div>{renderCards(availableWorks)}</section>}
-        {archivedWorks.length > 0 && <section className="works-section works-archive-section"><div className="works-section-heading"><span className="eyebrow">{ru ? "ЗАВЕРШЁННЫЕ И НЕДОСТУПНЫЕ РАБОТЫ" : sk ? "PREDCHÁDZAJÚCE A NEDOSTUPNÉ DIELA" : "PAST & UNAVAILABLE WORKS"}</span><h2>{ru ? "Архив" : sk ? "Archív" : "Archive"}</h2><p>{ru ? "Эти работы сейчас не продаются. Если вас заинтересовала одна из них, отправьте запрос о стоимости или возможном заказе." : sk ? "Tieto diela momentálne nie sú na predaj. Ak vás niektoré zaujalo, kontaktujte nás a informujte sa o cene alebo možnosti objednať podobný obraz." : "These works are not currently for sale. Contact us to enquire about pricing or a possible commission."}</p></div>{renderCards(archivedWorks)}</section>}
-        {works.length === 0 && <p className="works-empty">{ru ? "Работы скоро появятся." : sk ? "Čoskoro pribudnú nové diela." : "Artworks will be added soon."}</p>}
-      </>;
-    })()}
-  </main>;
+  const filters = [
+    { value: "all", label: labels.all },
+    { value: "available", label: labels.available },
+    { value: "sold", label: labels.sold },
+  ] as const;
+  return (
+    <main className="archive gallery-archive">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
+      <div className="archive-mast">
+        <span className="eyebrow">PETIT.SOT / {ru ? "КОЛЛЕКЦИЯ" : sk ? "KOLEKCIA" : "COLLECTION"}</span>
+        <h1>{ru ? "Оригинальные картины" : sk ? "Originálne obrazy" : "Original paintings"}</h1>
+        <p>{ru ? "Оригинальные картины Ольги Трихлеб в продаже: авторская живопись, пейзажи, морские и городские сюжеты для дома и интерьера. У каждой работы указаны техника, размер, год, стоимость и доступность." : sk ? "Objavte originálne obrazy výtvarníčky Olgy Trikhleb. Prezrite si jedinečné krajiny, morské a mestské scenérie. Pri každom diele nájdete techniku, rozmery, rok a aktuálnu dostupnosť." : "Discover original paintings for sale online by artist Olga Trikhleb. Explore one-of-a-kind landscapes, seascapes and city scenes for contemporary interiors. Each artwork includes its medium, dimensions, year and current availability."}</p>
+      </div>
+      <nav className="works-filter" aria-label={ru ? "Фильтр работ" : sk ? "Filtrovať diela" : "Filter artworks"} style={{ display: "flex", gap: 16, flexWrap: "wrap", margin: "24px 0" }}>
+        {filters.map((filter) => (
+          <Link key={filter.value} href={filter.value === "all" ? "/works" : `/works?status=${filter.value}`} aria-current={status === filter.value ? "page" : undefined} style={{ textDecoration: status === filter.value ? "underline" : "none", textUnderlineOffset: 5 }}>
+            {filter.label}
+          </Link>
+        ))}
+        <span style={{ marginLeft: "auto" }}>{visibleWorks.length} / {works.length} {labels.count}</span>
+      </nav>
+      {visibleWorks.length > 0 ? (
+        <div className="archive-grid archive-grid-even">
+          {visibleWorks.map((work, index) => {
+            const title = ru ? work.titleRu : sk ? work.titleSk : work.titleEn;
+            const medium = localizeMedium(work.medium, ru ? "ru" : sk ? "sk" : "en");
+            const statusLabel = work.available ? labels.availableStatus : work.sold ? labels.soldStatus : labels.archiveStatus;
+            const price = work.price > 0
+              ? new Intl.NumberFormat(ru ? "ru-RU" : sk ? "sk-SK" : "en-GB", { style: "currency", currency: work.currency }).format(work.price)
+              : labels.request;
+            return (
+              <Link className="archive-card" href={"/works/" + work.slug} key={work.slug}>
+                <div className="archive-image art-placeholder">
+                  {work.thumbnailUrl
+                    ? <img src={work.thumbnailUrl} alt={`${title}, ${medium}, ${work.year}, ${ru ? "автор Ольга Трихлеб" : sk ? "autorka Olga Trikhleb" : "by Olga Trikhleb"}`} loading="lazy" decoding="async" />
+                    : <><span>{String(index + 1).padStart(2, "0")}</span><small>{ru ? "ИЗОБРАЖЕНИЕ" : sk ? "OBRAZ" : "IMAGE"}</small></>}
+                </div>
+                <div className="archive-card-meta"><span>{title}</span><span>{work.year}</span></div>
+                <p>{medium}</p>
+                <span className={`archive-card-status ${work.sold ? "archive-card-sold" : ""}`}>{statusLabel}</span>
+                <p className="archive-card-price">{price}</p>
+              </Link>
+            );
+          })}
+        </div>
+      ) : (
+        <p className="works-empty">{ru ? "В этой категории пока нет картин." : sk ? "V tejto kategórii zatiaľ nie sú žiadne diela." : "There are no artworks in this category yet."}</p>
+      )}
+    </main>
+  );
 }

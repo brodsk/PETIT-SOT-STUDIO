@@ -66,6 +66,18 @@ After running `supabase/migrations/20261120000000_add_paypal_order_email_trackin
 In local development, open `/dev/email-preview` to preview buyer messages in EN/RU/SK and the owner message in RU. It uses fixtures only and never sends mail.
 
 Shipping copy is deliberately marked TODO in `lib/email/order-templates.ts`; replace it only after the studio confirms the actual shipping terms.
+
+### PayPal Sandbox test for original-artwork order emails
+
+1. In the PayPal Developer Dashboard, use a sandbox business account as the merchant and a separate sandbox personal account as the buyer.
+2. Set `PAYPAL_ENVIRONMENT=sandbox`, `PAYPAL_CLIENT_ID` and `PAYPAL_CLIENT_SECRET` to the sandbox app credentials in local `.env.local` or a Vercel Preview environment.
+3. Configure `EMAIL_API_KEY`, `EMAIL_FROM`, `EMAIL_REPLY_TO`, `OWNER_NOTIFY_EMAIL` and a strong `EMAIL_RETRY_SECRET`. The sender domain must be verified with Resend before sending to arbitrary recipients.
+4. Run the SQL migration above manually before testing. Use an available artwork with a valid EUR price, open its page in EN, RU or SK, and complete checkout with the sandbox buyer.
+5. After returning to `/checkout/success`, verify that `petit_sot_orders` contains one `paid` row with `paypal_order_id`, `paypal_capture_id`, buyer details and `buyer_locale`. Check that both email sent timestamps are set and both messages arrived.
+6. Repeat the capture request for the same PayPal order ID. The order row must remain unique and the provider idempotency keys plus database claims must prevent duplicate messages.
+7. To test recovery, temporarily make one email destination/provider setting invalid, complete another sandbox order, and verify the payment still displays as successful while `email_error` is populated and the failed message's sent timestamp remains null. Restore the correct settings and call `POST /api/email/retry` with `Authorization: Bearer <EMAIL_RETRY_SECRET>` and JSON `{ "orderId": "<order-uuid>" }`. Verify that only the unsent message is delivered.
+
+No live PayPal transaction or real customer email is needed for this test.
 - `TELEGRAM_BOT_TOKEN` — Telegram bot token for contact notifications.
 - `TELEGRAM_CHAT_ID` — primary notification chat.
 - `TELEGRAM_ADDITIONAL_CHAT_IDS` — optional comma-separated additional chats.

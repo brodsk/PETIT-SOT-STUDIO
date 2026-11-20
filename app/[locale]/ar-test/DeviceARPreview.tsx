@@ -1,10 +1,15 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import dynamic from "next/dynamic";
 import AndroidSceneViewer from "./AndroidSceneViewer";
-import ARWallPreview from "./ARWallPreview";
 
 type ArtworkChoice = { id: string | number; title: string; image: string; width: number; height: number };
+
+const ARWallPreview = dynamic(() => import("./ARWallPreview"), {
+  ssr: false,
+  loading: () => <section className="apple-quicklook"><p>Loading AR preview…</p></section>,
+});
 type Props = { ru: boolean; artworkChoices: ArtworkChoice[] };
 
 export default function DeviceARPreview({ ru, artworkChoices }: Props) {

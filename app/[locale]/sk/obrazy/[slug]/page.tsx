@@ -118,7 +118,7 @@ export default async function SlovakArtworkPage({ params }: { params: Promise<{ 
         <div className="about-section-copy">
           <h2>{work.available ? "Záujem o tento originálny obraz?" : "Zaujalo vás toto dielo?"}</h2>
           <p>{work.available ? "Ak máte záujem o kúpu, pozrite si kompletné informácie a dostupné možnosti objednávky na stránke diela." : "Toto dielo momentálne nie je dostupné. Môžete sa však informovať o podobnej autorskej maľbe na objednávku."}</p>
-          <Link className="arrow-link" href={"/sk/obrazy/" + work.slug}>{work.available ? "Kúpiť originálny obraz" : "Pozrieť detail diela"} <span>↗</span></Link>
+          <Link className="arrow-link" href={"/sk/works/" + work.slug}>{work.available ? "Kúpiť originálny obraz" : "Pozrieť detail diela"} <span>↗</span></Link>
           <Link className="arrow-link" href="/sk/malba-na-objednavku">Maľba na objednávku <span>↗</span></Link>
         </div>
       </section>

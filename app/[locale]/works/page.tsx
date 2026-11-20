@@ -22,7 +22,7 @@ export async function generateMetadata({
   const previewWork = works.find((work) => work.imageUrl);
   const previewImage = previewWork?.imageUrl;
   const previewAlt = previewWork
-    ? `${ru ? previewWork.titleRu : sk ? previewWork.titleSk : previewWork.titleEn} — ${ru ? "оригинальная картина Ольги Трихлеб" : sk ? "originálny obraz Olgy Trikhleb" : "original painting by Olga Trikhleb"}`
+    ? previewWork.imageAlts[ru ? "ru" : sk ? "sk" : "en"][0]
     : (ru ? "Оригинальные картины Ольги Трихлеб" : sk ? "Originálne obrazy Olgy Trikhleb" : "Original paintings by Olga Trikhleb");
 
   return {
@@ -120,7 +120,7 @@ export default async function Works({
               <Link className="archive-card" href={(sk ? "/sk/obrazy/" : "/works/") + work.slug} key={work.slug}>
                 <div className="archive-image art-placeholder">
                   {work.thumbnailUrl
-                    ? <img src={work.thumbnailUrl} alt={`${title}, ${medium}, ${work.year}, ${ru ? "автор Ольга Трихлеб" : sk ? "autorka Olga Trikhleb" : "by Olga Trikhleb"}`} loading="lazy" decoding="async" />
+                    ? <img src={work.thumbnailUrl} alt={work.imageAlts[ru ? "ru" : sk ? "sk" : "en"][0]} loading="lazy" decoding="async" />
                     : <><span>{String(index + 1).padStart(2, "0")}</span><small>{ru ? "ИЗОБРАЖЕНИЕ" : sk ? "OBRAZ" : "IMAGE"}</small></>}
                 </div>
                 <div className="archive-card-meta"><span>{title}</span><span>{work.year}</span></div>

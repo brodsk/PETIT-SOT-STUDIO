@@ -45,7 +45,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
       url: canonical,
       siteName: "PETIT.SOT STUDIO",
       locale: "sk_SK",
-      ...(work.imageUrl ? { images: [{ url: work.imageUrl, alt: artworkTitle + " — originálny obraz od Olgy Trikhleb" }] } : {}),
+      ...(work.imageUrl ? { images: [{ url: work.imageUrl, alt: work.imageAlts.sk[0] }] } : {}),
     },
   };
 }

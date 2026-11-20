@@ -1,7 +1,7 @@
 "use client";
 import {useEffect,useRef,useState} from "react";
 
-export default function ArtworkViewer({images,thumbnailImages,alt,slug}:{images:string[];thumbnailImages?:string[];alt:string;slug:string}){
+export default function ArtworkViewer({images,thumbnailImages,alt,slug,imageAlts}:{images,thumbnailImages,alt,slug,imageAlts}:{images:string[];thumbnailImages?:string[];alt:string;slug:string;imageAlts?:string[]}){
  const items=images.filter(Boolean), [active,setActive]=useState(0), [open,setOpen]=useState(false);
  const viewerRef=useRef<HTMLDivElement>(null);
  const imageRef=useRef<HTMLImageElement>(null);
@@ -45,7 +45,7 @@ export default function ArtworkViewer({images,thumbnailImages,alt,slug}:{images:
  },[active,items.length,slug]);
  useEffect(()=>{if(!open)return; const onKey=(e:KeyboardEvent)=>{if(e.key==="Escape")setOpen(false);if(e.key==="ArrowLeft")setActive(i=>(i-1+items.length)%items.length);if(e.key==="ArrowRight")setActive(i=>(i+1)%items.length)};window.addEventListener("keydown",onKey);return()=>window.removeEventListener("keydown",onKey)},[open,items.length]);
  if(!items.length)return <div className="single-art"><span>IMAGE PLACEHOLDER</span></div>;
- const imageAlt=(index:number)=>index===0?alt:`${alt} — photo ${index+1}`;
+ const imageAlt=(index:number)=>imageAlts?.[index]||(index===0?alt:`${alt.split(",")[0]} — photo ${index+1}`);
  const prev=(e?:React.MouseEvent)=>{e?.stopPropagation();setActive(i=>(i-1+items.length)%items.length)};
  const next=(e?:React.MouseEvent)=>{e?.stopPropagation();setActive(i=>(i+1)%items.length)};
  return <div ref={viewerRef} className="artwork-viewer">

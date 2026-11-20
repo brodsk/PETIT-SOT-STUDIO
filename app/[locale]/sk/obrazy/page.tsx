@@ -35,10 +35,14 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-export default async function SlovakWorksPage() {
+export default async function SlovakWorksPage({ searchParams }: { searchParams: Promise<{ status?: string }> }) {
+  const { status: requestedStatus } = await searchParams;
+  const status = requestedStatus === "available" || requestedStatus === "sold" ? requestedStatus : "all";
   const works = await getWorks();
-  const available = works.filter((work) => work.available);
-  const archive = works.filter((work) => !work.available);
+  const visibleWorks = works.filter((work) => status === "all" || (status === "available" ? work.available : work.sold));
+  const available = visibleWorks.filter((work) => work.available);
+  const sold = visibleWorks.filter((work) => work.sold);
+  const archive = visibleWorks.filter((work) => !work.available && !work.sold);
   const schema = {
     "@context": "https://schema.org",
     "@type": "CollectionPage",
@@ -67,7 +71,7 @@ export default async function SlovakWorksPage() {
           </div>
           <div className="archive-card-meta"><span>{work.titleSk || work.titleEn}</span><span>{work.year}</span></div>
           <p>{slovakMedium(work.medium)}</p>
-          <span className="archive-card-status">{work.available ? "Dostupný originál" : work.sold ? "Predané" : "Archív"}</span>
+          <span className="archive-card-status">{work.available ? "Dostupný originál" : work.sold ? "Predané" : "Archív"}</span><p>{work.price > 0 ? new Intl.NumberFormat("sk-SK", { style: "currency", currency: work.currency }).format(work.price) : "Cena na vyžiadanie"}</p>
         </Link>
       ))}
     </div>
@@ -84,9 +88,16 @@ export default async function SlovakWorksPage() {
           <p>Objavte originálne obrazy Olgy Trikhleb, nezávislej maliarky pôsobiacej v Trenčíne. Kolekcia predstavuje autorskú maľbu, krajiny, morské motívy a mestské scény. Pri každom diele nájdete informácie o technike, rozmeroch a dostupnosti.</p>
         </div>
       </section>
+      <nav aria-label="Filtrovať diela" style={{ display: "flex", gap: 16, flexWrap: "wrap", margin: "24px 0" }}>
+        {[{ value: "all", label: "Všetky" }, { value: "available", label: "Dostupné" }, { value: "sold", label: "Predané" }].map((filter) => (
+          <Link key={filter.value} href={filter.value === "all" ? "/sk/obrazy" : `/sk/obrazy?status=${filter.value}`} aria-current={status === filter.value ? "page" : undefined} style={{ textDecoration: status === filter.value ? "underline" : "none", textUnderlineOffset: 5 }}>{filter.label}</Link>
+        ))}
+        <span style={{ marginLeft: "auto" }}>{visibleWorks.length} / {works.length} diel</span>
+      </nav>
       {available.length > 0 && <section className="works-section"><div className="works-section-heading"><span className="eyebrow">AKTUÁLNA PONUKA</span><h2>Obrazy na predaj</h2><p>Originálne diela, ktoré sú momentálne dostupné na kúpu.</p></div>{renderWorks(available)}</section>}
+      {sold.length > 0 && <section className="works-section works-archive-section"><div className="works-section-heading"><span className="eyebrow">PREDANÉ</span><h2>Predané diela</h2></div>{renderWorks(sold)}</section>}
       {archive.length > 0 && <section className="works-section works-archive-section"><div className="works-section-heading"><span className="eyebrow">ARCHÍV</span><h2>Predchádzajúce práce</h2><p>Predané a archivované diela z umeleckej tvorby Olgy Trikhleb.</p></div>{renderWorks(archive)}</section>}
-      {works.length === 0 && <section className="about-section"><div className="about-section-copy"><h2>Kolekcia sa pripravuje.</h2><p>Nové originálne obrazy budú v katalógu postupne dopĺňané.</p></div></section>}
+      {visibleWorks.length === 0 && <section className="about-section"><div className="about-section-copy"><h2>Kolekcia sa pripravuje.</h2><p>Nové originálne obrazy budú v katalógu postupne dopĺňané.</p></div></section>}
       <section className="about-originals">
         <p className="eyebrow">OLGA TRIKHLEB · MALIARKA Z TRENČÍNA</p>
         <p className="about-originals-statement">Originálna maľba. Jedinečné diela. PETIT.SOT STUDIO.</p>

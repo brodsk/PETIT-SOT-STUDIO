@@ -304,7 +304,7 @@ export default async function WorkPage({
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
       />
-      <Link href="/works" className="back">← {ru ? "Архив" : sk ? "Galéria" : "Archive"}</Link>
+      <Link href={sk ? "/sk/obrazy" : "/works"} className="back">← {ru ? "Архив" : sk ? "Galéria" : "Archive"}</Link>
       <ArtworkViewer images={w.images.length ? w.images : w.imageUrl ? [w.imageUrl] : []} thumbnailImages={w.thumbnailImages} imageAlts={w.imageAlts[sk ? "sk" : ru ? "ru" : "en"]} alt={`${displayTitle}, ${localizeMedium(w.medium, sk ? "sk" : ru ? "ru" : "en")}, ${w.year}, ${ru ? "автор Ольга Трихлеб" : sk ? "autorka Olga Trikhleb" : "by Olga Trikhleb"}`} slug={w.slug}/>
       <aside className="work-info">
         <p className="eyebrow">PETIT.SOT / {w.year}</p>

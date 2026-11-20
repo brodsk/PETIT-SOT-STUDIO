@@ -13,7 +13,8 @@ export async function sendEmail(message: EmailMessage): Promise<void> {
   const apiKey = process.env.EMAIL_API_KEY?.trim() || process.env.RESEND_API_KEY?.trim();
   const configuredFrom = process.env.EMAIL_FROM?.trim() || process.env.CONTACT_FROM_EMAIL?.trim();
   if (!apiKey) throw new Error("EMAIL_API_KEY is not configured");
-  if (!configuredFrom) throw new Error("EMAIL_FROM is not configured");\n  const from = configuredFrom.includes("<") ? configuredFrom : `PETIT.SOT STUDIO <${configuredFrom}>`;
+  if (!configuredFrom) throw new Error("EMAIL_FROM is not configured");
+  const from = configuredFrom.includes("<") ? configuredFrom : `PETIT.SOT STUDIO <${configuredFrom}>`;
   if (!message.to || !message.subject) throw new Error("Email recipient and subject are required");
 
   const response = await fetch("https://api.resend.com/emails", {

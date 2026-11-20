@@ -66,6 +66,7 @@ async function sendOne(db: ReturnType<typeof createAdminClient>, orderId: string
         html: rendered.html,
         text: rendered.text,
         replyTo: process.env.EMAIL_REPLY_TO?.trim() || undefined,
+        idempotencyKey: `${orderId}-buyer-confirmation`,
       });
     } else {
       const ownerEmail = process.env.OWNER_NOTIFY_EMAIL?.trim();
@@ -77,6 +78,7 @@ async function sendOne(db: ReturnType<typeof createAdminClient>, orderId: string
         html: rendered.html,
         text: rendered.text,
         replyTo: process.env.EMAIL_REPLY_TO?.trim() || undefined,
+        idempotencyKey: `${orderId}-owner-notification`,
       });
     }
 

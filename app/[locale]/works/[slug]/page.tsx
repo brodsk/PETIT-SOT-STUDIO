@@ -139,6 +139,10 @@ export default async function WorkPage({
     .eq("artwork_id", w.id).eq("active", true).order("sort_order", { ascending: true }) : { data: [] };
 
   const title = ru ? w.titleRu : sk ? w.titleSk : w.titleEn;
+  const displayTitle = title
+    .replace(/\\s*\\|\\s*PETIT\\.SOT\\s*$/i, "")
+    .replace(/\\s+[—–-]\\s+(?:Original (?:Oil|Acrylic) Painting|Original Artwork|картина маслом|акриловая картина|оригинальная работа|originálny olejomaľovaný obraz|originálny akrylový obraz|originálne umelecké dielo).*$/i, "")
+    .trim();
   const workTypeSk = /oil|масл/i.test(w.medium || "") ? "Originálna olejomaľba" : /acrylic|акрил/i.test(w.medium || "") ? "Originálna akrylová maľba" : "Originálne umelecké dielo";
   const description = (ru ? w.descriptionRu : sk ? w.descriptionSk : w.descriptionEn) || (sk ? `${workTypeSk} „${title}“ od Olgy Trikhleb. Pozrite si rozmery, techniku a možnosti zakúpenia.` : `${title} — artwork by Olga Trikhleb.`);
   const canonical = sk ? `${SITE_URL}/sk/obrazy/${w.slug}` : `${SITE_URL}${ru ? "/ru" : ""}/works/${w.slug}`;
@@ -278,10 +282,10 @@ export default async function WorkPage({
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
       />
       <Link href="/works" className="back">← {ru ? "Архив" : sk ? "Galéria" : "Archive"}</Link>
-      <ArtworkViewer images={w.images.length ? w.images : w.imageUrl ? [w.imageUrl] : []} thumbnailImages={w.thumbnailImages} alt={`${title} — ${localizeMedium(w.medium, sk ? "sk" : ru ? "ru" : "en")}, ${w.year}${ru ? ", оригинальная картина Ольги Трихлеб" : sk ? ", originálny obraz Olgy Trikhleb" : ", original painting by Olga Trikhleb"}`} slug={w.slug}/>
+      <ArtworkViewer images={w.images.length ? w.images : w.imageUrl ? [w.imageUrl] : []} thumbnailImages={w.thumbnailImages} alt={`${displayTitle}, ${localizeMedium(w.medium, sk ? "sk" : ru ? "ru" : "en")}, ${w.year}, ${ru ? "автор Ольга Трихлеб" : sk ? "autorka Olga Trikhleb" : "by Olga Trikhleb"}`} slug={w.slug}/>
       <aside className="work-info">
         <p className="eyebrow">PETIT.SOT / {w.year}</p>
-        <h1>{title}</h1>
+        <h1>{displayTitle}</h1>
         <dl>
           <div><dt>{ru ? "Материал" : sk ? "Technika" : "Medium"}</dt><dd>{localizeMedium(w.medium, sk ? "sk" : ru ? "ru" : "en")}</dd></div>
           <div><dt>{ru ? "Размер" : sk ? "Rozmery" : "Size"}</dt><dd>{w.size}</dd></div>

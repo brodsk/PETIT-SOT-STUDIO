@@ -250,6 +250,7 @@ export default async function WorkPage({
     ...(w.depthCm ? { depth: { "@type": "QuantitativeValue", value: w.depthCm, unitCode: "CMT", unitText: "cm" } } : {}),
     identifier: w.slug,
     copyrightNotice: "© Olga Trikhleb",
+    ...(w.price > 0 ? { offers: { "@type": "Offer", url: canonical, priceCurrency: "EUR", price: w.price, availability: w.available ? "https://schema.org/InStock" : w.sold ? "https://schema.org/SoldOut" : "https://schema.org/OutOfStock" } } : {}),
   };
   const schema = {
     "@context": "https://schema.org",
@@ -274,13 +275,13 @@ export default async function WorkPage({
     category: "Contemporary artwork",
     material: localizeMedium(w.medium, sk ? "sk" : ru ? "ru" : "en"),
     offers:
-      w.available && w.price > 0
+      w.price > 0
         ? {
             "@type": "Offer",
             url: w.etsyListingUrl || w.sasheListingUrl || canonical,
-            priceCurrency: w.currency,
+            priceCurrency: "EUR",
             price: w.price,
-            availability: "https://schema.org/InStock",
+            availability: w.available ? "https://schema.org/InStock" : w.sold ? "https://schema.org/SoldOut" : "https://schema.org/OutOfStock",
           }
         : undefined,
   };

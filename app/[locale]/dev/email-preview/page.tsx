@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { renderBuyerOrderEmail, renderOwnerOrderEmail, type OrderEmailData } from "../../../lib/email/order-templates";
+import { renderBuyerOrderEmail, renderOwnerOrderEmail, type OrderEmailData } from "../../../../lib/email/order-templates";
 
 export const dynamic = "force-dynamic";
 

@@ -6,6 +6,7 @@ export type EmailMessage = {
   html: string;
   text: string;
   replyTo?: string;
+  idempotencyKey?: string;
 };
 
 export async function sendEmail(message: EmailMessage): Promise<void> {
@@ -20,6 +21,7 @@ export async function sendEmail(message: EmailMessage): Promise<void> {
     headers: {
       Authorization: `Bearer ${apiKey}`,
       "Content-Type": "application/json",
+      ...(message.idempotencyKey ? { "Idempotency-Key": message.idempotencyKey } : {}),
     },
     body: JSON.stringify({
       from,

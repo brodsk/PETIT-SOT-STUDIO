@@ -1,5 +1,4 @@
 import {NextResponse} from "next/server";
-import {PDFDocument,StandardFonts,rgb} from "pdf-lib";
 import {createClient} from "../../../../../../lib/supabase/server";
 import {createAdminClient} from "../../../../../../lib/supabase/admin";
 export const runtime="nodejs";
@@ -13,6 +12,7 @@ export async function GET(request:Request,{params}:{params:Promise<{id:string}>}
  if(!["ready_to_ship","shipped","completed"].includes(w.status))return NextResponse.json({error:"The certificate is available after the painting is finished."},{status:409});
  let cert=w.certificate_number;
  if(!cert){cert="PS-C-"+new Date().getFullYear()+"-"+Math.random().toString(36).slice(2,8).toUpperCase();const {error:updateError}=await db.from("petit_sot_commissions").update({certificate_number:cert}).eq("id",id);if(updateError)throw updateError;}
+ const {PDFDocument,StandardFonts,rgb}=await import("pdf-lib");
  const pdf=await PDFDocument.create();const page=pdf.addPage([720,540]);const regular=await pdf.embedFont(StandardFonts.Helvetica);const bold=await pdf.embedFont(StandardFonts.HelveticaBold);const italic=await pdf.embedFont(StandardFonts.HelveticaOblique);
  const ink=rgb(.12,.12,.11),muted=rgb(.43,.42,.39),paper=rgb(.965,.953,.925),rule=rgb(.72,.70,.65);
  page.drawRectangle({x:0,y:0,width:720,height:540,color:paper});page.drawRectangle({x:22,y:22,width:676,height:496,borderColor:rule,borderWidth:.65});

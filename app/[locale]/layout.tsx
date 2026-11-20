@@ -41,9 +41,9 @@ export default async function LocaleLayout({ children, params }: { children: Rea
           <LanguageSwitcher locale={locale} />
         </div>
         <nav>
-          <Link href="/works">{t.works}</Link>
+          <Link href={locale === "sk" ? "/sk/obrazy" : "/works"}>{t.works}</Link>
           <Link href="/prints">{t.prints}</Link>
-          <Link href="/commission">{t.commission}</Link>
+          <Link href={locale === "sk" ? "/sk/malba-na-objednavku" : "/commission"}>{t.commission}</Link>
           <Link href="/journal">{t.journal}</Link>
           <Link href="/about">{t.about}</Link>
           <Link href="/contact">{t.contact}</Link>

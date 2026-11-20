@@ -57,7 +57,7 @@ export function middleware(request: NextRequest) {
   if (pathname.startsWith("/.well-known/")) return withRobots(NextResponse.next());
 
   if (["/privacy-policy", "/image-licensing", "/return-policy"].includes(pathname)) {
-    return NextResponse.next();
+    return withRobots(NextResponse.next());
   }
   if (pathname.startsWith("/admin") || pathname.startsWith("/api")) {
     return NextResponse.next();
@@ -88,7 +88,7 @@ export function middleware(request: NextRequest) {
   if (first === "ru" || first === "sk") {
     const response = NextResponse.next();
     response.cookies.set("NEXT_LOCALE", first, { path: "/", maxAge: 31536000, sameSite: "lax" });
-    return response;
+    return withRobots(response);
   }
 
   const locale = getPreferredLocale(request);
@@ -97,7 +97,7 @@ export function middleware(request: NextRequest) {
     url.pathname = `/${locale}${pathname === "/" ? "" : pathname}`;
     const response = NextResponse.redirect(url, 307);
     response.cookies.set("NEXT_LOCALE", locale, { path: "/", maxAge: 31536000, sameSite: "lax" });
-    return response;
+    return withRobots(response);
   }
 
   const url = request.nextUrl.clone();
@@ -106,7 +106,7 @@ export function middleware(request: NextRequest) {
   if (!request.cookies.get("NEXT_LOCALE")) {
     response.cookies.set("NEXT_LOCALE", "en", { path: "/", maxAge: 31536000, sameSite: "lax" });
   }
-  return response;
+  return withRobots(response);
 }
 
 export const config = {

@@ -1,5 +1,4 @@
 import {NextResponse} from "next/server";
-import {PDFDocument,StandardFonts,rgb} from "pdf-lib";
 import {createClient} from "../../../../../lib/supabase/server";
 
 export const runtime="nodejs";
@@ -88,6 +87,7 @@ export async function GET(_request:Request,{params}:{params:Promise<{id:string}>
   if(updateError)return NextResponse.json({error:"Could not save certificate number."},{status:500});
  }
 
+ const {PDFDocument,StandardFonts,rgb}=await import("pdf-lib");
  const pdf=await PDFDocument.create();
  const page=pdf.addPage([720,540]);
  const regular=await pdf.embedFont(StandardFonts.Helvetica);

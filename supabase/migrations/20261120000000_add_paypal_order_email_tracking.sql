@@ -12,8 +12,7 @@ alter table public.petit_sot_orders
   add column if not exists email_error text;
 
 create unique index if not exists petit_sot_orders_paypal_order_id_uidx
-  on public.petit_sot_orders (paypal_order_id)
-  where paypal_order_id is not null;
+  on public.petit_sot_orders (paypal_order_id);
 
 create index if not exists petit_sot_orders_unsent_order_emails_idx
   on public.petit_sot_orders (created_at)

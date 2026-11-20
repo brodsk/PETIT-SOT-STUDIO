@@ -142,13 +142,13 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
           <h1 className="hero-wordmark">PETIT.SOT <span className="wordmark-divider">|</span> <span>STUDIO</span></h1>
           <span className="hero-orbit hero-orbit-a"></span><span className="hero-orbit hero-orbit-b"></span>
         </div>
-        <div className="hero-bottom"><p>{ru ? "Независимая художественная студия в Тренчине, Словакия. Оригинальная живопись Ольги Трихлеб." : sk ? "Nezávislé umelecké štúdio v Trenčíne na Slovensku. Originálne obrazy Olgy Trikhleb." : "An independent art studio in Trenčín, Slovakia. Original paintings by Olga Trikhleb."}</p><Link className="arrow-link" href="/works">{ru ? "Смотреть работы" : sk ? "Pozrieť diela" : "View works"} <span>↗</span></Link></div>
+        <div className="hero-bottom"><p>{ru ? "Независимая художественная студия в Тренчине, Словакия. Оригинальная живопись Ольги Трихлеб." : sk ? "Nezávislé umelecké štúdio v Trenčíne na Slovensku. Originálne obrazy Olgy Trikhleb." : "An independent art studio in Trenčín, Slovakia. Original paintings by Olga Trikhleb."}</p><Link className="arrow-link" href={sk ? "/sk/obrazy" : "/works"}>{ru ? "Смотреть работы" : sk ? "Pozrieť diela" : "View works"} <span>↗</span></Link></div>
       </section>
 
       <section className="gallery-tiles gallery-tiles-all">
         <div className="gallery-tiles-head"><span>{ru ? "Работы" : sk ? "Diela" : "Works"}</span><span>{String(works.length).padStart(2, "0")} {ru ? "работ" : sk ? "diel" : "works"}</span></div>
         <div className="gallery-tiles-grid">
-          {works.map((w, i) => <Link href={"/works/" + w.slug} className="gallery-tile" key={w.slug}>
+          {works.map((w, i) => <Link href={(sk ? "/sk/obrazy/" : "/works/") + w.slug} className="gallery-tile" key={w.slug}>
             <div className="art-placeholder">{w.thumbnailUrl ? <img src={w.thumbnailUrl} alt={(ru ? w.titleRu : sk ? w.titleSk : w.titleEn) + " — " + localizeMedium(w.medium, ru ? "ru" : sk ? "sk" : "en") + ", " + w.year + (ru ? ", оригинальная картина Ольги Трихлеб" : sk ? ", originálny obraz Olgy Trikhleb" : ", original painting by Olga Trikhleb")} loading={i < 4 ? "eager" : "lazy"} decoding="async" /> : <><span>{String(i + 1).padStart(2, "0")}</span><small>{ru ? "ИЗОБРАЖЕНИЕ" : sk ? "OBRAZ" : "IMAGE"} / {w.year}</small></>}</div>
             <div className="work-meta"><span>{ru ? w.titleRu : sk ? w.titleSk : w.titleEn}</span><span>{w.year}</span></div>
             <div className="work-meta">
@@ -159,7 +159,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
         </div>
       </section>
 
-      <section className="gallery-statement"><span>{ru ? "ЗАМЕТКА СТУДИИ" : sk ? "POZNÁMKA ŠTÚDIA" : "STUDIO NOTE"}</span><p>{ru ? "Каждая работа — отдельный объект. Архив растёт постепенно." : sk ? "Každé dielo je samostatným originálom. Kolekcia sa postupne rozrastá." : "Each work exists as an independent object. The archive grows slowly."}</p><Link className="arrow-link" href="/about">{ru ? "О студии" : sk ? "O štúdiu" : "About the studio"} <span>↗</span></Link><Link className="arrow-link" href="/commission">{ru ? "Заказать картину" : sk ? "Objednať obraz" : "Commission a painting"} <span>↗</span></Link></section>
+      <section className="gallery-statement"><span>{ru ? "ЗАМЕТКА СТУДИИ" : sk ? "POZNÁMKA ŠTÚDIA" : "STUDIO NOTE"}</span><p>{ru ? "Каждая работа — отдельный объект. Архив растёт постепенно." : sk ? "Každé dielo je samostatným originálom. Kolekcia sa postupne rozrastá." : "Each work exists as an independent object. The archive grows slowly."}</p><Link className="arrow-link" href="/about">{ru ? "О студии" : sk ? "O štúdiu" : "About the studio"} <span>↗</span></Link><Link className="arrow-link" href={sk ? "/sk/malba-na-objednavku" : "/commission"}>{ru ? "Заказать картину" : sk ? "Objednať obraz" : "Commission a painting"} <span>↗</span></Link></section>
     </main>
   );
 }

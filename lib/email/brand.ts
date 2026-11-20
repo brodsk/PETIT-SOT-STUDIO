@@ -1,3 +1,5 @@
+import { sendEmail } from "./send";
+
 type EmailDetail = { label: string; value: string };
 type StudioEmail = {
   to: string | string[];
@@ -11,6 +13,7 @@ type StudioEmail = {
   buttonUrl?: string;
   footerNote?: string;
   text?: string;
+  replyTo?: string;
 };
 
 function escapeHtml(value: unknown) {
@@ -19,13 +22,10 @@ function escapeHtml(value: unknown) {
   })[char]!);
 }
 
-function senderAddress(from: string) {
-  return from.includes("<") ? from : `PETIT.SOT STUDIO <${from}>`;
-}
 
 export async function sendStudioEmail(message: StudioEmail) {
-  const key = process.env.RESEND_API_KEY;
-  const from = process.env.CONTACT_FROM_EMAIL;
+  const key = process.env.EMAIL_API_KEY?.trim() || process.env.RESEND_API_KEY?.trim();
+  const from = process.env.EMAIL_FROM?.trim() || process.env.CONTACT_FROM_EMAIL?.trim();
   if (!key || !from) {
     console.error("PETIT.SOT email is not configured");
     return false;
@@ -76,21 +76,20 @@ export async function sendStudioEmail(message: StudioEmail) {
     "PETIT.SOT STUDIO — https://www.petitsot.com",
   ].filter(Boolean).join("\n\n");
 
-  const response = await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
-    body: JSON.stringify({
-      from: senderAddress(from),
-      to: Array.isArray(message.to) ? message.to : [message.to],
-      subject: message.subject,
-      html,
-      text: plain,
-    }),
-    cache: "no-store",
-  });
-  if (!response.ok) {
-    console.error("PETIT.SOT branded email rejected", response.status, (await response.text()).slice(0, 500));
+  try {
+    const recipients = Array.isArray(message.to) ? message.to : [message.to];
+    for (const recipient of recipients) {
+      await sendEmail({
+        to: recipient,
+        subject: message.subject,
+        html,
+        text: plain,
+        replyTo: message.replyTo || process.env.EMAIL_REPLY_TO?.trim() || undefined,
+      });
+    }
+    return true;
+  } catch (error) {
+    console.error("PETIT.SOT branded email rejected", error instanceof Error ? error.message : "Unknown email error");
     return false;
   }
-  return true;
 }
